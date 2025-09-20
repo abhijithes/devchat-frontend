@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #EEEAEA;
+  --color-secondary: #ec4899;
+  --color-background: #ffffff;
+  --color-text: #000000;
+  --color-accent: #f59e0b;
+  --color-button: #000000;
+  --font-family: 'poppins', sans-serif;
+}
+.apply {
+  @apply bg-red-500;
+}
+.centered {
+  @apply flex items-center justify-center;
+}
