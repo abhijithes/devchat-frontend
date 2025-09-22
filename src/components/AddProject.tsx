@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FileMinus, X } from "lucide-react";
-import { api_url } from "../constant/constant"; 
+import { api_url, dev_api_url } from "../constant/constant"; 
 
 interface User {
   _id: string;
@@ -108,7 +108,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
 
     try {
       const res = await fetch(
-        `${api_url}/api/projects/createProject`,
+        `${dev_api_url}/api/projects/createProject`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json", "authorization": `Bearer ${localStorage.getItem("token") || ""}` },

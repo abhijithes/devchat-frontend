@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api_url } from "../constant/constant";
+import { dev_api_url } from "../constant/constant";
 
 interface Project {
-  _id: string;
-  name: string;
+  projects: { _id: string; name: string }[];
+  assignedProjects: { _id: string; name: string }[];
 }
 
+
 const SidebarButtons: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,7 +19,7 @@ const SidebarButtons: React.FC = () => {
       try {
         setLoading(true);
         setError(null); // reset error before new fetch
-        const res = await fetch(`${api_url}/api/projects/projectNames`,{
+        const res = await fetch(`${dev_api_url}/api/projects/projectNames`,{
           headers: {"authorization": `Bearer ${localStorage.getItem("token") || ""}` 
           }
         });
@@ -37,7 +38,7 @@ const SidebarButtons: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col gap-2 w-full">
+    <div className="flex flex-col gap-2 w-full max-h-full">
       {/* 🔄 Loading State */}
       {loading && (
         <p className="bg-white text-black px-4 py-2 w-full text-left">
@@ -53,12 +54,13 @@ const SidebarButtons: React.FC = () => {
       )}
 
       {/* 🟡 Empty State */}
-      {!loading && !error && projects.length === 0 && (
-        <p className="text-gray-500 px-4 py-2">No projects found</p>
-      )}
 
       {/* ✅ Projects List */}
-      {projects.map((project) => (
+      <h5 className="font-semibold mt-2">Your projects</h5>
+      {!loading && !error && (projects?.projects?.length) === 0 && (
+        <p className="text-gray-500 px-4 py-2">No projects found</p>
+      )}
+      {projects?.projects?.map((project) => (
         <Link
           key={project._id}
           to={`/projects/${project._id}`}
@@ -67,6 +69,20 @@ const SidebarButtons: React.FC = () => {
           {project.name}
         </Link>
       ))}
+      <h5 className="font-semibold mt-2">Assigned projects</h5>
+            {!loading && !error && (projects?.assignedProjects?.length) === 0 && (
+        <p className="text-gray-500 px-4 py-2">No projects found</p>
+      )}
+      {projects?.assignedProjects?.map((project) => (
+        <Link
+          key={project._id}
+          to={`/projects/${project._id}`}
+          className="bg-white text-black px-4 py-2 w-full text-left hover:bg-gray-200 transition block"
+        >
+          {project.name}
+        </Link>
+      ))}
+
     </div>
   );
 };
