@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { api_url } from "../constant/constant";
 
 interface Project {
   _id: string;
@@ -17,7 +18,7 @@ const SidebarButtons: React.FC = () => {
       try {
         setLoading(true);
         setError(null); // reset error before new fetch
-        const res = await fetch("http://localhost:5001/api/projects/projectNames",{
+        const res = await fetch(`${api_url}/api/projects/projectNames`,{
           headers: {"authorization": `Bearer ${localStorage.getItem("token") || ""}` 
           }
         });

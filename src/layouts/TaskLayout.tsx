@@ -9,14 +9,14 @@ const TaskLayout: React.FC = () => {
   return (
     <div className="flex flex-col md:flex-row min-h-screen relative">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 flex-shrink-0 bg-[rgba(238,234,234,1)] p-4 md:h-screen">
-        <SidebarButtons/>
+      <aside className="w-full md:w-64 flex-shrink-0 bg-primary p-4 md:h-screen">
         <button
           onClick={() => setShowAddProject(true)}
-          className="bg-white text-black  px-4 py-2  w-full mt-2"
+          className="bg-gray-300 text-black  px-4 py-2  w-full my-2"
         >
           ➕ Add new  Project
         </button>
+        <SidebarButtons/>
         {/* Sidebar content (projects list, etc.) */}
       </aside>
 

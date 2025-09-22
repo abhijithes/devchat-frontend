@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FileMinus, X } from "lucide-react";
+import { api_url } from "../constant/constant"; 
 
 interface User {
   _id: string;
@@ -36,7 +37,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
         try {
           setLoadingUsers(true);
           const res = await fetch(
-            `http://localhost:5001/api/users/searchUser?search=${encodeURIComponent(
+            `${api_url}/api/users/searchUser?search=${encodeURIComponent(
               searchTerm
             )}`,
             { signal: controller.signal }
@@ -107,10 +108,10 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
 
     try {
       const res = await fetch(
-        "http://localhost:5001/api/projects/createProject",
+        `${api_url}/api/projects/createProject`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "authorization": `Bearer ${localStorage.getItem("token") || ""}` },
           body: JSON.stringify(newProject),
         }
       );
