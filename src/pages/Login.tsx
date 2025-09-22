@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AuthForm: React.FC = () => {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState<boolean>(true);
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
@@ -35,6 +37,7 @@ const AuthForm: React.FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "authorization": `Bearer ${localStorage.getItem("token") || ""}` // 🔹 Include token if available
         },
         body: JSON.stringify(payload),
       });
@@ -47,7 +50,10 @@ const AuthForm: React.FC = () => {
 
       if (isLogin) {
         setSuccess("Login successful!");
-        localStorage.setItem("token", data.token); // 🔹 Save JWT token
+        console.log("JWT Token:", data.token); // 🔹 Log JWT token
+        console.log("JWT Token from res:", response); // 🔹 Log JWT token
+        localStorage.setItem("token", data.token); 
+        navigate("/");
       } else {
         setSuccess("Account created successfully!");
       }

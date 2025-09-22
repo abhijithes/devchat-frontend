@@ -17,7 +17,10 @@ const SidebarButtons: React.FC = () => {
       try {
         setLoading(true);
         setError(null); // reset error before new fetch
-        const res = await fetch("http://localhost:5001/api/projects/projectNames");
+        const res = await fetch("http://localhost:5001/api/projects/projectNames",{
+          headers: {"authorization": `Bearer ${localStorage.getItem("token") || ""}` 
+          }
+        });
         if (!res.ok) throw new Error("Failed to fetch projects");
         const data = await res.json();
         setProjects(data);
