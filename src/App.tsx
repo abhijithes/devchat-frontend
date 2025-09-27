@@ -22,7 +22,7 @@ const App: React.FC = () => {
         
         
         <Route element={<TaskLayout />}>
-          <Route path="/project" element={<Viewproject />} />
+          <Route path="/project/:id" element={<Viewproject />} />
           <Route path="/" element={<Start />} />
           {/* <Route path="/addProject" element={<AddProject />} /> */}
         </Route>

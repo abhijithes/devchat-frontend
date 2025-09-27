@@ -25,6 +25,7 @@ const SidebarButtons: React.FC = () => {
         });
         if (!res.ok) throw new Error("Failed to fetch projects");
         const data = await res.json();
+        console.log(data)
         setProjects(data);
       } catch (err: any) {
         console.error("❌ Error fetching projects:", err);
@@ -63,7 +64,7 @@ const SidebarButtons: React.FC = () => {
       {projects?.projects?.map((project) => (
         <Link
           key={project._id}
-          to={`/projects/${project._id}`}
+          to={`/project/${project._id}`}
           className="bg-white text-black px-4 py-2 w-full text-left hover:bg-gray-200 transition block"
         >
           {project.name}
@@ -76,7 +77,7 @@ const SidebarButtons: React.FC = () => {
       {projects?.assignedProjects?.map((project) => (
         <Link
           key={project._id}
-          to={`/projects/${project._id}`}
+          to={`/project/${project._id}`}
           className="bg-white text-black px-4 py-2 w-full text-left hover:bg-gray-200 transition block"
         >
           {project.name}
