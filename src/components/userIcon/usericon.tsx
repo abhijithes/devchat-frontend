@@ -17,8 +17,6 @@ const UserIcon: React.FC<UserIconProps> = ({ user }) => {
     ];
 
 
-
-
     const color = useMemo(() => {
         if (user.firstName) {
             const charCodeSum = user.firstName.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);

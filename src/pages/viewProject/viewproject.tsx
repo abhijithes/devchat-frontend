@@ -4,6 +4,7 @@ import Usericon from "../../components/userIcon/usericon";
 import { useParams } from "react-router-dom";
 import { endpoints } from "../../constant/constant";
 import ProjectDocuments from "../../components/buttons/downloadbtn";
+import { useLoader } from "../../contexts/GlobalLoaderContext";
 
 
 interface AssignedUserType {
@@ -34,10 +35,14 @@ export const Viewproject = () => {
     const { id } = useParams<{ id: string }>();
     const [project, setProject] = useState<ProjectDocument | null>(null);
     const [uploadedDocs, setUploadedDocs] = useState<UploadedFile[]>([]);
+    const { showLoader, hideLoader }: any = useLoader()
+
+
 
     useEffect(() => {
         const fetchProject = async () => {
             try {
+                showLoader()
                 const res = await fetch(endpoints.getProjectById(id), {
                     headers: { authorization: `Bearer ${localStorage.getItem("token") || ""}` },
                 });
@@ -45,6 +50,9 @@ export const Viewproject = () => {
                 setProject(data);
             } catch (err) {
                 console.log(err);
+            }
+            finally {
+                hideLoader()
             }
         };
 

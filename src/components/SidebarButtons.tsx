@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { endpoints } from "../constant/constant";
+import { useLoader } from "../contexts/GlobalLoaderContext";
 
 interface Project {
   projects: { _id: string; name: string }[];
@@ -12,12 +13,14 @@ const SidebarButtons: React.FC = () => {
   const [projects, setProjects] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { showLoader, hideLoader }: any = useLoader()
 
   // ✅ Fetch projects on component mount
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         setLoading(true);
+        showLoader()
         setError(null); // reset error before new fetch
         const res = await fetch(endpoints.getAllProjectNames, {
           headers: {
@@ -33,6 +36,7 @@ const SidebarButtons: React.FC = () => {
         setError(err.message || "Something went wrong");
       } finally {
         setLoading(false);
+        hideLoader()
       }
     };
 

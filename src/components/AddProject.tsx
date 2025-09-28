@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import TextSnippetOutlinedIcon from "@mui/icons-material/TextSnippetOutlined";
 import { endpoints } from "../constant/constant";
 import axios from "axios";
+import { useLoader } from "../contexts/GlobalLoaderContext";
 
 interface User {
     _id: string;
@@ -21,6 +22,8 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
+
+    const { showLoader, hideLoader }: any = useLoader()
 
     // file states
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -159,6 +162,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                 documents: uploadedDocument ? [uploadedDocument] : [],
             };
 
+            showLoader()
             const res = await fetch(endpoints.createProject, {
                 method: "POST",
                 headers: {
@@ -187,6 +191,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
             alert("❌ Failed to submit project with file");
         } finally {
             setUploading(false);
+            hideLoader()
         }
     };
 
