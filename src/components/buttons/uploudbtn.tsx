@@ -92,7 +92,7 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
 
             {/* Show filename if non-image */}
             {!previewUrl && selectedFile && <div className="text-sm text-gray-600">{selectedFile.name}</div>}
-            <div className="flex gap-2">
+            <div className="  flex gap-2">
                 <input type="file" onChange={handleFileChange} className="hidden" id="file-input" />
                 <label
                     htmlFor="file-input"

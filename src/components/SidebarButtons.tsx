@@ -45,6 +45,7 @@ const SidebarButtons: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-2 w-full max-h-full">
+    
       {/* 🔄 Loading State */}
       {loading && (
         <p className="bg-white text-black px-4 py-2 w-full text-left">

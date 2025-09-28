@@ -5,6 +5,7 @@ export interface UserIconProps {
 }
 
 const UserIcon: React.FC<UserIconProps> = ({ user }) => {
+
     const colors: string[] = [
         "bg-red-500",
         "bg-blue-500",
@@ -20,15 +21,18 @@ const UserIcon: React.FC<UserIconProps> = ({ user }) => {
     const color = useMemo(() => {
         if (user.firstName) {
             const charCodeSum = user.firstName.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+            console.log(charCodeSum);
+            
             return colors[charCodeSum % colors.length];
         }
+
     }, [user.firstName]);
 
     if (!user.firstName || user.firstName.trim().length === 0) return null;
 
     return (
         <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center ${color} text-black font-bold cursor-pointer`}
+            className={`w-10 h-10 rounded-full flex items-center justify-center ${color} text-white border-2 border-white font-bold cursor-pointer`}
         >
             {user.firstName?.trim().charAt(0).toUpperCase()}
         </div>
