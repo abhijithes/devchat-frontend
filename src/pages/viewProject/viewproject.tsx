@@ -5,6 +5,10 @@ import { useParams } from "react-router-dom";
 import { endpoints } from "../../constant/constant";
 import ProjectDocuments from "../../components/buttons/downloadbtn";
 
+
+interface AssignedUserType {
+    firstName: string, email: string, _id: string, profilePicture?: string
+}
 interface ProjectDocument {
     _id?: string;
     name: string;
@@ -12,7 +16,7 @@ interface ProjectDocument {
     status: "not-started" | "in-progress" | "completed";
     expectedDays?: number;
     createdBy?: string | null;
-    assignedUsers?: string[];
+    assignedUsersData?: AssignedUserType[];
     documents?: {
         fileName: string;
         originalName: string;
@@ -53,6 +57,9 @@ export const Viewproject = () => {
 
     if (!project) return <div>Loading...</div>;
 
+    console.log(project.assignedUsersData, 'from parent');
+
+
     return (
         <div className="font-family w-full h-full p-4 md:p-6 lg:p-8 xl:p-25">
             <div className="top-section">
@@ -89,8 +96,8 @@ export const Viewproject = () => {
                         <div className="allmembers m-2 md:m-3 bg-primary">
                             <p className="pb-2 md:pb-3">All members</p>
                             <div className="flex flex-wrap gap-3 md:gap-4 lg:gap-5 pb-3 md:pb-4 lg:pb-5">
-                                {project.assignedUsers.map((user, index) => (
-                                    <Usericon key={index} id={user} />
+                                {project.assignedUsersData?.map((user, index) => (
+                                    <Usericon key={index} user={user} />
                                 ))}
                                 <p className="centered cursor-pointer">
                                     <span className="text-sm">Add more</span>

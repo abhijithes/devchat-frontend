@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { endpoints } from "../../constant/constant";
+import { useMemo } from "react";
 
-interface UserIconProps {
-    id: string;
+export interface UserIconProps {
+    user: { firstName: string, email: string, _id: string, profilePicture?: string }
 }
 
-const UserIcon: React.FC<UserIconProps> = ({ id }) => {
+const UserIcon: React.FC<UserIconProps> = ({ user }) => {
     const colors: string[] = [
         "bg-red-500",
         "bg-blue-500",
@@ -16,33 +15,24 @@ const UserIcon: React.FC<UserIconProps> = ({ id }) => {
         "bg-indigo-500",
         "bg-teal-500",
     ];
-    const [name, setName] = useState<string>();
-    useEffect(() => {
-        const findName = async () => {
-            const response: any = await fetch(endpoints.getUserById(id), {
-                headers: { authorization: `Bearer ${localStorage.getItem("token") || ""}` },
-            });
-            const user: { firstName: string } = await response.json();
-            console.log(user, "from user");
-            setName(user.firstName);
-        };
-        findName();
-    }, [id]);
+
+
+
 
     const color = useMemo(() => {
-        if (name) {
-            const charCodeSum = name.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+        if (user.firstName) {
+            const charCodeSum = user.firstName.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
             return colors[charCodeSum % colors.length];
         }
-    }, [name]);
+    }, [user.firstName]);
 
-    if (!name || name.trim().length === 0) return null;
+    if (!user.firstName || user.firstName.trim().length === 0) return null;
 
     return (
         <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center ${color} text-white font-bold cursor-pointer`}
+            className={`w-10 h-10 rounded-full flex items-center justify-center ${color} text-black font-bold cursor-pointer`}
         >
-            {name.charAt(0).toUpperCase()}
+            {user.firstName?.trim().charAt(0).toUpperCase()}
         </div>
     );
 };
