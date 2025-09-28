@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import UploadButton from "../../components/buttons/uploudbtn";
 import Usericon from "../../components/userIcon/usericon";
 import { useParams } from "react-router-dom";
-import { dev_api_url } from "../../constant/constant";
+import { endpoints } from "../../constant/constant";
 import ProjectDocuments from "../../components/buttons/downloadbtn";
 
 interface ProjectDocument {
@@ -34,7 +34,7 @@ export const Viewproject = () => {
     useEffect(() => {
         const fetchProject = async () => {
             try {
-                const res = await fetch(`${dev_api_url}/api/projects/${id}`, {
+                const res = await fetch(endpoints.getProjectById(id), {
                     headers: { authorization: `Bearer ${localStorage.getItem("token") || ""}` },
                 });
                 const data = await res.json();

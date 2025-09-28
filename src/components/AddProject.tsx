@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { X, Plus } from "lucide-react";
+import { X } from "lucide-react";
 import TextSnippetOutlinedIcon from "@mui/icons-material/TextSnippetOutlined";
-import { api_url, dev_api_url } from "../constant/constant";
+import { endpoints } from "../constant/constant";
 import axios from "axios";
 
 interface User {
@@ -44,7 +44,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                 try {
                     setLoadingUsers(true);
                     const res = await fetch(
-                        `${dev_api_url}/api/users/searchUser?search=${encodeURIComponent(searchTerm)}`,
+                        `${endpoints.searchUser}?search=${encodeURIComponent(searchTerm)}`,
                         { signal: controller.signal }
                     );
 
@@ -137,7 +137,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                 const formData = new FormData();
                 formData.append("file", selectedFile);
 
-                const fileRes = await axios.post(`${dev_api_url}/api/upload`, formData, {
+                const fileRes = await axios.post(endpoints.upload, formData, {
                     headers: {
                         "Content-Type": "multipart/form-data",
                     },
@@ -159,7 +159,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                 documents: uploadedDocument ? [uploadedDocument] : [],
             };
 
-            const res = await fetch(`${dev_api_url}/api/projects/createProject`, {
+            const res = await fetch(endpoints.createProject, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -328,9 +328,8 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                 <button
                     onClick={handleSubmit}
                     disabled={uploading}
-                    className={`bg-black text-white px-10 py-3 rounded-md w-full ${
-                        uploading && "opacity-50 cursor-not-allowed"
-                    }`}
+                    className={`bg-black text-white px-10 py-3 rounded-md w-full ${uploading && "opacity-50 cursor-not-allowed"
+                        }`}
                 >
                     {uploading ? "Uploading..." : "Start"}
                 </button>

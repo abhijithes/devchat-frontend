@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { dev_api_url } from "../../constant/constant";
+import { endpoints } from "../../constant/constant";
 
 interface UserIconProps {
     id: string;
@@ -19,7 +19,7 @@ const UserIcon: React.FC<UserIconProps> = ({ id }) => {
     const [name, setName] = useState<string>();
     useEffect(() => {
         const findName = async () => {
-            const response: any = await fetch(`${dev_api_url}/api/users/${id}`, {
+            const response: any = await fetch(endpoints.getUserById(id), {
                 headers: { authorization: `Bearer ${localStorage.getItem("token") || ""}` },
             });
             const user: { firstName: string } = await response.json();
@@ -30,9 +30,9 @@ const UserIcon: React.FC<UserIconProps> = ({ id }) => {
     }, [id]);
 
     const color = useMemo(() => {
-        if(name) {
-        const charCodeSum = name.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
-        return colors[charCodeSum % colors.length];
+        if (name) {
+            const charCodeSum = name.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+            return colors[charCodeSum % colors.length];
         }
     }, [name]);
 
