@@ -1,28 +1,34 @@
 import React, { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import AddProject from "../components/AddProject";
 import SidebarButtons from "../components/SidebarButtons";
+import GlobalLoader from "./GlobalLoader";
+import { useLoader } from "../contexts/GlobalLoaderContext";
+import { Plus } from "lucide-react";
 
 const TaskLayout: React.FC = () => {
   const [showAddProject, setShowAddProject] = useState(false);
+  const { isLoading } = useLoader();
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen relative">
+      {isLoading && <GlobalLoader />}
       {/* Sidebar */}
       <aside className="w-full md:w-64 flex-shrink-0 bg-primary p-4 md:h-screen overflow-auto">
+        <Link to={"/"} className="md:text-2xl font-semibold my-4 block hover:scale-x-95 transition-all">Dev Manager</Link>
         <button
           onClick={() => setShowAddProject(true)}
-          className="bg-gray-300 text-black  px-4 py-2  w-full my-2 sticky top-0"
+          className="bg-zinc-800 text-white  px-4 py-2  flex gap-3 w-full my-2 sticky top-0"
         >
-          ➕ Add new  Project
+          <Plus /> Add new  Project
         </button>
-        <SidebarButtons/>
+        <SidebarButtons />
         {/* Sidebar content (projects list, etc.) */}
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 bg-white p-6">
-        <div className="rounded-3xl bg-gray-200 w-full h-full p-6">
+      <main className="flex-1 bg-white">
+        <div className=" w-full max-h-screen p-6 overflow-auto">
           <Outlet />
         </div>
       </main>

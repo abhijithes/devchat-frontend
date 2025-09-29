@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { endpoints } from "../constant/constant";
 
 const AuthForm: React.FC = () => {
   const navigate = useNavigate();
@@ -13,7 +14,6 @@ const AuthForm: React.FC = () => {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
 
-  const API_BASE_URL = "http://localhost:5001/api/users";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,12 +28,12 @@ const AuthForm: React.FC = () => {
     setLoading(true);
 
     try {
-      const endpoint = isLogin ? "/login" : "/register";
+      const endpoint = isLogin ? endpoints.login : endpoints.register;
       const payload = isLogin
         ? { email, password }
         : { firstName, lastName, email, password };
 
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -52,7 +52,7 @@ const AuthForm: React.FC = () => {
         setSuccess("Login successful!");
         console.log("JWT Token:", data.token); // 🔹 Log JWT token
         console.log("JWT Token from res:", response); // 🔹 Log JWT token
-        localStorage.setItem("token", data.token); 
+        localStorage.setItem("token", data.token);
         navigate("/");
       } else {
         setSuccess("Account created successfully!");

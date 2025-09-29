@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { dev_api_url } from "../../constant/constant";
+import { endpoints } from "../../constant/constant";
 import { X } from "lucide-react";
 
 interface UploadButtonProps {
@@ -41,7 +41,7 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
 
         setLoading(true);
         try {
-            const response = await fetch(`${dev_api_url}/api/upload`, {
+            const response = await fetch(endpoints.upload, {
                 method: "POST",
                 body: formData,
                 headers: {
@@ -92,7 +92,7 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
 
             {/* Show filename if non-image */}
             {!previewUrl && selectedFile && <div className="text-sm text-gray-600">{selectedFile.name}</div>}
-            <div className="flex gap-2">
+            <div className="  flex gap-2">
                 <input type="file" onChange={handleFileChange} className="hidden" id="file-input" />
                 <label
                     htmlFor="file-input"
@@ -105,9 +105,8 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
                 <button
                     onClick={handleUpload}
                     disabled={loading || !selectedFile}
-                    className={` px-4 py-2 rounded text-white ${
-                        loading || !selectedFile ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
-                    }`}
+                    className={` px-4 py-2 rounded text-white ${loading || !selectedFile ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
+                        }`}
                 >
                     {loading ? "Uploading..." : "Upload"}
                 </button>
