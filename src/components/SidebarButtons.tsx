@@ -72,7 +72,7 @@ const SidebarButtons: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col gap-2 w-full max-h-full">
+    <div className="flex flex-col gap-2 w-full max-h-full relative z-40">
       {/* 🔄 Loading State */}
       {loading && (
         <p className="bg-white text-black px-4 py-2 w-full text-left">
@@ -102,13 +102,15 @@ const SidebarButtons: React.FC = () => {
         >
           {project.name}
 
-          <div onClick={(e) => e.stopPropagation()} className="hidden absolute left-1/2 top-0 md:w-40 h-max  flex-col gap-3 bg-white border rounded-2xl z-40 p-5 shadow-2xl">
-            <h1 className="font-bold">Options</h1>
-            {
-              optionsForContextBox.map((data, index) => (
-                <Link to={data.path(project._id)} key={index} target="_blank" className="space-y-5">{data.text}</Link>
-              ))
-            }
+          <div onClick={(e) => e.stopPropagation()} className="hidden absolute left-full top-0 md:w-72 h-max  flex-col gap-3 bg-white border border-zinc-300 rounded z-40 p-5 shadow-2xl">
+            <h1 className="font-bold text-lg">Options</h1>
+            <div className="flex flex-col gap-2 mt-2">
+              {
+                optionsForContextBox.map((data, index) => (
+                  <Link to={data.path(project._id)} key={index} target="_blank" className="space-y-5 hover:text-green-700 hover:font-medium">{data.text}</Link>
+                ))
+              }
+            </div>
           </div>
         </Link>
       ))}
