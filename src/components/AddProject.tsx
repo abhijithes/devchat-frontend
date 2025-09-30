@@ -23,11 +23,13 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
     const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
 
-    const { showLoader, hideLoader }: any = useLoader()
+    const { showLoader, hideLoader }: any = useLoader();
 
-    // file states
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [preview, setPreview] = useState<string | null>(null);
+    // =========================
+    // File States
+    // =========================
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [previews, setPreviews] = useState<string[]>([]);
     const [uploading, setUploading] = useState(false);
 
     const colors = ["#3b5998", "#00acee", "#ff69b4", "#ffa500", "#4caf50"];
@@ -46,15 +48,14 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
             const fetchUsers = async () => {
                 try {
                     setLoadingUsers(true);
-                    const res = await fetch(
-                        `${endpoints.searchUser}?search=${encodeURIComponent(searchTerm)}`,
-                        { signal: controller.signal }
-                    );
+                    const res = await fetch(`${endpoints.searchUser}?search=${encodeURIComponent(searchTerm)}`, {
+                        signal: controller.signal,
+                    });
 
                     if (!res.ok) throw new Error("Failed to fetch users");
 
                     const data: User[] = await res.json();
-                    console.log(data)
+                    console.log(data);
 
                     // Defensive filter: keep only objects with valid _id and name
                     const filtered = data.filter(
@@ -110,16 +111,22 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
     // File Handling
     // =========================
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0] || null;
-        setSelectedFile(file);
+        const files = Array.from(event.target.files || []);
+        setSelectedFiles(files);
 
-        if (file && file.type.startsWith("image/")) {
-            const reader = new FileReader();
-            reader.onload = (e) => setPreview(e.target?.result as string);
-            reader.readAsDataURL(file);
-        } else {
-            setPreview(null);
+        // generate previews only for images
+        const imagePreviews = files.map((file) => (file.type.startsWith("image/") ? URL.createObjectURL(file) : ""));
+        setPreviews(imagePreviews);
+    };
+
+    const removeFile = (index: number) => {
+        // Revoke object URL if it's an image to prevent memory leaks
+        if (previews[index]) {
+            URL.revokeObjectURL(previews[index]);
         }
+
+        setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+        setPreviews((prev) => prev.filter((_, i) => i !== index));
     };
 
     // =========================
@@ -133,36 +140,40 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
         setUploading(true);
 
         try {
-            let uploadedDocument = null;
+            let uploadedDocuments: {
+                fileName: string;
+                originalName: string;
+                fileUrl: string;
+            }[] = [];
 
-            // 1. Upload the file first (if any)
-            if (selectedFile) {
+            // 1. Upload files first (if any)
+            if (selectedFiles.length > 0) {
                 const formData = new FormData();
-                formData.append("file", selectedFile);
+                selectedFiles.forEach((file) => formData.append("files", file));
 
                 const fileRes = await axios.post(endpoints.upload, formData, {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
+                    headers: { "Content-Type": "multipart/form-data" },
                 });
 
-                uploadedDocument = {
-                    fileName: fileRes.data.public_id, // Cloudinary public ID
-                    originalName: selectedFile.name,
-                    fileUrl: fileRes.data.url,
-                };
+                uploadedDocuments = fileRes.data.files.map(
+                    (file: { url: string; public_id: string }, index: number) => ({
+                        fileName: file.public_id, // Cloudinary public ID
+                        originalName: selectedFiles[index]?.name || file.public_id,
+                        fileUrl: file.url,
+                    })
+                );
             }
 
-            // 2. Create the project including uploaded document
+            // 2. Create the project including uploaded documents
             const newProject = {
                 name: projectName,
                 expectedDays: Number(expectedDays),
                 assignedUsers: selectedUsers.map((u) => u._id),
                 description: projectDescription,
-                documents: uploadedDocument ? [uploadedDocument] : [],
+                documents: uploadedDocuments,
             };
 
-            showLoader()
+            showLoader();
             const res = await fetch(endpoints.createProject, {
                 method: "POST",
                 headers: {
@@ -176,28 +187,28 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
 
             const data = await res.json();
             console.log("✅ Project created:", data);
-            alert("✅ Project with file uploaded successfully!");
+            alert("✅ Project with file(s) uploaded successfully!");
 
             // Reset form
             setProjectName("");
             setExpectedDays("");
             setProjectDescription("");
             setSelectedUsers([]);
-            setSelectedFile(null);
-            setPreview(null);
+            setSelectedFiles([]);
+            setPreviews([]);
             onClose();
         } catch (error) {
             console.error(error);
-            alert("❌ Failed to submit project with file");
+            alert("❌ Failed to submit project with file(s)");
         } finally {
             setUploading(false);
-            hideLoader()
+            hideLoader();
         }
     };
 
     return (
         <div className="fixed inset-0 bg-black/40 flex items-start justify-center z-40 p-4">
-            <div className="bg-white w-full max-w-4xl border border-black shadow-xl mt-5 relative p-6 animate-slideIn max-h-[100vh]">
+            <div className="bg-white w-full max-w-4xl border border-black shadow-xl mt-5 relative p-6 animate-slideIn max-h-[100vh] overflow-y-auto">
                 {/* Close button */}
                 <button onClick={onClose} className="absolute top-3 right-3 text-gray-500 hover:text-black">
                     <X size={20} />
@@ -251,6 +262,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                         className="hidden"
                         onChange={handleFileChange}
                         accept=".pdf,.doc,.docx,.txt,image/*"
+                        multiple
                     />
 
                     <div className="flex justify-between items-center">
@@ -264,16 +276,61 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                             <div className="flex flex-col items-start justify-center ml-2">
                                 <span>Upload</span>
                                 <span className="font-semibold">
-                                    {selectedFile ? selectedFile.name : "Document or Image"}
+                                    {selectedFiles.length > 0
+                                        ? `${selectedFiles.length} file${
+                                              selectedFiles.length !== 1 ? "s" : ""
+                                          } selected`
+                                        : "Documents or Images"}
                                 </span>
                             </div>
                         </button>
                     </div>
 
-                    {preview && (
+                    {/* File Previews */}
+                    {selectedFiles.length > 0 && (
                         <div className="mt-4">
-                            <p className="mb-2 font-medium text-sm">Image Preview:</p>
-                            <img src={preview} alt="Preview" className="w-32 h-32 object-cover rounded-lg border" />
+                            <p className="mb-2 font-medium text-sm">Selected Files ({selectedFiles.length}):</p>
+                            <div className="flex flex-wrap gap-3">
+                                {selectedFiles.map((file, index) => (
+                                    <div key={index} className="relative group">
+                                        {previews[index] ? (
+                                            <div className="w-24 h-24 relative">
+                                                <img
+                                                    src={previews[index]}
+                                                    alt={`Preview ${index + 1}`}
+                                                    className="w-full h-full object-cover rounded-lg border"
+                                                />
+                                                <button
+                                                    onClick={() => removeFile(index)}
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <X size={14} />
+                                                </button>
+                                                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 text-center truncate">
+                                                    {file.name.length > 15
+                                                        ? file.name.substring(0, 15) + "..."
+                                                        : file.name}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="w-24 h-24 bg-gray-100 border rounded-lg flex flex-col items-center justify-center p-2 relative group">
+                                                <TextSnippetOutlinedIcon className="text-gray-400" />
+                                                <span className="text-xs text-gray-600 text-center mt-1 truncate w-full">
+                                                    {file.name.length > 15
+                                                        ? file.name.substring(0, 15) + "..."
+                                                        : file.name}
+                                                </span>
+                                                <button
+                                                    onClick={() => removeFile(index)}
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <X size={14} />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
@@ -333,8 +390,9 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                 <button
                     onClick={handleSubmit}
                     disabled={uploading}
-                    className={`bg-black text-white px-10 py-3 rounded-md w-full ${uploading && "opacity-50 cursor-not-allowed"
-                        }`}
+                    className={`bg-black text-white px-10 py-3 rounded-md w-full ${
+                        uploading && "opacity-50 cursor-not-allowed"
+                    }`}
                 >
                     {uploading ? "Uploading..." : "Start"}
                 </button>

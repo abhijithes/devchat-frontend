@@ -1,60 +1,102 @@
-interface DocumentProps {
-  documents?: {
+interface Document {
     fileName: string;
     originalName: string;
     fileUrl: string;
-  }[];
 }
 
-const ProjectDocuments: React.FC<DocumentProps> = ({ documents }) => {
-  if (!documents || documents.length === 0) return <p className="my-5">No documents available.</p>;
+interface DocumentProps {
+    documents?: Document[];
+    className?: string;
+    maxColumns?: number;
+}
 
-  const getFileTypeIcon = (ext: string) => {
-    switch (ext) {
-      case "pdf":
-        return <span className="w-20 h-20 bg-red-200 flex items-center justify-center text-red-600 font-bold">PDF</span>;
-      case "doc":
-      case "docx":
-        return <span className="w-20 h-20 bg-blue-200 flex items-center justify-center text-blue-600 font-bold">DOC</span>;
-      default:
-        return <span className="w-20 h-20 bg-gray-200 flex items-center justify-center text-gray-600 font-bold">{ext?.toUpperCase()}</span>;
+const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", maxColumns = 2 }) => {
+    if (!documents || documents.length === 0) {
+        return (
+            <div className={`text-center py-8 ${className}`}>
+                <div className="text-gray-400 mb-2">
+                    <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                    </svg>
+                </div>
+                <p className="text-gray-500 text-sm">No documents available</p>
+            </div>
+        );
     }
-  };
 
-  return (
-    <div className="space-y-2 ">
-      {documents.map((doc) => {
-        const fileExt = doc.originalName.split(".").pop()?.toLowerCase();
+    const getFileIcon = (fileName: string) => {
+        const extension = fileName.split(".").pop()?.toLowerCase() || "file";
+
+        const iconConfig = {
+            pdf: { color: "text-red-500", bg: "bg-red-50", label: "PDF" },
+            doc: { color: "text-blue-500", bg: "bg-blue-50", label: "DOC" },
+            docx: { color: "text-blue-500", bg: "bg-blue-50", label: "DOC" },
+            xls: { color: "text-green-500", bg: "bg-green-50", label: "XLS" },
+            xlsx: { color: "text-green-500", bg: "bg-green-50", label: "XLS" },
+            ppt: { color: "text-orange-500", bg: "bg-orange-50", label: "PPT" },
+            pptx: { color: "text-orange-500", bg: "bg-orange-50", label: "PPT" },
+            jpg: { color: "text-purple-500", bg: "bg-purple-50", label: "IMG" },
+            jpeg: { color: "text-purple-500", bg: "bg-purple-50", label: "IMG" },
+            png: { color: "text-purple-500", bg: "bg-purple-50", label: "IMG" },
+            zip: { color: "text-yellow-500", bg: "bg-yellow-50", label: "ZIP" },
+            default: { color: "text-gray-500", bg: "bg-gray-50", label: extension.toUpperCase() },
+        };
+
+        const config = iconConfig[extension as keyof typeof iconConfig] || iconConfig.default;
 
         return (
-          <div key={doc.fileName} className="flex items-center space-x-2 border p-2 rounded">
-            {/* Preview */}
-            {fileExt === "png" || fileExt === "jpg" || fileExt === "jpeg" ? (
-              <img
-                src={doc.fileUrl}
-                alt={doc.originalName}
-                className="w-20 h-20 object-cover rounded"
-              />
-            ) : (
-              getFileTypeIcon(fileExt || "")
-            )}
-
-            {/* Name */}
-            <span className="flex-1">{doc.originalName}</span>
-
-            {/* Download */}
-            <a
-              href={doc.fileUrl}
-              download={doc.originalName}
-              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Download
-            </a>
-          </div>
+            <div className={`w-10 h-10 rounded-lg ${config.bg} ${config.color} flex items-center justify-center`}>
+                <span className="font-semibold text-xs">{config.label}</span>
+            </div>
         );
-      })}
-    </div>
-  );
-};
+    };
 
+    return (
+        <div className={className}>
+            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-${maxColumns} gap-4`}>
+                {documents.map((doc) => (
+                    <div
+                        key={doc.fileName}
+                        className="bg-white rounded-lg border border-gray-200 p-4 hover:border-gray-300 transition-colors duration-200"
+                    >
+                        <div className="flex items-start gap-3">
+                            {getFileIcon(doc.originalName)}
+
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate mb-1">{doc.originalName}</p>
+                                <p className="text-xs text-gray-500 mb-3">
+                                    {doc.originalName.split(".").pop()?.toUpperCase()}
+                                </p>
+
+                                <div className="flex gap-2">
+                                    <a
+                                        href={doc.fileUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                                        title="Preview"
+                                    >
+                                        View
+                                    </a>
+                                    <a
+                                        href={doc.fileUrl}
+                                        download={doc.originalName}
+                                        className="text-xs text-blue-500 hover:text-blue-700 transition-colors"
+                                    >
+                                        Download
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
 export default ProjectDocuments;

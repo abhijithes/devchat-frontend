@@ -6,9 +6,11 @@ import { endpoints } from "../../constant/constant";
 import ProjectDocuments from "../../components/buttons/downloadbtn";
 import { useLoader } from "../../contexts/GlobalLoaderContext";
 
-
 interface AssignedUserType {
-    firstName: string, email: string, _id: string, profilePicture?: string
+    firstName: string;
+    email: string;
+    _id: string;
+    profilePicture?: string;
 }
 interface ProjectDocument {
     _id?: string;
@@ -36,12 +38,12 @@ export const Viewproject = () => {
     const [project, setProject] = useState<ProjectDocument | null>(null);
     const [uploadedDocs, setUploadedDocs] = useState<UploadedFile[]>([]);
 
-    const { showLoader, hideLoader }: any = useLoader()
+    const { showLoader, hideLoader }: any = useLoader();
 
     useEffect(() => {
         const fetchProject = async () => {
             try {
-                showLoader()
+                showLoader();
                 const res = await fetch(endpoints.getProjectById(id), {
                     headers: { authorization: `Bearer ${localStorage.getItem("token") || ""}` },
                 });
@@ -49,9 +51,8 @@ export const Viewproject = () => {
                 setProject(data);
             } catch (err) {
                 console.log(err);
-            }
-            finally {
-                hideLoader()
+            } finally {
+                hideLoader();
             }
         };
 
@@ -64,20 +65,28 @@ export const Viewproject = () => {
 
     if (!project) return <div>Loading...</div>;
 
-
-
     return (
         <div className="font-family w-full h-full p-4 md:p-6 lg:p-8  overflow-auto ">
             <div className="top-section">
                 <div className="head flex flex-col md:flex-row justify-between gap-4 md:gap-0 sticky top-0">
-                    <h1 className="text-2xl md:text-3xl font-semibold capitalize">{project.name}</h1>
+                    <div className="flex flex-col">
+                        <h1 className="text-2xl md:text-3xl font-semibold capitalize">{project.name}</h1>
+                        <p className="pt-3 opacity-80 text-base font-medium">
+                            {new Date(project.createdAt).toLocaleDateString("en-US", {
+                                weekday: "long",
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                            })}
+                        </p>
+                    </div>
                     <p className="text-lg sm:text-xl font-semibold">Expected time : {project.expectedDays} Days</p>
                 </div>
                 <div className="description">
-                    <p className="text-base pt-3">{project.description}</p>
+                    <p className="text-base pt-3 opacity-60 mt-5">{project.description}</p>
                 </div>
-                <h2 className="text-lg font-bold mt-10">Project Documents</h2>
-                <ProjectDocuments documents={project.documents} />
+                <h2 className="text-lg font-medium mt-10">Project Documents</h2>
+                <ProjectDocuments documents={project.documents} className="my-6" />
                 {/* uploud document */}
                 <div className="space-y-4">
                     <UploadButton onUploadComplete={handleFileUpload} />
