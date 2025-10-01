@@ -30,7 +30,7 @@ const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", 
     }
 
     const getFileIcon = (fileName: string) => {
-        const extension = fileName.split(".").pop()?.toLowerCase() || "file";
+        const extension = fileName?.split(".").pop()?.toLowerCase() || "file";
 
         const iconConfig = {
             pdf: { color: "text-red-500", bg: "bg-red-50", label: "PDF" },
@@ -70,7 +70,7 @@ const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", 
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-gray-900 truncate mb-1">{doc.originalName}</p>
                                 <p className="text-xs text-gray-500 mb-3">
-                                    {doc.originalName.split(".").pop()?.toUpperCase()}
+                                    {doc.originalName?.split(".").pop()?.toUpperCase()}
                                 </p>
 
                                 <div className="flex gap-2">

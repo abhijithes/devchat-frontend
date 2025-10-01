@@ -31,6 +31,7 @@ interface ProjectDocument {
 interface UploadedFile {
     url: string;
     public_id: string;
+    originalName: string;
 }
 
 export const Viewproject = () => {
@@ -59,10 +60,24 @@ export const Viewproject = () => {
         if (id) fetchProject();
     }, [id]);
 
-    const handleFileUpload = (file: UploadedFile) => {
-        setUploadedDocs((prev) => [...prev, file]); // Add to project documents
-    };
+    const handleFileUpload = (files: UploadedFile | UploadedFile[]) => {
+        const filesArray = Array.isArray(files) ? files : [files];
 
+        setProject((prev) => {
+            if (!prev) return prev;
+
+            const newDocuments = filesArray.map((file) => ({
+                fileName: file.public_id,
+                originalName: file.originalName,
+                fileUrl: file.url,
+            }));
+
+            return {
+                ...prev,
+                documents: [...(prev.documents || []), ...newDocuments],
+            };
+        });
+    };
     if (!project) return <div>Loading...</div>;
 
     return (

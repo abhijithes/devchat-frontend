@@ -1,17 +1,19 @@
 import React, { useState, useRef } from "react";
 import { endpoints } from "../../constant/constant";
 import { X, FileUp, Upload } from "lucide-react";
+import { useParams } from "react-router-dom";
 
 interface UploadButtonProps {
-    onUploadComplete: (file: UploadedFile) => void;
+    onUploadComplete: (file: UploadedFile | UploadedFile[]) => void;
 }
-
 interface UploadedFile {
     url: string;
     public_id: string;
+    originalName?: string;
 }
 
 const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
+    const { id } = useParams<{ id: string }>();
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<(string | null)[]>([]);
     const [loading, setLoading] = useState(false);
@@ -73,8 +75,33 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
         const files = Array.from(e.dataTransfer.files);
         processSelectedFiles(files);
     };
+    // Uploud file to Databse
+    const uploudFileToDatabase = async (filedata) => {
+        const uploadedDocuments = filedata.files.map((file) => ({
+            fileName: file.public_id,
+            originalName: file.originalName,
+            fileUrl: file.url,
+        }));
 
-    // Upload file to backend
+        const response = await fetch(endpoints.addDoc(id), {
+            method: "PATCH",
+            body: JSON.stringify(uploadedDocuments),
+            headers: {
+                "content-type": "application/json",
+                authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to upload file");
+        }
+
+        const data = await response.json();
+        console.log("File uplouded to database", data);
+        return { url: data.url, public_id: data.public_id, originalName: data.originalName };
+    };
+
+    // Upload file to Cloudinary
     const handleUpload = async () => {
         if (selectedFiles.length === 0) {
             return alert("Please select at least one file first.");
@@ -100,15 +127,16 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
             if (!response.ok) {
                 throw new Error(data.message || "Upload failed");
             }
+            uploudFileToDatabase(data);
 
             // If backend returns multiple files
             if (Array.isArray(data.files)) {
                 data.files.forEach((file: UploadedFile) => {
-                    onUploadComplete({ url: file.url, public_id: file.public_id });
+                    onUploadComplete({ url: file.url, public_id: file.public_id, originalName: file.originalName });
                 });
             } else {
                 // Fallback if only one file
-                onUploadComplete({ url: data.url, public_id: data.public_id });
+                onUploadComplete({ url: data.url, public_id: data.public_id, originalName: data.originalName });
             }
 
             // Reset UI and close popup
@@ -251,35 +279,37 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
                                 />
 
                                 {/* Drag and drop area */}
-                                <div
-                                    onDragOver={handleDragOver}
-                                    onDragLeave={handleDragLeave}
-                                    onDrop={handleDrop}
-                                    onClick={handleLabelClick}
-                                    className={`border-2 border-dashed rounded cursor-pointer text-center transition-all ${
-                                        selectedFiles.length >= 10
-                                            ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
-                                            : isDragOver
-                                            ? "bg-blue-50 border-blue-400 border-2"
-                                            : "bg-gray-50 border-gray-300 hover:bg-gray-100 hover:border-blue-400 text-gray-600"
-                                    }`}
-                                >
-                                    <div className="px-4 py-8">
-                                        <Upload
-                                            className={`mx-auto mb-3 ${isDragOver ? "text-blue-500" : ""}`}
-                                            size={32}
-                                        />
-                                        <div className="font-medium text-lg mb-1">
-                                            {isDragOver ? "Drop files here" : "Choose Files"}
+                                {selectedFiles.length < 10 && (
+                                    <div
+                                        onDragOver={handleDragOver}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={handleDrop}
+                                        onClick={handleLabelClick}
+                                        className={`border-2 border-dashed rounded cursor-pointer text-center transition-all ${
+                                            selectedFiles.length >= 10
+                                                ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
+                                                : isDragOver
+                                                ? "bg-blue-50 border-blue-400 border-2"
+                                                : "bg-gray-50 border-gray-300 hover:bg-gray-100 hover:border-blue-400 text-gray-600"
+                                        }`}
+                                    >
+                                        <div className="px-4 py-8">
+                                            <Upload
+                                                className={`mx-auto mb-3 ${isDragOver ? "text-blue-500" : ""}`}
+                                                size={32}
+                                            />
+                                            <div className="font-medium text-lg mb-1">
+                                                {isDragOver ? "Drop files here" : "Choose Files"}
+                                            </div>
+                                            <div className="text-sm text-gray-500">
+                                                {selectedFiles.length >= 10
+                                                    ? "Maximum files reached"
+                                                    : "Click to browse or drag and drop files here"}
+                                            </div>
+                                            <div className="text-xs text-gray-400 mt-2">Supports all file types</div>
                                         </div>
-                                        <div className="text-sm text-gray-500">
-                                            {selectedFiles.length >= 10
-                                                ? "Maximum files reached"
-                                                : "Click to browse or drag and drop files here"}
-                                        </div>
-                                        <div className="text-xs text-gray-400 mt-2">Supports all file types</div>
                                     </div>
-                                </div>
+                                )}
 
                                 {/* Upload button */}
                                 <button

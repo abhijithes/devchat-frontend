@@ -13,6 +13,7 @@ export const endpoints = {
 
     // Document Upload
     upload: `${current_url}/upload`,
+    addDoc: (id)=>`${current_url}/projects/uploudDocument/${id}`,
 
     // Projects
     createProject: `${current_url}/projects/createProject`,
