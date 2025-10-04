@@ -12,6 +12,7 @@ interface AssignedUserType {
   _id: string;
   profilePicture?: string;
 }
+
 interface ProjectDocument {
   _id?: string;
   name: string;
@@ -28,6 +29,7 @@ interface ProjectDocument {
   createdAt?: string;
   updatedAt?: string;
 }
+
 interface UploadedFile {
   url: string;
   public_id: string;
@@ -37,8 +39,7 @@ interface UploadedFile {
 export const Viewproject = () => {
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<ProjectDocument | null>(null);
-  const [uploadedDocs] = useState<UploadedFile[]>([]);
-
+  const [uploadedDocs, setUploadedDocs] = useState<UploadedFile[]>([]);
   const { showLoader, hideLoader }: any = useLoader();
 
   useEffect(() => {
@@ -53,7 +54,7 @@ export const Viewproject = () => {
         const data = await res.json();
         setProject(data);
       } catch (err) {
-        console.log(err);
+        console.error("Failed to fetch project:", err);
       } finally {
         hideLoader();
       }
@@ -79,12 +80,15 @@ export const Viewproject = () => {
         documents: [...(prev.documents || []), ...newDocuments],
       };
     });
+
+    setUploadedDocs((prev) => [...prev, ...filesArray]);
   };
+
   if (!project) return <div>Loading...</div>;
 
   return (
     <div className="font-family w-full h-full p-4 md:p-6 lg:p-8 overflow-auto">
-      {/* Top Section */}
+      {/* Header */}
       <div className="top-section">
         <div className="head flex flex-col md:flex-row justify-between gap-4 md:gap-0 sticky top-0 bg-white z-10">
           <div className="flex flex-col">
@@ -92,7 +96,7 @@ export const Viewproject = () => {
               {project.name}
             </h1>
             <p className="pt-3 opacity-80 text-base font-medium">
-              {new Date(project.createdAt).toLocaleDateString("en-US", {
+              {new Date(project.createdAt || "").toLocaleDateString("en-US", {
                 weekday: "long",
                 year: "numeric",
                 month: "long",
@@ -116,40 +120,21 @@ export const Viewproject = () => {
         <h2 className="text-lg font-bold mt-10">Project Documents</h2>
         <ProjectDocuments documents={project.documents} className="my-6" />
 
-        {/* Upload Document */}
+        {/* Upload Documents */}
         <div className="space-y-4">
           <UploadButton onUploadComplete={handleFileUpload} />
-
-          {/* Uploaded Files */}
-          <div className="mt-4 space-y-2">
-            {uploadedDocs.map((doc, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between border p-2 rounded"
-              >
-                <span className="truncate max-w-xs">{doc.url}</span>
-                <a
-                  href={doc.url}
-                  download
-                  className="text-blue-500 hover:underline text-sm"
-                >
-                  Download
-                </a>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
       {/* Bottom Section */}
-      <div className="bottom-section mt-10 flex flex-col lg:flex-row justify-start w-full gap-6 md:gap-8 lg:gap-10">
-        {/* People (Contributors, Managers, Groups) */}
-        <div className="people border border-zinc-200 p-5 flex flex-col gap-6 justify-between w-full h-full lg:w-3/4 pb-6 md:pb-8 lg:pb-10">
-          <div className="contributors">
-            <p className="text-lg sm:text-xl font-semibold">Contributors</p>
-            <div className="allmembers mt-2 md:mt-3 bg-primary p-3">
-              <p className="pb-2 md:pb-3">All members</p>
-              <div className="flex flex-wrap gap-3 md:gap-4 lg:gap-5 pb-3 md:pb-4 lg:pb-5">
+      <div className="bottom-section mt-10 flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-10">
+        {/* Contributors and Groups */}
+        <div className="people border border-zinc-200 p-5 flex flex-col gap-6 w-full lg:w-3/4">
+          <div className="contributers">
+            <p className="text-lg font-semibold">Contributors</p>
+            <div className="allmembers mt-3 bg-primary p-3">
+              <p className="pb-3">All members</p>
+              <div className="flex flex-wrap gap-4 pb-4">
                 {project.assignedUsersData?.map((user, index) => (
                   <Usericon key={index} user={user} />
                 ))}
@@ -158,18 +143,19 @@ export const Viewproject = () => {
                 </p>
               </div>
             </div>
-            <div className="managers mt-2 md:mt-3 p-3 bg-primary">
-              <p className="pb-2 md:pb-3">Managers</p>
-              <div className="flex flex-wrap gap-3 md:gap-4 lg:gap-5 pb-3">
+            <div className="managers mt-3 p-3 bg-primary">
+              <p className="pb-3">Managers</p>
+              <div className="flex flex-wrap gap-4 pb-4">
                 <p className="centered cursor-pointer">
                   <span className="text-sm">Add more</span>
                 </p>
               </div>
             </div>
           </div>
+
           <div className="groups bg-primary p-3">
-            <p className="text-lg sm:text-xl font-semibold">Groups</p>
-            <div className="flex flex-wrap gap-3 pb-3">
+            <p className="text-lg font-semibold">Groups</p>
+            <div className="flex flex-wrap gap-4 pb-3">
               <p className="centered cursor-pointer">
                 <span className="text-sm">Add more</span>
               </p>
@@ -177,22 +163,22 @@ export const Viewproject = () => {
           </div>
         </div>
 
-        {/* Tickets Section */}
-        <div className="tasklist bg-primary w-full sm:w-full lg:w-2/5 p-2 md:p-5">
-          <div className="head flex flex-col flex-wrap sm:flex-row md:justify-between gap-2 sm:gap-0">
-            <h5 className="text-lg sm:text-xl font-medium">Tickets</h5>
-            <div className="colorinfo flex gap-2 md:gap-3 items-center flex-wrap mt-3 lg:mt-0">
+        {/* Ticket List */}
+        <div className="tasklist bg-primary w-full lg:w-2/5 p-5">
+          <div className="head flex flex-col sm:flex-row justify-between gap-2">
+            <h5 className="text-lg font-medium">Tickets</h5>
+            <div className="colorinfo flex gap-3 items-center flex-wrap">
               <div className="flex items-center gap-1">
-                <span className="bg-red-500 w-4 h-4 md:w-5 md:h-5 inline-block rounded hover:bg-red-400"></span>
-                <span className="text-sm md:text-xs">urgent</span>
+                <span className="bg-red-500 w-5 h-5 inline-block rounded"></span>
+                <span className="text-xs">urgent</span>
               </div>
               <div className="flex items-center gap-1">
-                <span className="bg-yellow-500 w-4 h-4 md:w-5 md:h-5 inline-block rounded hover:bg-yellow-400"></span>
-                <span className="text-sm md:text-xs">required</span>
+                <span className="bg-yellow-500 w-5 h-5 inline-block rounded"></span>
+                <span className="text-xs">required</span>
               </div>
               <div className="flex items-center gap-1">
-                <span className="bg-green-500 w-4 h-4 md:w-5 md:h-5 inline-block rounded hover:bg-green-400"></span>
-                <span className="text-sm md:text-xs">completed</span>
+                <span className="bg-green-500 w-5 h-5 inline-block rounded"></span>
+                <span className="text-xs">completed</span>
               </div>
             </div>
           </div>

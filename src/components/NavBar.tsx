@@ -1,10 +1,17 @@
-import { Notifications, Settings } from "@mui/icons-material";
+import {
+  KeyboardArrowLeft,
+  KeyboardArrowRight,
+  Notifications,
+  Settings,
+} from "@mui/icons-material";
 import { MenuIcon, XIcon } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigation = useNavigate();
+  const { pathname } = useLocation();
   const toggleMenu = () => setIsOpen(!isOpen);
 
   return (
@@ -15,6 +22,19 @@ const NavBar = () => {
           <Link to={"/"} className="text-xl font-bold text-zinc-900">
             DevChats.io
           </Link>
+          {/* navigation */}
+          {pathname.split("/").filter((p) => p).length > 1 && (
+            <div className="flex items-center gap-4">
+              <KeyboardArrowLeft
+                onClick={() => navigation(-1)}
+                className="h-6 w-6 text-gray-600 cursor-pointer"
+              />
+              <KeyboardArrowRight
+                onClick={() => navigation(1)}
+                className="h-6 w-6 text-gray-600 cursor-pointer"
+              />
+            </div>
+          )}
           {/* Desktop Menu */}
           <ul className="hidden md:flex space-x-6  items-center">
             <li>
@@ -38,7 +58,7 @@ const NavBar = () => {
               </Link>
             </li>
             <li>
-              <Link to="#" className="text-gray-600 hover:text-zinc-900">
+              <Link to="/profile" className="text-gray-600 hover:text-zinc-900">
                 <div
                   title="profile page"
                   className="w-10 h-10 rounded-full border border-zinc-300 bg-white hover:bg-gray-100 text-center text-black grid place-items-center "
@@ -89,7 +109,10 @@ const NavBar = () => {
             </Link>
           </li>
           <li>
-            <Link to="#" className="text-gray-600 hover:text-zinc-900 flex gap-2">
+            <Link
+              to="#"
+              className="text-gray-600 hover:text-zinc-900 flex gap-2"
+            >
               Account
               <div
                 title="profile page"

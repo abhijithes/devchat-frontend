@@ -11,6 +11,7 @@ import { Viewproject } from "../src/pages/viewProject/viewproject";
 import Login from "./pages/Login";
 import UserProfile from "./pages/userprofile/profile";
 import { LoaderProvider } from "./contexts/GlobalLoaderContext";
+import Viewprofile from "./pages/viewprofile/viewprofile";
 
 const App: React.FC = () => {
     return (
@@ -22,7 +23,8 @@ const App: React.FC = () => {
                     <Route path="/project/:id" element={<Viewproject />} />
                     <Route path="/" element={<Start />} />
                     {/* <Route path="/addProject" element={<AddProject />} /> */}
-                    <Route path="/profile/:id" element={<UserProfile />} />
+                    <Route path="/profile" element={<UserProfile />} />
+                    <Route path="/viewprofile/:id" element={<Viewprofile />}></Route>
                 </Route>
                 {/* Chat Layout :- All routes under Chat Section */}
                 <Route element={<ChatLayout />}>
