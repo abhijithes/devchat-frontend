@@ -15,3 +15,9 @@
 .centered {
   @apply flex items-center justify-center;
 }
+.flex-left{
+  @apply flex items-center justify-start;
+}
+.top-left{
+  @apply flex items-start justify-start;
+}

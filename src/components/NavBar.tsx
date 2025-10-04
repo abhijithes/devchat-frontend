@@ -1,3 +1,4 @@
+import { Notifications, Settings } from "@mui/icons-material";
 import { MenuIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -7,9 +8,9 @@ const NavBar = () => {
   const toggleMenu = () => setIsOpen(!isOpen);
 
   return (
-    <nav className=" backdrop-blur-xs bg-white/20  border border-zinc-200 rounded sticky top-0 left-0 w-full z-30">
+    <nav className=" backdrop-blur-xs bg-gradient-to-tl from-black/5 to-white/10   border-zinc-200 rounded sticky top-0 left-full w-full md:w-max z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex gap-5 justify-between items-center h-14">
           {/* Logo */}
           <Link to={"/"} className="text-xl font-bold text-zinc-900">
             DevChats.io
@@ -28,7 +29,12 @@ const NavBar = () => {
 
             <li>
               <Link to="#" className="text-gray-600 hover:text-zinc-900">
-                Dev chats
+                <Notifications />
+              </Link>
+            </li>
+            <li>
+              <Link to="#" className="text-gray-600 hover:text-zinc-900">
+                <Settings />
               </Link>
             </li>
             <li>
@@ -61,32 +67,39 @@ const NavBar = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-white px-2 pt-2 pb-3 space-y-1 shadow">
-          <a
-            href="#"
-            className="block text-gray-700 px-3 py-2 rounded hover:bg-gray-100"
-          >
-            Home
-          </a>
-          <a
-            href="#"
-            className="block text-gray-700 px-3 py-2 rounded hover:bg-gray-100"
-          >
-            About
-          </a>
-          <a
-            href="#"
-            className="block text-gray-700 px-3 py-2 rounded hover:bg-gray-100"
-          >
-            Services
-          </a>
-          <a
-            href="#"
-            className="block text-gray-700 px-3 py-2 rounded hover:bg-gray-100"
-          >
-            Contact
-          </a>
-        </div>
+        <ul className="md:hidden bg-white px-2 pt-2 pb-3 space-y-1 shadow">
+          <li>
+            <Link
+              to="#"
+              title="Go to developer chats"
+              className="text-gray-600 hover:text-zinc-900"
+            >
+              Dev chats
+            </Link>
+          </li>
+
+          <li>
+            <Link to="#" className="text-gray-600 hover:text-zinc-900">
+              Notifications <Notifications />
+            </Link>
+          </li>
+          <li>
+            <Link to="#" className="text-gray-600 hover:text-zinc-900">
+              Settings <Settings />
+            </Link>
+          </li>
+          <li>
+            <Link to="#" className="text-gray-600 hover:text-zinc-900 flex gap-2">
+              Account
+              <div
+                title="profile page"
+                className="w-10 h-10 rounded-full border border-zinc-300 bg-white hover:bg-gray-100 text-center text-black grid place-items-center "
+              >
+                M
+              </div>
+            </Link>
+          </li>
+        </ul>
       )}
     </nav>
   );

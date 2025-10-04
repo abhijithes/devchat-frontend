@@ -31,12 +31,13 @@ interface ProjectDocument {
 interface UploadedFile {
   url: string;
   public_id: string;
+  originalName: string;
 }
 
 export const Viewproject = () => {
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<ProjectDocument | null>(null);
-  const [uploadedDocs, setUploadedDocs] = useState<UploadedFile[]>([]);
+  const [uploadedDocs] = useState<UploadedFile[]>([]);
 
   const { showLoader, hideLoader }: any = useLoader();
 
@@ -61,33 +62,65 @@ export const Viewproject = () => {
     if (id) fetchProject();
   }, [id]);
 
-  const handleFileUpload = (file: UploadedFile) => {
-    setUploadedDocs((prev) => [...prev, file]); // Add to project documents
-  };
+  const handleFileUpload = (files: UploadedFile | UploadedFile[]) => {
+    const filesArray = Array.isArray(files) ? files : [files];
 
-  if (!project) return <div>...</div>;
+    setProject((prev) => {
+      if (!prev) return prev;
+
+      const newDocuments = filesArray.map((file) => ({
+        fileName: file.public_id,
+        originalName: file.originalName,
+        fileUrl: file.url,
+      }));
+
+      return {
+        ...prev,
+        documents: [...(prev.documents || []), ...newDocuments],
+      };
+    });
+  };
+  if (!project) return <div>Loading...</div>;
 
   return (
-    <div className="font-family w-full h-full p-4 md:p-6 lg:p-8  overflow-auto ">
+    <div className="font-family w-full h-full p-4 md:p-6 lg:p-8 overflow-auto">
+      {/* Top Section */}
       <div className="top-section">
-        <div className="head flex flex-col md:flex-row justify-between gap-4 md:gap-0 sticky top-0">
-          <h1 className="text-2xl md:text-3xl font-semibold capitalize">
-            {project.name}
-          </h1>
+        <div className="head flex flex-col md:flex-row justify-between gap-4 md:gap-0 sticky top-0 bg-white z-10">
+          <div className="flex flex-col">
+            <h1 className="text-2xl md:text-3xl font-semibold capitalize">
+              {project.name}
+            </h1>
+            <p className="pt-3 opacity-80 text-base font-medium">
+              {new Date(project.createdAt).toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </p>
+          </div>
           <p className="text-lg sm:text-xl font-semibold">
-            Expected time : {project.expectedDays} Days
+            Expected time: {project.expectedDays} Days
           </p>
         </div>
+
+        {/* Description */}
         <div className="description">
-          <p className="text-base pt-3">{project.description}</p>
+          <p className="text-base pt-3 opacity-60 mt-5">
+            {project.description}
+          </p>
         </div>
+
+        {/* Project Documents */}
         <h2 className="text-lg font-bold mt-10">Project Documents</h2>
-        <ProjectDocuments documents={project.documents} />
-        {/* uploud document */}
+        <ProjectDocuments documents={project.documents} className="my-6" />
+
+        {/* Upload Document */}
         <div className="space-y-4">
           <UploadButton onUploadComplete={handleFileUpload} />
 
-          {/* List uploaded files */}
+          {/* Uploaded Files */}
           <div className="mt-4 space-y-2">
             {uploadedDocs.map((doc, index) => (
               <div
@@ -107,12 +140,13 @@ export const Viewproject = () => {
           </div>
         </div>
       </div>
-      <div className="bottom-section  mt-10 flex flex-col lg:flex-row justify-start w-full gap-6 md:gap-8 lg:gap-10">
-        <div className="people border border-zinc-200 p-5 flex flex-col gap-6 justify-between   w-ful h-full lg:w-3/4 pb-6 md:pb-8 lg:pb-10">
-          <div className="contributers">
-            <p className="text-lg sm:text-xl md:text-xl font-semibold">
-              Contributors
-            </p>
+
+      {/* Bottom Section */}
+      <div className="bottom-section mt-10 flex flex-col lg:flex-row justify-start w-full gap-6 md:gap-8 lg:gap-10">
+        {/* People (Contributors, Managers, Groups) */}
+        <div className="people border border-zinc-200 p-5 flex flex-col gap-6 justify-between w-full h-full lg:w-3/4 pb-6 md:pb-8 lg:pb-10">
+          <div className="contributors">
+            <p className="text-lg sm:text-xl font-semibold">Contributors</p>
             <div className="allmembers mt-2 md:mt-3 bg-primary p-3">
               <p className="pb-2 md:pb-3">All members</p>
               <div className="flex flex-wrap gap-3 md:gap-4 lg:gap-5 pb-3 md:pb-4 lg:pb-5">
@@ -125,27 +159,27 @@ export const Viewproject = () => {
               </div>
             </div>
             <div className="managers mt-2 md:mt-3 p-3 bg-primary">
-              <p className="pb-2 md:pb-3 ">Managers</p>
-              <div className="flex flex-wrap gap-3 md:gap-4 lg:gap-5 pb-3 md:pb-4 lg:pb-5">
+              <p className="pb-2 md:pb-3">Managers</p>
+              <div className="flex flex-wrap gap-3 md:gap-4 lg:gap-5 pb-3">
                 <p className="centered cursor-pointer">
                   <span className="text-sm">Add more</span>
                 </p>
               </div>
             </div>
           </div>
-          <div className="groups bg-primary p-3 ">
-            <p className="text-lg sm:text-xl md:text-xl font-semibold">
-              Groups
-            </p>
-            <div className="flex flex-wrap gap-3 md:gap-4 lg:gap-5 pb-3 ">
+          <div className="groups bg-primary p-3">
+            <p className="text-lg sm:text-xl font-semibold">Groups</p>
+            <div className="flex flex-wrap gap-3 pb-3">
               <p className="centered cursor-pointer">
                 <span className="text-sm">Add more</span>
               </p>
             </div>
           </div>
         </div>
-        <div className="tasklist  bg-primary w-full  sm:w-full lg:w-2/5 p-2 md:p-5">
-          <div className="head flex flex-col  flex-wrap sm:flex-row md:justify-between gap-2 sm:gap-0">
+
+        {/* Tickets Section */}
+        <div className="tasklist bg-primary w-full sm:w-full lg:w-2/5 p-2 md:p-5">
+          <div className="head flex flex-col flex-wrap sm:flex-row md:justify-between gap-2 sm:gap-0">
             <h5 className="text-lg sm:text-xl font-medium">Tickets</h5>
             <div className="colorinfo flex gap-2 md:gap-3 items-center flex-wrap mt-3 lg:mt-0">
               <div className="flex items-center gap-1">
