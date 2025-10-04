@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
 import { current_url } from "../../constant/constant";
-import { useParams } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import { useState } from "react";
 import avatar from "../../assets/avatar.jpg";
+import { CircularProgress } from "@mui/material";
 import { Edit } from "@mui/icons-material";
 
 interface UserType {
@@ -14,17 +15,24 @@ interface UserType {
     about?: string;
 }
 export default function profile() {
-    const { id } = useParams<{ id: string }>();
     const [user, setUser] = useState<UserType | null>(null);
     const [userCopy, setUserCopy] = useState<UserType | null>(null);
     const [preview, setPreview] = useState<string | null>(avatar);
     const inputRef = useRef(null);
+    const [pfploading, setpfpLoading] = useState(false);
     const [editablefields, setEditablefields] = useState({
         firstName: false,
         lastName: false,
         email: false,
         about: false,
     });
+
+    const jwttoken = localStorage.getItem("token");
+    if (!jwttoken) {
+        window.location.href = "/login";
+    }
+    const decoded = jwtDecode(jwttoken) || {};
+    const { id } = decoded as { id: string };
 
     useEffect(() => {
         const fetchUserProfile = async () => {
@@ -54,8 +62,8 @@ export default function profile() {
 
     const uploadProfilePicture = async (file: File) => {
         const formData = new FormData();
-        formData.append("file", file);
-
+        formData.append("files", file);
+        setpfpLoading(true);
         const res = await fetch(`${current_url}/upload`, {
             method: "POST",
             body: formData,
@@ -68,12 +76,12 @@ export default function profile() {
             console.error("Upload failed:", pfpUrl.message);
             return;
         }
-        console.log({ url: pfpUrl.url });
+        console.log({ url: pfpUrl.files[0].url });
 
         try {
             const res = await fetch(`${current_url}/users/Update/${id}`, {
                 method: "PATCH",
-                body: JSON.stringify({ profilePicture: pfpUrl.url }),
+                body: JSON.stringify({ profilePicture: pfpUrl.files[0].url }),
                 headers: {
                     "Content-Type": "application/json",
                     authorization: `Bearer ${localStorage.getItem("token") || ""}`,
@@ -81,6 +89,7 @@ export default function profile() {
             });
 
             const data = await res.json();
+            setpfpLoading(false);
             if (res.ok) {
                 setUser((prev) => ({ ...prev, profilePicture: data.profilePicture }));
             } else {
@@ -88,6 +97,7 @@ export default function profile() {
             }
         } catch (err) {
             console.error("Error uploading profile picture:", err);
+            setpfpLoading(false);
         }
     };
 
@@ -151,6 +161,11 @@ export default function profile() {
                         </button>
                         {/* hidden input */}
                         <input type="file" className="hidden" ref={inputRef} onChange={(e) => handleFileChange(e)} />
+                        {pfploading && (
+                            <div className="z-10 w-full h-full absolute top-0 left-0 centered">
+                                <CircularProgress size={40} />
+                            </div>
+                        )}
                     </div>
 
                     <p className=" text-text font-family my-3 text-2xl font-semibold">

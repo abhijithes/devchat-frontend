@@ -37,7 +37,6 @@ interface UploadedFile {
 export const Viewproject = () => {
     const { id } = useParams<{ id: string }>();
     const [project, setProject] = useState<ProjectDocument | null>(null);
-    const [uploadedDocs, setUploadedDocs] = useState<UploadedFile[]>([]);
 
     const { showLoader, hideLoader }: any = useLoader();
 
@@ -105,18 +104,6 @@ export const Viewproject = () => {
                 {/* uploud document */}
                 <div className="space-y-4">
                     <UploadButton onUploadComplete={handleFileUpload} />
-
-                    {/* List uploaded files */}
-                    <div className="mt-4 space-y-2">
-                        {uploadedDocs.map((doc, index) => (
-                            <div key={index} className="flex items-center justify-between border p-2 rounded">
-                                <span className="truncate max-w-xs">{doc.url}</span>
-                                <a href={doc.url} download className="text-blue-500 hover:underline text-sm">
-                                    Download
-                                </a>
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </div>
             <div className="bottom-section  mt-10 flex flex-col lg:flex-row justify-start w-full gap-6 md:gap-8 lg:gap-10">
