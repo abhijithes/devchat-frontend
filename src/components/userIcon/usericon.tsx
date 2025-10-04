@@ -42,6 +42,7 @@ const UserIcon: React.FC<UserIconProps> = ({ user }) => {
 
   return (
     <div
+      title={`View ${user.firstName}'s profile`}
       onClick={handleNavigateToProfile}
       className={`w-10 h-10 rounded-full flex items-center justify-center ${color} text-white border-2 border-white font-bold cursor-pointer`}
     >
