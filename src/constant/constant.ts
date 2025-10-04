@@ -11,6 +11,9 @@ export const endpoints = {
   searchUser: `${current_url}/users/searchUser`,
   getUserById: (id) => `${current_url}/users/${id}`,
 
+    users: `${current_url}/users`,          // get all users
+  addUsers: `${current_url}/projects/addUsers`,
+
   // Document Upload
   upload: `${current_url}/upload`,
   addDoc: (id) => `${current_url}/projects/uploudDocument/${id}`,
