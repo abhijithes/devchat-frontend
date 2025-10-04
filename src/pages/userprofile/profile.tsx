@@ -150,9 +150,9 @@ export default function profile() {
     );
   }
   return (
-    <div className="w-full h-full flex justify-center items-center  ">
-      <div className="usercard w-full h-max bg-background  flex flex-col items-center gap-10">
-        <div className="profile w-full centered flex-col ">
+    <div className="w-full h-full flex justify-center items-center p-10">
+      <div className="usercard w-260 h-200 bg-background rounded-lg p-6 flex flex-col items-center gap-10">
+        <div className="profile w-full centered flex-col">
           <div className="pfp w-50 h-50 rounded-full border-4 border-gray-300 relative group overflow-hidden">
             <img
               src={`${user.profilePicture ? user.profilePicture : preview}`}
