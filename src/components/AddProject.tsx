@@ -4,6 +4,7 @@ import TextSnippetOutlinedIcon from "@mui/icons-material/TextSnippetOutlined";
 import { endpoints } from "../constant/constant";
 import axios from "axios";
 import { useLoader } from "../contexts/GlobalLoaderContext";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface User {
     _id: string;
@@ -14,85 +15,180 @@ interface AddProjectProps {
     onClose: () => void;
 }
 
+interface UploadedDocument {
+    fileName: string;
+    originalName: string;
+    fileUrl: string;
+}
+
+interface ProjectData {
+    name: string;
+    expectedDays: number;
+    assignedUsers: string[];
+    description: string;
+    documents: UploadedDocument[];
+}
+
 const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
     const [projectName, setProjectName] = useState("");
     const [expectedDays, setExpectedDays] = useState<number | "">("");
     const [projectDescription, setProjectDescription] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
-    const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-    const [loadingUsers, setLoadingUsers] = useState(false);
-
-    const { showLoader, hideLoader }: any = useLoader();
-
-    // =========================
-    // File States
-    // =========================
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
-    const [uploading, setUploading] = useState(false);
+
+    const { showLoader, hideLoader }: any = useLoader();
+    const queryClient = useQueryClient();
 
     const colors = ["#3b5998", "#00acee", "#ff69b4", "#ffa500", "#4caf50"];
 
-    // =========================
-    // Debounced search for users
-    // =========================
-    useEffect(() => {
-        const controller = new AbortController();
-        const handler = setTimeout(() => {
-            if (!searchTerm.trim()) {
-                setFilteredUsers([]);
-                return;
+    // Search users query with debouncing
+    const {
+        data: filteredUsers = [],
+        isLoading: loadingUsers,
+        isError: searchError,
+    } = useQuery({
+        queryKey: ["users", searchTerm, selectedUsers],
+        queryFn: async () => {
+            if (!searchTerm.trim()) return [];
+
+            const response = await fetch(`${endpoints.searchUser}?search=${encodeURIComponent(searchTerm)}`);
+            if (!response.ok) throw new Error("Failed to fetch users");
+
+            const data: User[] = await response.json();
+
+            // Filter out already selected users and invalid data
+            return data
+                .filter((u) => u && u._id && typeof u.email === "string" && !selectedUsers.find((s) => s._id === u._id))
+                .sort((a, b) => {
+                    const searchLower = searchTerm.toLowerCase();
+                    const nameA = a.email?.toLowerCase() || "";
+                    const nameB = b.email?.toLowerCase() || "";
+                    const aStarts = nameA.startsWith(searchLower);
+                    const bStarts = nameB.startsWith(searchLower);
+
+                    if (aStarts && !bStarts) return -1;
+                    if (!aStarts && bStarts) return 1;
+
+                    return nameA.localeCompare(nameB);
+                });
+        },
+        enabled: searchTerm.trim().length > 0,
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        gcTime: 1000 * 60 * 10, // 10 minutes
+    });
+
+    // File upload mutation
+    const fileUploadMutation = useMutation({
+        mutationFn: async (files: File[]) => {
+            const formData = new FormData();
+            files.forEach((file) => formData.append("files", file));
+
+            const response = await axios.post(endpoints.upload, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            return response.data.files.map((file: { url: string; public_id: string }, index: number) => ({
+                fileName: file.public_id,
+                originalName: files[index]?.name || file.public_id,
+                fileUrl: file.url,
+            })) as UploadedDocument[];
+        },
+        onError: (error) => {
+            console.error("File upload error:", error);
+            alert("❌ Failed to upload files");
+        },
+    });
+
+    // Project creation mutation
+    const createProjectMutation = useMutation({
+        mutationFn: async (projectData: ProjectData) => {
+            showLoader();
+            const response = await fetch(endpoints.createProject, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                },
+                body: JSON.stringify(projectData),
+            });
+
+            if (!response.ok) throw new Error("Failed to create project");
+            return await response.json();
+        },
+        onSuccess: (data) => {
+            console.log("✅ Project created:", data);
+            alert("✅ Project with file(s) uploaded successfully!");
+
+            // Invalidate projects query to refresh the list
+            queryClient.invalidateQueries({ queryKey: ["projects"] });
+
+            // Reset form and close
+            resetForm();
+            onClose();
+        },
+        onError: (error: Error) => {
+            console.error("Project creation error:", error);
+            alert("❌ Failed to create project");
+        },
+        onSettled: () => {
+            hideLoader();
+        },
+    });
+
+    const uploading = fileUploadMutation.isPending || createProjectMutation.isPending;
+
+    // Combined upload and create project handler
+    const handleSubmit = async () => {
+        if (!projectName) return alert("Project name required");
+        if (!expectedDays) return alert("Expected days required");
+        if (selectedUsers.length === 0) return alert("Select at least one user");
+
+        try {
+            let uploadedDocuments: UploadedDocument[] = [];
+
+            // Upload files first if any
+            if (selectedFiles.length > 0) {
+                uploadedDocuments = await fileUploadMutation.mutateAsync(selectedFiles);
             }
 
-            const fetchUsers = async () => {
-                try {
-                    setLoadingUsers(true);
-                    const res = await fetch(`${endpoints.searchUser}?search=${encodeURIComponent(searchTerm)}`, {
-                        signal: controller.signal,
-                    });
-
-                    if (!res.ok) throw new Error("Failed to fetch users");
-
-                    const data: User[] = await res.json();
-                    console.log(data);
-
-                    // Defensive filter: keep only objects with valid _id and name
-                    const filtered = data.filter(
-                        (u) => u && u._id && typeof u.email === "string" && !selectedUsers.find((s) => s._id === u._id)
-                    );
-
-                    const searchLower = searchTerm.toLowerCase();
-
-                    // Defensive sort
-                    const sorted = filtered.sort((a, b) => {
-                        const nameA = a.email?.toLowerCase() || "";
-                        const nameB = b.email?.toLowerCase() || "";
-                        const aStarts = nameA.startsWith(searchLower);
-                        const bStarts = nameB.startsWith(searchLower);
-
-                        if (aStarts && !bStarts) return -1;
-                        if (!aStarts && bStarts) return 1;
-
-                        return nameA.localeCompare(nameB);
-                    });
-
-                    setFilteredUsers(sorted);
-                } catch (err: any) {
-                    if (err.name !== "AbortError") console.error(err);
-                } finally {
-                    setLoadingUsers(false);
-                }
+            // Create project with uploaded documents
+            const newProject: ProjectData = {
+                name: projectName,
+                expectedDays: Number(expectedDays),
+                assignedUsers: selectedUsers.map((u) => u._id),
+                description: projectDescription,
+                documents: uploadedDocuments,
             };
 
-            fetchUsers();
-        }, 500);
+            await createProjectMutation.mutateAsync(newProject);
+        } catch (error) {
+            console.error("Submit error:", error);
+            // Error handling is done in mutation onError callbacks
+        }
+    };
 
+    // Reset form function
+    const resetForm = () => {
+        setProjectName("");
+        setExpectedDays("");
+        setProjectDescription("");
+        setSelectedUsers([]);
+        setSelectedFiles([]);
+        setPreviews([]);
+        setSearchTerm("");
+
+        // Revoke all object URLs to prevent memory leaks
+        previews.forEach((url) => url && URL.revokeObjectURL(url));
+    };
+
+    // Clean up object URLs on unmount
+    useEffect(() => {
         return () => {
-            controller.abort();
-            clearTimeout(handler);
+            previews.forEach((url) => url && URL.revokeObjectURL(url));
         };
-    }, [searchTerm, selectedUsers]);
+    }, [previews]);
 
     // =========================
     // Add & Remove Users
@@ -100,7 +196,6 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
     const addUser = (user: User) => {
         setSelectedUsers([...selectedUsers, user]);
         setSearchTerm("");
-        setFilteredUsers([]);
     };
 
     const removeUser = (id: string) => {
@@ -112,11 +207,19 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
     // =========================
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(event.target.files || []);
-        setSelectedFiles(files);
 
-        // generate previews only for images
-        const imagePreviews = files.map((file) => (file.type.startsWith("image/") ? URL.createObjectURL(file) : ""));
-        setPreviews(imagePreviews);
+        // Check if adding new files would exceed reasonable limit
+        const totalFiles = selectedFiles.length + files.length;
+        if (totalFiles > 10) {
+            alert(`Maximum of 10 files allowed. You currently have ${selectedFiles.length} files selected.`);
+            return;
+        }
+
+        setSelectedFiles((prev) => [...prev, ...files]);
+
+        // Generate previews only for images
+        const newPreviews = files.map((file) => (file.type.startsWith("image/") ? URL.createObjectURL(file) : ""));
+        setPreviews((prev) => [...prev, ...newPreviews]);
     };
 
     const removeFile = (index: number) => {
@@ -129,92 +232,26 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
         setPreviews((prev) => prev.filter((_, i) => i !== index));
     };
 
-    // =========================
-    // Handle Submit
-    // =========================
-    const handleSubmit = async () => {
-        if (!projectName) return alert("Project name required");
-        if (!expectedDays) return alert("Expected days required");
-        if (selectedUsers.length === 0) return alert("Select at least one user");
-
-        setUploading(true);
-
-        try {
-            let uploadedDocuments: {
-                fileName: string;
-                originalName: string;
-                fileUrl: string;
-            }[] = [];
-
-            // 1. Upload files first (if any)
-            if (selectedFiles.length > 0) {
-                const formData = new FormData();
-                selectedFiles.forEach((file) => formData.append("files", file));
-
-                const fileRes = await axios.post(endpoints.upload, formData, {
-                    headers: { "Content-Type": "multipart/form-data" },
-                });
-
-                uploadedDocuments = fileRes.data.files.map(
-                    (file: { url: string; public_id: string }, index: number) => ({
-                        fileName: file.public_id, // Cloudinary public ID
-                        originalName: selectedFiles[index]?.name || file.public_id,
-                        fileUrl: file.url,
-                    })
-                );
-            }
-
-            // 2. Create the project including uploaded documents
-            const newProject = {
-                name: projectName,
-                expectedDays: Number(expectedDays),
-                assignedUsers: selectedUsers.map((u) => u._id),
-                description: projectDescription,
-                documents: uploadedDocuments,
-            };
-
-            showLoader();
-            const res = await fetch(endpoints.createProject, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-                },
-                body: JSON.stringify(newProject),
-            });
-
-            if (!res.ok) throw new Error("Failed to create project");
-
-            const data = await res.json();
-            console.log("✅ Project created:", data);
-            alert("✅ Project with file(s) uploaded successfully!");
-
-            // Reset form
-            setProjectName("");
-            setExpectedDays("");
-            setProjectDescription("");
-            setSelectedUsers([]);
-            setSelectedFiles([]);
-            setPreviews([]);
-            onClose();
-        } catch (error) {
-            console.error(error);
-            alert("❌ Failed to submit project with file(s)");
-        } finally {
-            setUploading(false);
-            hideLoader();
-        }
-    };
-
     return (
         <div className="fixed inset-0 bg-black/40 flex items-start justify-center z-40 p-4">
-            <div className="bg-white w-full max-w-4xl border border-black shadow-xl mt-5 relative p-6 animate-slideIn max-h-[100vh] overflow-y-auto">
+            <div className="bg-white w-full max-w-4xl border border-black shadow-xl mt-5 relative p-6 animate-slideIn max-h-[95vh] overflow-y-auto">
                 {/* Close button */}
-                <button onClick={onClose} className="absolute top-3 right-3 text-gray-500 hover:text-black">
+                <button
+                    onClick={onClose}
+                    className="absolute top-3 right-3 text-gray-500 hover:text-black"
+                    disabled={uploading}
+                >
                     <X size={20} />
                 </button>
 
                 <h2 className="text-2xl font-poppins mb-6">Add Project</h2>
+
+                {/* Error Messages */}
+                {(fileUploadMutation.isError || createProjectMutation.isError) && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
+                        {fileUploadMutation.error?.message || createProjectMutation.error?.message}
+                    </div>
+                )}
 
                 {/* Project Fields */}
                 <div className="flex flex-col md:flex-row gap-6">
@@ -228,6 +265,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                                 className="w-full mt-1 border border-gray-300 px-3 py-2 bg-gray-200"
                                 value={projectName}
                                 onChange={(e) => setProjectName(e.target.value)}
+                                disabled={uploading}
                             />
                         </div>
                         <div className="mb-6">
@@ -238,6 +276,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                                 value={expectedDays}
                                 min={0}
                                 onChange={(e) => setExpectedDays(e.target.value ? Number(e.target.value) : "")}
+                                disabled={uploading}
                             />
                         </div>
                     </div>
@@ -250,6 +289,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                             className="w-full h-32 md:h-[90%] mt-1 border border-gray-300 px-3 py-2 bg-gray-200 resize-none"
                             value={projectDescription}
                             onChange={(e) => setProjectDescription(e.target.value)}
+                            disabled={uploading}
                         />
                     </div>
                 </div>
@@ -263,12 +303,20 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                         onChange={handleFileChange}
                         accept=".pdf,.doc,.docx,.txt,image/*"
                         multiple
+                        disabled={uploading || selectedFiles.length >= 10}
                     />
 
                     <div className="flex justify-between items-center">
                         <button
-                            className="flex items-center w-auto cursor-pointer"
-                            onClick={() => document.getElementById("fileInput")?.click()}
+                            className={`flex items-center w-auto ${
+                                uploading || selectedFiles.length >= 10
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                            }`}
+                            onClick={() =>
+                                !uploading && selectedFiles.length < 10 && document.getElementById("fileInput")?.click()
+                            }
+                            disabled={uploading || selectedFiles.length >= 10}
                         >
                             <div className="icon centered w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10">
                                 <TextSnippetOutlinedIcon fontSize="large" />
@@ -282,6 +330,9 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                                           } selected`
                                         : "Documents or Images"}
                                 </span>
+                                {selectedFiles.length >= 10 && (
+                                    <span className="text-red-500 text-xs">Maximum 10 files reached</span>
+                                )}
                             </div>
                         </button>
                     </div>
@@ -290,7 +341,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                     {selectedFiles.length > 0 && (
                         <div className="mt-4">
                             <p className="mb-2 font-medium text-sm">Selected Files ({selectedFiles.length}):</p>
-                            <div className="flex flex-wrap gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                                 {selectedFiles.map((file, index) => (
                                     <div key={index} className="relative group">
                                         {previews[index] ? (
@@ -301,8 +352,9 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                                                     className="w-full h-full object-cover rounded-lg border"
                                                 />
                                                 <button
-                                                    onClick={() => removeFile(index)}
+                                                    onClick={() => !uploading && removeFile(index)}
                                                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    disabled={uploading}
                                                 >
                                                     <X size={14} />
                                                 </button>
@@ -321,8 +373,9 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                                                         : file.name}
                                                 </span>
                                                 <button
-                                                    onClick={() => removeFile(index)}
+                                                    onClick={() => !uploading && removeFile(index)}
                                                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    disabled={uploading}
                                                 >
                                                     <X size={14} />
                                                 </button>
@@ -344,10 +397,12 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                             {selectedUsers.map((user, idx) => (
                                 <div
                                     key={user._id}
-                                    className="w-10 h-10 flex items-center justify-center rounded-full text-white font-bold text-lg cursor-pointer"
+                                    className={`w-10 h-10 flex items-center justify-center rounded-full text-white font-bold text-lg ${
+                                        uploading ? "cursor-not-allowed" : "cursor-pointer"
+                                    }`}
                                     style={{ backgroundColor: colors[idx % colors.length] }}
-                                    title="Click to remove"
-                                    onClick={() => removeUser(user._id)}
+                                    title={uploading ? "Upload in progress" : "Click to remove"}
+                                    onClick={() => !uploading && removeUser(user._id)}
                                 >
                                     {user.email[0].toUpperCase()}
                                 </div>
@@ -362,16 +417,19 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                                 className="w-full p-3 bg-gray-200 border border-gray-300 rounded-t-lg text-gray-700"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
+                                disabled={uploading}
                             />
                             {searchTerm && (
-                                <div className="absolute w-full bg-white border border-gray-300 rounded-b-lg max-h-60 overflow-y-auto z-50">
+                                <div className="absolute w-full bg-white border border-gray-300 rounded-b-lg max-h-60 overflow-y-auto z-50 shadow-lg">
                                     {loadingUsers ? (
                                         <div className="text-gray-500 text-sm p-2">Loading...</div>
+                                    ) : searchError ? (
+                                        <div className="text-red-500 text-sm p-2">Error loading users</div>
                                     ) : filteredUsers.length > 0 ? (
                                         filteredUsers.map((user) => (
                                             <div
                                                 key={user._id}
-                                                className="py-1 px-2 cursor-pointer hover:bg-blue-200 bg-blue-100 text-gray-800"
+                                                className="py-2 px-3 cursor-pointer hover:bg-blue-100 text-gray-800 border-b border-gray-100 last:border-b-0"
                                                 onClick={() => addUser(user)}
                                             >
                                                 {user.email}
@@ -390,11 +448,11 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
                 <button
                     onClick={handleSubmit}
                     disabled={uploading}
-                    className={`bg-black text-white px-10 py-3 rounded-md w-full ${
-                        uploading && "opacity-50 cursor-not-allowed"
+                    className={`bg-black text-white px-10 py-3 rounded-md w-full transition-all ${
+                        uploading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-800"
                     }`}
                 >
-                    {uploading ? "Uploading..." : "Start"}
+                    {uploading ? "Creating Project..." : "Start"}
                 </button>
             </div>
         </div>

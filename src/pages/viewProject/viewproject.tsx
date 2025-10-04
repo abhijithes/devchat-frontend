@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import UploadButton from "../../components/buttons/uploudbtn";
 import Usericon from "../../components/userIcon/usericon";
-import { useParams } from "react-router-dom";
 import { endpoints } from "../../constant/constant";
 import ProjectDocuments from "../../components/buttons/downloadbtn";
 import { useLoader } from "../../contexts/GlobalLoaderContext";
@@ -38,53 +38,71 @@ interface UploadedFile {
 
 export const Viewproject = () => {
     const { id } = useParams<{ id: string }>();
-    const [project, setProject] = useState<ProjectDocument | null>(null);
-    // const [uploadedDocs, setUploadedDocs] = useState<UploadedFile[]>([]);
+    const queryClient = useQueryClient();
     const { showLoader, hideLoader }: any = useLoader();
 
-    useEffect(() => {
-        const fetchProject = async () => {
+    const {
+        data: project,
+        isLoading,
+        error,
+    } = useQuery({
+        queryKey: ["project", id],
+        queryFn: async () => {
+            if (!id) throw new Error("Project ID is required");
+
+            showLoader();
             try {
-                showLoader();
                 const res = await fetch(endpoints.getProjectById(id), {
                     headers: {
                         authorization: `Bearer ${localStorage.getItem("token") || ""}`,
                     },
                 });
+
+                if (!res.ok) {
+                    throw new Error(`Failed to fetch project: ${res.statusText}`);
+                }
+
                 const data = await res.json();
-                setProject(data);
-            } catch (err) {
-                console.error("Failed to fetch project:", err);
+                return data as ProjectDocument;
             } finally {
                 hideLoader();
             }
-        };
-
-        if (id) fetchProject();
-    }, [id]);
+        },
+        enabled: !!id,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
 
     const handleFileUpload = (files: UploadedFile | UploadedFile[]) => {
         const filesArray = Array.isArray(files) ? files : [files];
 
-        setProject((prev) => {
-            if (!prev) return prev;
-
+        // Optimistically update the cache
+        if (project && id) {
             const newDocuments = filesArray.map((file) => ({
                 fileName: file.public_id,
                 originalName: file.originalName,
                 fileUrl: file.url,
             }));
 
-            return {
-                ...prev,
-                documents: [...(prev.documents || []), ...newDocuments],
+            const updatedProject = {
+                ...project,
+                documents: [...(project.documents || []), ...newDocuments],
             };
-        });
 
-        // setUploadedDocs((prev) => [...prev, ...filesArray]);
+            // Update the cache
+            queryClient.setQueryData(["project", id], updatedProject);
+        }
     };
 
-    if (!project) return <div>Loading...</div>;
+    if (isLoading) return <div className="flex justify-center items-center h-64">Loading...</div>;
+
+    if (error)
+        return (
+            <div className="flex justify-center items-center h-64 text-red-600">
+                Error: {error instanceof Error ? error.message : "Failed to load project"}
+            </div>
+        );
+
+    if (!project) return <div className="flex justify-center items-center h-64">Project not found</div>;
 
     return (
         <div className="font-family w-full h-full p-4 md:p-6 lg:p-8 overflow-auto">
@@ -130,7 +148,7 @@ export const Viewproject = () => {
                             <p className="pb-3">All members</p>
                             <div className="flex flex-wrap gap-4 pb-4">
                                 {project.assignedUsersData?.map((user, index) => (
-                                    <Usericon key={index} user={user} />
+                                    <Usericon key={`${user._id}-${index}`} user={user} />
                                 ))}
                                 <p className="centered cursor-pointer">
                                     <span className="text-sm">Add more</span>

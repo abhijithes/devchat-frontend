@@ -1,307 +1,388 @@
-import { useEffect, useRef } from "react";
+import { useRef, useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { current_url } from "../../constant/constant";
 import { jwtDecode } from "jwt-decode";
-import { useState } from "react";
 import avatar from "../../assets/avatar.jpg";
 import { CircularProgress } from "@mui/material";
 import { Edit } from "@mui/icons-material";
-import { useLoader } from "../../contexts/GlobalLoaderContext";
 
 interface UserType {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  profilePicture?: string;
-  about?: string;
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    profilePicture?: string;
+    about?: string;
 }
-export default function profile() {
-  const [user, setUser] = useState<UserType | null>(null);
-  const [userCopy, setUserCopy] = useState<UserType | null>(null);
-  const [preview, setPreview] = useState<string | null>(avatar);
-  const inputRef = useRef(null);
-  const [pfploading, setpfpLoading] = useState(false);
-  const [editablefields, setEditablefields] = useState({
-    firstName: false,
-    lastName: false,
-    email: false,
-    about: false,
-  });
-  const { showLoader, hideLoader } = useLoader();
 
-  const jwttoken = localStorage.getItem("token");
-  if (!jwttoken) {
-    window.location.href = "/login";
-  }
-  const decoded = jwtDecode(jwttoken) || {};
-  const { id } = decoded as { id: string };
+interface UploadResponse {
+    files: Array<{ url: string }>;
+}
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        showLoader();
-        const res = await fetch(`${current_url}/users/${id}`, {
-          headers: {
+interface JwtPayload {
+    id: string;
+}
+
+// Fetch user profile function
+const fetchUserProfile = async (id: string): Promise<UserType> => {
+    const res = await fetch(`${current_url}/users/${id}`, {
+        headers: {
             authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-          },
-        });
-        const data = await res.json();
-        setUser(data);
-        setUserCopy(data);
-        // Handle user data
-      } catch (err) {
-        console.log(err);
-      } finally {
-        hideLoader();
-      }
-    };
+        },
+    });
+    if (!res.ok) throw new Error("Failed to fetch user profile");
+    return res.json();
+};
 
-    fetchUserProfile();
-  }, [id]);
+// Update user profile function
+const updateUserProfile = async ({ id, userData }: { id: string; userData: Partial<UserType> }): Promise<UserType> => {
+    const res = await fetch(`${current_url}/users/update/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(userData),
+        headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
+    });
+    if (!res.ok) throw new Error("Failed to update profile");
+    return res.json();
+};
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setPreview(URL.createObjectURL(file)); // Show preview immediately
-      uploadProfilePicture(file); // Upload file
-    }
-  };
-
-  const uploadProfilePicture = async (file: File) => {
+// Upload file function
+const uploadFile = async (file: File): Promise<UploadResponse> => {
     const formData = new FormData();
     formData.append("files", file);
-    setpfpLoading(true);
+
     const res = await fetch(`${current_url}/upload`, {
-      method: "POST",
-      body: formData,
-      headers: {
-        authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-      },
+        method: "POST",
+        body: formData,
+        headers: {
+            authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
     });
-    const pfpUrl = await res.json();
-    if (!res.ok) {
-      console.error("Upload failed:", pfpUrl.message);
-      return;
+    if (!res.ok) throw new Error("Upload failed");
+    return res.json();
+};
+
+export default function Profile() {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [preview, setPreview] = useState<string | null>(avatar);
+    const [editableFields, setEditableFields] = useState({
+        firstName: false,
+        lastName: false,
+        email: false,
+        about: false,
+    });
+    const [localUser, setLocalUser] = useState<UserType | null>(null);
+    const queryClient = useQueryClient();
+
+    // Get user ID from token
+    const jwttoken = localStorage.getItem("token");
+    if (!jwttoken) {
+        window.location.href = "/login";
+        return null;
     }
-    console.log({ url: pfpUrl.files[0].url });
 
-    try {
-      const res = await fetch(`${current_url}/users/Update/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ profilePicture: pfpUrl.files[0].url }),
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+    const decoded = jwtDecode(jwttoken) as JwtPayload;
+    const { id } = decoded;
+
+    // TanStack Query for user profile
+    const {
+        data: user,
+        isLoading,
+        isError,
+        error,
+    } = useQuery<UserType, Error>({
+        queryKey: ["user", id],
+        queryFn: () => fetchUserProfile(id),
+        enabled: !!id,
+    });
+
+    // Set local user when data loads
+    useEffect(() => {
+        if (user && !localUser) {
+            setLocalUser(user);
+        }
+    }, [user, localUser]);
+
+    // Mutation for updating user profile
+    const updateProfileMutation = useMutation<UserType, Error, { id: string; userData: Partial<UserType> }>({
+        mutationFn: updateUserProfile,
+        onSuccess: (data) => {
+            queryClient.setQueryData(["user", id], data);
+            setLocalUser(data);
+            setEditableFields({
+                firstName: false,
+                lastName: false,
+                email: false,
+                about: false,
+            });
         },
-      });
-
-      const data = await res.json();
-      setpfpLoading(false);
-      if (res.ok) {
-        setUser((prev) => ({ ...prev, profilePicture: data.profilePicture }));
-      } else {
-        console.error("Upload failed:", data.message);
-      }
-    } catch (err) {
-      console.error("Error uploading profile picture:", err);
-      setpfpLoading(false);
-    }
-  };
-
-  const handleedit = async (e) => {
-    e.preventDefault();
-    const { name, value } = e.target;
-    setUser((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const res = await fetch(`${current_url}/users/update/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(user),
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        onError: (error: Error) => {
+            console.error("Error updating profile:", error.message);
         },
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setUser(data);
-        setUserCopy(data);
-        setEditablefields({
-          firstName: false,
-          lastName: false,
-          email: false,
-          about: false,
+    });
+
+    // Mutation for uploading profile picture
+    const uploadPfpMutation = useMutation<string, Error, File>({
+        mutationFn: async (file: File): Promise<string> => {
+            setPreview(URL.createObjectURL(file));
+            const uploadResult = await uploadFile(file);
+            const pfpUrl = uploadResult.files[0].url;
+
+            await updateProfileMutation.mutateAsync({
+                id,
+                userData: { profilePicture: pfpUrl },
+            });
+
+            return pfpUrl;
+        },
+        onError: (error: Error) => {
+            console.error("Error uploading profile picture:", error.message);
+        },
+    });
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            uploadPfpMutation.mutate(file);
+        }
+    };
+
+    const handleEdit = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setLocalUser((prev) => (prev ? { ...prev, [name]: value } : null));
+    };
+
+    const handleSubmit = () => {
+        if (localUser) {
+            updateProfileMutation.mutate({ id, userData: localUser });
+        }
+    };
+
+    const handleReset = () => {
+        setLocalUser(user || null);
+        setEditableFields({
+            firstName: false,
+            lastName: false,
+            email: false,
+            about: false,
         });
-      } else {
-        console.error("Update failed:", data.message);
-      }
-    } catch (err) {
-      console.error("Error updating profile:", err);
+    };
+
+    const hasChanges = localUser && user && JSON.stringify(localUser) !== JSON.stringify(user);
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="w-full h-full flex justify-center items-center p-4">
+                <div className="flex items-center gap-3 text-gray-600">
+                    <CircularProgress size={24} />
+                    <p className="text-lg">Loading user profile...</p>
+                </div>
+            </div>
+        );
     }
-  };
 
-  if (!user) {
+    // Error state
+    if (isError || !user) {
+        return (
+            <div className="w-full h-full flex justify-center items-center p-4">
+                <div className="text-center">
+                    <p className="text-red-600 text-lg mb-4">{error?.message || "Failed to load user profile"}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="bg-black text-white px-6 py-2 rounded-lg font-semibold"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Use localUser if available, otherwise use the original user data
+    const displayUser = localUser || user;
+
     return (
-      <div className="w-full h-full flex justify-center items-center">
-        <p className="text-gray-500">Loading user profile...</p>
-      </div>
-    );
-  }
-  return (
-    <div className="w-full h-full flex justify-center items-center p-10">
-      <div className="usercard w-260 h-200 bg-background rounded-lg p-6 flex flex-col items-center gap-10">
-        <div className="profile w-full centered flex-col">
-          <div className="pfp w-50 h-50 rounded-full border-4 border-gray-300 relative group overflow-hidden">
-            <img
-              src={`${user.profilePicture ? user.profilePicture : preview}`}
-              alt="Profile"
-              className="w-full h-full rounded-full object-cover"
-            />
-            <div className="w-full h-full absolute top-0 left-0 bg-gray-200 opacity-0 group-hover:opacity-80"></div>
-            <button
-              className="w-full h-full absolute top-0 left-0 hidden group-hover:block text-xl font-semibold font-family cursor-pointer"
-              onClick={() => inputRef.current.click()}
-            >
-              Change profile picture
-            </button>
-            {/* hidden input */}
-            <input
-              type="file"
-              className="hidden"
-              ref={inputRef}
-              onChange={(e) => handleFileChange(e)}
-            />
-            {pfploading && (
-              <div className="z-10 w-full h-full absolute top-0 left-0 centered">
-                <CircularProgress size={40} />
-              </div>
-            )}
-          </div>
+        <div className="w-full min-h-screen flex justify-center items-center p-4 md:p-6 lg:p-10">
+            <div className="usercard w-full max-w-2xl bg-background rounded-xl md:rounded-2xl p-4 md:p-6 lg:p-8 flex flex-col items-center gap-6 md:gap-8 lg:gap-10 shadow-lg border border-gray-200">
+                {/* Profile Section */}
+                <div className="profile w-full flex flex-col items-center">
+                    <div className="pfp w-32 h-32 md:w-40 md:h-40 lg:w-50 lg:h-50 rounded-full border-4 border-gray-200 relative group overflow-hidden transition-all duration-300">
+                        <img
+                            src={displayUser.profilePicture || preview || avatar}
+                            alt="Profile"
+                            className="w-full h-full rounded-full object-cover"
+                        />
+                        <div className="w-full h-full absolute top-0 left-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-300 flex items-center justify-center">
+                            <button
+                                className="text-white text-sm md:text-base font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center px-2"
+                                onClick={() => inputRef.current?.click()}
+                            >
+                                Change profile picture
+                            </button>
+                        </div>
 
-          <p className=" text-text font-family my-3 text-2xl font-semibold">
-            {user.firstName}&nbsp;{user.lastName}
-          </p>
+                        <input
+                            type="file"
+                            className="hidden"
+                            ref={inputRef}
+                            onChange={handleFileChange}
+                            accept="image/*"
+                        />
+
+                        {(uploadPfpMutation.isPending || updateProfileMutation.isPending) && (
+                            <div className="z-10 w-full h-full absolute top-0 left-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
+                                <CircularProgress size={32} style={{ color: "white" }} />
+                            </div>
+                        )}
+                    </div>
+
+                    <p className="text-text font-family my-3 text-xl md:text-2xl lg:text-3xl font-semibold text-center">
+                        {displayUser.firstName}&nbsp;{displayUser.lastName}
+                    </p>
+                </div>
+
+                {/* Edit Profile Form */}
+                <div className="editprofile flex flex-col gap-4 md:gap-5 w-full max-w-lg">
+                    {/* First Name */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full">
+                        <label className="text-text w-full sm:w-32 text-base md:text-xl font-medium">First Name</label>
+                        <div className="flex items-center gap-2 flex-1">
+                            <input
+                                type="text"
+                                maxLength={30}
+                                value={displayUser.firstName}
+                                name="firstName"
+                                onChange={handleEdit}
+                                className={`text-text text-base md:text-xl w-full min-h-12 px-3 border-2 rounded-lg transition-all ${
+                                    editableFields.firstName ? "border-blue-500 bg-white" : "border-gray-200 bg-gray-50"
+                                }`}
+                                disabled={!editableFields.firstName}
+                            />
+                            <button
+                                onClick={() =>
+                                    setEditableFields((prev) => ({
+                                        ...prev,
+                                        firstName: !prev.firstName,
+                                    }))
+                                }
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <Edit className="text-text cursor-pointer" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Last Name */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full">
+                        <label className="text-text w-full sm:w-32 text-base md:text-xl font-medium">Last Name</label>
+                        <div className="flex items-center gap-2 flex-1">
+                            <input
+                                type="text"
+                                maxLength={30}
+                                value={displayUser.lastName}
+                                onChange={handleEdit}
+                                name="lastName"
+                                className={`text-text text-base md:text-xl w-full min-h-12 px-3 border-2 rounded-lg transition-all ${
+                                    editableFields.lastName ? "border-blue-500 bg-white" : "border-gray-200 bg-gray-50"
+                                }`}
+                                disabled={!editableFields.lastName}
+                            />
+                            <button
+                                onClick={() =>
+                                    setEditableFields((prev) => ({
+                                        ...prev,
+                                        lastName: !prev.lastName,
+                                    }))
+                                }
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <Edit className="text-text cursor-pointer" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Email */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full">
+                        <label className="text-text w-full sm:w-32 text-base md:text-xl font-medium">
+                            Email address
+                        </label>
+                        <div className="flex items-center gap-2 flex-1">
+                            <input
+                                type="email"
+                                value={displayUser.email}
+                                onChange={handleEdit}
+                                name="email"
+                                className={`text-text text-base md:text-xl w-full min-h-12 px-3 border-2 rounded-lg transition-all ${
+                                    editableFields.email ? "border-blue-500 bg-white" : "border-gray-200 bg-gray-50"
+                                }`}
+                                disabled={!editableFields.email}
+                            />
+                            <button
+                                onClick={() =>
+                                    setEditableFields((prev) => ({
+                                        ...prev,
+                                        email: !prev.email,
+                                    }))
+                                }
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <Edit className="text-text cursor-pointer" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* About */}
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 w-full">
+                        <label className="text-text w-full sm:w-32 text-base md:text-xl font-medium mt-2">About</label>
+                        <div className="flex items-start gap-2 flex-1">
+                            <textarea
+                                value={displayUser.about || ""}
+                                maxLength={300}
+                                onChange={handleEdit}
+                                name="about"
+                                placeholder="Write something about you..."
+                                className={`text-text text-base md:text-xl w-full min-h-32 px-3 py-2 border-2 rounded-lg resize-none transition-all ${
+                                    editableFields.about ? "border-blue-500 bg-white" : "border-gray-200 bg-gray-50"
+                                }`}
+                                disabled={!editableFields.about}
+                            />
+                            <button
+                                onClick={() =>
+                                    setEditableFields((prev) => ({
+                                        ...prev,
+                                        about: !prev.about,
+                                    }))
+                                }
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors mt-2"
+                            >
+                                <Edit className="text-text cursor-pointer" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Action Buttons */}
+                {hasChanges && (
+                    <div className="btns flex gap-3 md:gap-5 w-full max-w-lg justify-center">
+                        <button
+                            className="border-2 border-gray-600 px-4 md:px-6 py-2 md:py-3 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition-colors text-sm md:text-base"
+                            onClick={handleReset}
+                        >
+                            Reset
+                        </button>
+                        <button
+                            className="bg-black px-4 md:px-6 py-2 md:py-3 rounded-lg text-white font-semibold hover:bg-gray-800 transition-colors text-sm md:text-base"
+                            onClick={handleSubmit}
+                            disabled={updateProfileMutation.isPending}
+                        >
+                            {updateProfileMutation.isPending ? "Saving..." : "Save"}
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
-        <div className="editprofile flex flex-col gap-5 ">
-          <div className="text-text firstname flex-left w-full">
-            <p className="text-text w-50 ml-25 text-xl">First Name</p>
-            <input
-              type="text"
-              maxLength={30}
-              value={user.firstName}
-              name="firstName"
-              onChange={(e) => handleedit(e)}
-              className={`text-text text-xl w-90 min-h-10 pl-2 ${
-                editablefields.firstName
-                  ? `border-2 border-black rounded-sm`
-                  : ``
-              }`}
-              disabled={!editablefields.firstName}
-            />
-            <button
-              onClick={() =>
-                setEditablefields((prev) => ({
-                  ...prev,
-                  firstName: !editablefields.firstName,
-                }))
-              }
-            >
-              <Edit className="ml-2 text-text cursor-pointer" />
-            </button>
-          </div>
-          <div className="text-text lastname flex-left w-full">
-            <p className="text-text w-50 ml-25 text-xl">Last Name</p>
-            <input
-              type="text"
-              maxLength={30}
-              value={user.lastName}
-              onChange={(e) => handleedit(e)}
-              name="lastName"
-              className={`text-text text-xl w-90 min-h-10 pl-2 ${
-                editablefields.lastName
-                  ? `border-2 border-black rounded-sm`
-                  : ``
-              }`}
-              disabled={!editablefields.lastName}
-            />
-            <button
-              onClick={() =>
-                setEditablefields((prev) => ({
-                  ...prev,
-                  lastName: !editablefields.lastName,
-                }))
-              }
-            >
-              <Edit className="ml-2 text-text cursor-pointer" />
-            </button>
-          </div>
-          <div className="text-text name flex-left w-full">
-            <p className="text-text w-50 ml-25 text-xl">Email address</p>
-            <input
-              type="text"
-              value={user.email}
-              onChange={(e) => handleedit(e)}
-              name="email"
-              className={`text-text text-xl w-90 min-h-10 pl-2 ${
-                editablefields.email ? `border-2 border-black rounded-sm` : ``
-              }`}
-              disabled={!editablefields.email}
-            />
-            <button
-              onClick={() =>
-                setEditablefields((prev) => ({
-                  ...prev,
-                  email: !editablefields.email,
-                }))
-              }
-            >
-              <Edit className="ml-2 text-text cursor-pointer" />
-            </button>
-          </div>
-          <div className="text-text name top-left w-full">
-            <p className="text-text w-50 ml-25 text-xl">About</p>
-            <textarea
-              value={user.about}
-              maxLength={300}
-              onChange={(e) => handleedit(e)}
-              name="about"
-              placeholder="write something about you.."
-              className={`text-text text-xl w-90 h-30 pl-2 ${
-                editablefields.about ? `border-2 border-black rounded-sm` : ``
-              }`}
-              disabled={!editablefields.about}
-            />
-            <button
-              onClick={() =>
-                setEditablefields((prev) => ({
-                  ...prev,
-                  about: !editablefields.about,
-                }))
-              }
-            >
-              <Edit className="ml-2 text-text cursor-pointer" />
-            </button>
-          </div>
-        </div>
-        <div
-          className={`btns flex gap-5 ${user === userCopy ? `hidden` : `flex`}`}
-        >
-          <button
-            className=" border-2 border-black px-4 md:px-6 py-3 rounded-lg text-black font-semibold"
-            onClick={() => setUser(userCopy)}
-          >
-            Reset
-          </button>
-          <button
-            className="bg-black px-4 md:px-6 py-3 rounded-lg text-white font-semibold"
-            onClick={handleSubmit}
-          >
-            Save
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+    );
 }

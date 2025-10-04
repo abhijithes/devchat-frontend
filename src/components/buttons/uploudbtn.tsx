@@ -2,13 +2,22 @@ import React, { useState, useRef } from "react";
 import { endpoints } from "../../constant/constant";
 import { X, FileUp, Upload } from "lucide-react";
 import { useParams } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface UploadButtonProps {
     onUploadComplete: (file: UploadedFile | UploadedFile[]) => void;
 }
+
 interface UploadedFile {
     url: string;
     public_id: string;
+    originalName?: string;
+}
+
+interface CloudinaryResponse {
+    files: UploadedFile[];
+    url?: string;
+    public_id?: string;
     originalName?: string;
 }
 
@@ -16,10 +25,115 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
     const { id } = useParams<{ id: string }>();
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<(string | null)[]>([]);
-    const [loading, setLoading] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const queryClient = useQueryClient();
+
+    // Mutation for uploading files to Cloudinary
+    const uploadToCloudinaryMutation = useMutation({
+        mutationFn: async (files: File[]) => {
+            const formData = new FormData();
+            files.forEach((file) => {
+                formData.append("files", file);
+            });
+
+            const response = await fetch(endpoints.upload, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                },
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Upload failed");
+            }
+
+            return data as CloudinaryResponse;
+        },
+        onError: (error: Error) => {
+            console.error("Upload error:", error);
+            alert("File upload failed. Please try again.");
+        },
+    });
+
+    // Mutation for uploading file data to database
+    const uploadToDatabaseMutation = useMutation({
+        mutationFn: async (filedata: CloudinaryResponse) => {
+            const uploadedDocuments = filedata.files.map((file) => ({
+                fileName: file.public_id,
+                originalName: file.originalName,
+                fileUrl: file.url,
+            }));
+
+            const response = await fetch(endpoints.addDoc(id), {
+                method: "PATCH",
+                body: JSON.stringify(uploadedDocuments),
+                headers: {
+                    "content-type": "application/json",
+                    authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to upload file to database");
+            }
+
+            const data = await response.json();
+            console.log("File uploaded to database", data);
+            return data;
+        },
+        onSuccess: () => {
+            // Invalidate relevant queries if needed
+            queryClient.invalidateQueries({ queryKey: ["documents"] });
+        },
+    });
+
+    // Combined upload mutation
+    const uploadMutation = useMutation({
+        mutationFn: async (files: File[]) => {
+            // First upload to Cloudinary
+            const cloudinaryResponse = await uploadToCloudinaryMutation.mutateAsync(files);
+
+            // Then upload to database
+            await uploadToDatabaseMutation.mutateAsync(cloudinaryResponse);
+
+            return cloudinaryResponse;
+        },
+        onSuccess: (data: CloudinaryResponse) => {
+            // Call the completion callback
+            if (Array.isArray(data.files)) {
+                data.files.forEach((file: UploadedFile) => {
+                    onUploadComplete({
+                        url: file.url,
+                        public_id: file.public_id,
+                        originalName: file.originalName,
+                    });
+                });
+            } else {
+                // Fallback if only one file
+                onUploadComplete({
+                    url: data.url!,
+                    public_id: data.public_id!,
+                    originalName: data.originalName,
+                });
+            }
+
+            // Reset UI and close popup
+            setSelectedFiles([]);
+            setPreviewUrls([]);
+            setShowPopup(false);
+        },
+        onError: (error: Error) => {
+            console.error("Upload process failed:", error);
+            alert("File upload process failed. Please try again.");
+        },
+    });
+
+    const loading = uploadMutation.isPending;
 
     // Handle file select
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,80 +189,14 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
         const files = Array.from(e.dataTransfer.files);
         processSelectedFiles(files);
     };
-    // Uploud file to Databse
-    const uploudFileToDatabase = async (filedata) => {
-        const uploadedDocuments = filedata.files.map((file) => ({
-            fileName: file.public_id,
-            originalName: file.originalName,
-            fileUrl: file.url,
-        }));
 
-        const response = await fetch(endpoints.addDoc(id), {
-            method: "PATCH",
-            body: JSON.stringify(uploadedDocuments),
-            headers: {
-                "content-type": "application/json",
-                authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error("Failed to upload file");
-        }
-
-        const data = await response.json();
-        console.log("File uplouded to database", data);
-        return { url: data.url, public_id: data.public_id, originalName: data.originalName };
-    };
-
-    // Upload file to Cloudinary
+    // Upload files
     const handleUpload = async () => {
         if (selectedFiles.length === 0) {
             return alert("Please select at least one file first.");
         }
 
-        const formData = new FormData();
-        selectedFiles.forEach((file) => {
-            formData.append("files", file);
-        });
-
-        setLoading(true);
-        try {
-            const response = await fetch(endpoints.upload, {
-                method: "POST",
-                body: formData,
-                headers: {
-                    authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-                },
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || "Upload failed");
-            }
-            uploudFileToDatabase(data);
-
-            // If backend returns multiple files
-            if (Array.isArray(data.files)) {
-                data.files.forEach((file: UploadedFile) => {
-                    onUploadComplete({ url: file.url, public_id: file.public_id, originalName: file.originalName });
-                });
-            } else {
-                // Fallback if only one file
-                onUploadComplete({ url: data.url, public_id: data.public_id, originalName: data.originalName });
-            }
-
-            // Reset UI and close popup
-            setSelectedFiles([]);
-            setPreviewUrls([]);
-            setShowPopup(false);
-        } catch (error) {
-            console.error("Upload error:", error);
-            alert("File upload failed. Please try again.");
-        } finally {
-            setLoading(false);
-        }
+        uploadMutation.mutate(selectedFiles);
     };
 
     const handleClosePopup = () => {
@@ -156,6 +204,11 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
         setPreviewUrls([]);
         setShowPopup(false);
         setIsDragOver(false);
+
+        // Reset mutations if in error state
+        if (uploadMutation.isError) {
+            uploadMutation.reset();
+        }
     };
 
     const removeFile = (index: number) => {
@@ -186,23 +239,24 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
             >
                 <FileUp size={36} color="black" />
                 <div className="flex flex-col ml-2 items-start justify-start">
-                    <span className="text-text font-semibold text-sm">Uploud</span>
+                    <span className="text-text font-semibold text-sm">Upload</span>
                     <span className="text-text text-sm">Document</span>
                 </div>
             </button>
 
             {/* Popup Modal with Black Background */}
             {showPopup && (
-                <div className="fixed inset-0 bg-opacity-75 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-sm shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto border-1 ">
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-sm shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto border-1">
                         {/* Header */}
-                        <div className="flex items-center justify-between p-4">
+                        <div className="flex items-center justify-between p-4 border-b">
                             <h2 className="text-lg font-semibold">Upload Files</h2>
                             <div className="flex items-center gap-2">
                                 <span className="text-sm text-gray-500">{selectedFiles.length}/10 files</span>
                                 <button
                                     onClick={handleClosePopup}
                                     className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                                    disabled={loading}
                                 >
                                     <X size={20} />
                                 </button>
@@ -220,11 +274,18 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
                                 </div>
                             )}
 
+                            {/* Error message */}
+                            {uploadMutation.isError && (
+                                <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-800">
+                                    Upload failed: {uploadMutation.error?.message}
+                                </div>
+                            )}
+
                             {/* Previews */}
                             {previewUrls.length > 0 && (
                                 <div className="mb-4">
                                     <h3 className="text-sm font-medium mb-2">Selected Files:</h3>
-                                    <div className="flex gap-3 flex-wrap">
+                                    <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
                                         {previewUrls.map((url, idx) => (
                                             <div key={idx} className="w-20 h-20 relative group">
                                                 {url ? (
@@ -275,7 +336,7 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
                                     onChange={handleFileChange}
                                     className="hidden"
                                     id="file-input"
-                                    disabled={selectedFiles.length >= 10}
+                                    disabled={selectedFiles.length >= 10 || loading}
                                 />
 
                                 {/* Drag and drop area */}
@@ -286,7 +347,7 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
                                         onDrop={handleDrop}
                                         onClick={handleLabelClick}
                                         className={`border-2 border-dashed rounded cursor-pointer text-center transition-all ${
-                                            selectedFiles.length >= 10
+                                            selectedFiles.length >= 10 || loading
                                                 ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
                                                 : isDragOver
                                                 ? "bg-blue-50 border-blue-400 border-2"
@@ -302,8 +363,8 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
                                                 {isDragOver ? "Drop files here" : "Choose Files"}
                                             </div>
                                             <div className="text-sm text-gray-500">
-                                                {selectedFiles.length >= 10
-                                                    ? "Maximum files reached"
+                                                {selectedFiles.length >= 10 || loading
+                                                    ? "Maximum files reached or uploading in progress"
                                                     : "Click to browse or drag and drop files here"}
                                             </div>
                                             <div className="text-xs text-gray-400 mt-2">Supports all file types</div>
