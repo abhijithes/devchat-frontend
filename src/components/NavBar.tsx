@@ -29,7 +29,7 @@ const NavBar = () => {
     removeToken();
     setIsLoggedIn(false);
     navigation("/login");
-    queryClient.invalidateQueries(["projects"]);
+    queryClient.invalidateQueries({ queryKey: ["projects"] });
   };
 
   return (
