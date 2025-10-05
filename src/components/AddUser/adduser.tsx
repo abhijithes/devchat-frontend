@@ -6,13 +6,22 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 interface User {
     _id: string;
     email: string;
+    firstName?: string;
+    profilePicture?: string;
+}
+
+interface AddUserProps {
+    projectid: string;
+    usertype: "member" | "manager";
+    currentMembers?: User[];
 }
 
 const colors = ["#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#FFC733", "#33FFF5", "#B833FF", "#FF8333"];
 
-export default function AddUser({ projectid, usertype }: { projectid: string; usertype: "member" | "manager" }) {
+export default function AddUser({ projectid, usertype, currentMembers = [] }: AddUserProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+    const [showCurrentMembers, setShowCurrentMembers] = useState(false);
 
     // Search users query with debouncing
     const {
@@ -21,10 +30,23 @@ export default function AddUser({ projectid, usertype }: { projectid: string; us
         isError: searchError,
         refetch: refetchUsers,
     } = useQuery({
-        queryKey: ["users", searchTerm],
+        queryKey: ["users", searchTerm, usertype],
         queryFn: async () => {
             if (!searchTerm.trim()) return [];
 
+            // For manager mode, search within current members only
+            if (usertype === "manager") {
+                const searchLower = searchTerm.toLowerCase();
+                const filtered = currentMembers.filter(
+                    (member) =>
+                        member.email.toLowerCase().includes(searchLower) ||
+                        member.firstName?.toLowerCase().includes(searchLower)
+                );
+                // Filter out already selected users
+                return filtered.filter((u: User) => !selectedUsers.some((s) => s._id === u._id));
+            }
+
+            // For member mode, use the original API search
             const token = localStorage.getItem("token") || "";
             const response = await axios.get(`${endpoints.searchUser}?search=${encodeURIComponent(searchTerm)}`, {
                 headers: {
@@ -36,11 +58,10 @@ export default function AddUser({ projectid, usertype }: { projectid: string; us
             return response.data.filter((u: User) => !selectedUsers.some((s) => s._id === u._id));
         },
         enabled: false, // Manual triggering
-        staleTime: 1000 * 60 * 5, // 5 minutes
-        gcTime: 1000 * 60 * 10, // 10 minutes
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
         retry: 2,
     });
-    console.log(filteredUsers);
 
     // Add users mutation
     const addUsersMutation = useMutation({
@@ -63,6 +84,7 @@ export default function AddUser({ projectid, usertype }: { projectid: string; us
             // Reset form
             setSelectedUsers([]);
             setSearchTerm("");
+            setShowCurrentMembers(false);
         },
         onError: (error: Error) => {
             console.error("Error adding users:", error);
@@ -74,7 +96,6 @@ export default function AddUser({ projectid, usertype }: { projectid: string; us
         setSearchTerm(term);
 
         if (term.trim()) {
-            // Use setTimeout for debouncing instead of useEffect
             const timeoutId = setTimeout(() => {
                 refetchUsers();
             }, 400);
@@ -86,6 +107,7 @@ export default function AddUser({ projectid, usertype }: { projectid: string; us
     const addUser = (user: User) => {
         setSelectedUsers([...selectedUsers, user]);
         setSearchTerm("");
+        setShowCurrentMembers(false);
     };
 
     const removeUser = (id: string) => {
@@ -104,7 +126,66 @@ export default function AddUser({ projectid, usertype }: { projectid: string; us
     return (
         <div>
             <div className="mb-6">
-                <label className="block text-gray-700 mb-2">Peoples</label>
+                <label className="block text-gray-700 mb-2">{usertype === "manager" ? "Managers" : "Members"}</label>
+
+                {/* Show current members section for manager mode */}
+                {usertype === "manager" && currentMembers.length > 0 && (
+                    <div className="mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-gray-600 font-medium">
+                                Current Members ({currentMembers.length})
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setShowCurrentMembers(!showCurrentMembers)}
+                                className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                            >
+                                {showCurrentMembers ? "Hide" : "Show"} members
+                            </button>
+                        </div>
+
+                        {showCurrentMembers && (
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 max-h-40 overflow-y-auto">
+                                <div className="space-y-2">
+                                    {currentMembers.map((member) => (
+                                        <div
+                                            key={member._id}
+                                            className="flex items-center justify-between py-2 px-3 hover:bg-gray-100 rounded cursor-pointer transition-colors"
+                                            onClick={() => addUser(member)}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                {member.profilePicture ? (
+                                                    <img
+                                                        src={member.profilePicture}
+                                                        alt={member.firstName || member.email}
+                                                        className="w-6 h-6 rounded-full"
+                                                    />
+                                                ) : (
+                                                    <div
+                                                        className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                                                        style={{
+                                                            backgroundColor:
+                                                                colors[member._id.charCodeAt(0) % colors.length],
+                                                        }}
+                                                    >
+                                                        {(member.firstName || member.email)[0].toUpperCase()}
+                                                    </div>
+                                                )}
+                                                <span className="text-sm text-gray-700">
+                                                    {member.firstName || member.email}
+                                                </span>
+                                            </div>
+                                            <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                                                Add
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-4 sm:gap-6 items-start">
                     {/* Selected users */}
                     <div className="flex flex-wrap gap-2 sm:gap-3 justify-center md:justify-start">
@@ -115,14 +196,16 @@ export default function AddUser({ projectid, usertype }: { projectid: string; us
                                     uploading ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:opacity-80"
                                 }`}
                                 style={{ backgroundColor: colors[idx % colors.length] }}
-                                title={uploading ? "Upload in progress" : "Click to remove"}
+                                title={uploading ? "Upload in progress" : `Click to remove ${user.email}`}
                                 onClick={() => !uploading && removeUser(user._id)}
                             >
                                 {user.email[0].toUpperCase()}
                             </div>
                         ))}
                         {selectedUsers.length === 0 && (
-                            <div className="text-gray-500 text-sm italic py-2">No users selected</div>
+                            <div className="text-gray-500 text-sm italic py-2">
+                                No {usertype === "manager" ? "managers" : "users"} selected
+                            </div>
                         )}
                     </div>
 
@@ -130,7 +213,11 @@ export default function AddUser({ projectid, usertype }: { projectid: string; us
                     <div className="flex-1 relative">
                         <input
                             type="text"
-                            placeholder="Search person / group"
+                            placeholder={
+                                usertype === "manager"
+                                    ? "Search current members to make managers..."
+                                    : "Search person / group"
+                            }
                             className="w-full p-3 bg-gray-200 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                             value={searchTerm}
                             onChange={(e) => handleSearchChange(e.target.value)}
@@ -143,7 +230,7 @@ export default function AddUser({ projectid, usertype }: { projectid: string; us
                                 {loadingUsers ? (
                                     <div className="text-gray-500 text-sm p-3 text-center">
                                         <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>
-                                        Loading users...
+                                        {usertype === "manager" ? "Searching members..." : "Loading users..."}
                                     </div>
                                 ) : searchError ? (
                                     <div className="text-red-500 text-sm p-3 text-center">
@@ -157,11 +244,19 @@ export default function AddUser({ projectid, usertype }: { projectid: string; us
                                             onClick={() => addUser(user)}
                                         >
                                             <div className="font-medium">{user.email}</div>
+                                            {user.firstName && (
+                                                <div className="text-sm text-gray-600">{user.firstName}</div>
+                                            )}
+                                            {usertype === "manager" && (
+                                                <div className="text-xs text-green-600 mt-1">Current Member</div>
+                                            )}
                                         </div>
                                     ))
                                 ) : searchTerm.trim() ? (
                                     <div className="text-gray-500 text-sm p-3 text-center">
-                                        No users found for "{searchTerm}"
+                                        {usertype === "manager"
+                                            ? `No current members found for "${searchTerm}"`
+                                            : `No users found for "${searchTerm}"`}
                                     </div>
                                 ) : null}
                             </div>
@@ -173,13 +268,13 @@ export default function AddUser({ projectid, usertype }: { projectid: string; us
             {/* Status Messages */}
             {addUsersMutation.isError && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
-                    Failed to add users: {addUsersMutation.error?.message}
+                    Failed to add {usertype === "manager" ? "managers" : "members"}: {addUsersMutation.error?.message}
                 </div>
             )}
 
             {addUsersMutation.isSuccess && (
                 <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-green-800 text-sm">
-                    Member added successfully!
+                    {usertype === "manager" ? "Managers" : "Members"} added successfully!
                 </div>
             )}
 
@@ -194,17 +289,20 @@ export default function AddUser({ projectid, usertype }: { projectid: string; us
                 {uploading ? (
                     <div className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Adding Member...
+                        Adding {usertype === "manager" ? "Managers" : "Members"}...
                     </div>
                 ) : (
-                    `Add ${selectedUsers.length} Member${selectedUsers.length !== 1 ? "s" : ""}`
+                    `Add ${selectedUsers.length} ${usertype === "manager" ? "Manager" : "Member"}${
+                        selectedUsers.length !== 1 ? "s" : ""
+                    }`
                 )}
             </button>
 
             {/* Selection Info */}
             {selectedUsers.length > 0 && !uploading && (
                 <div className="mt-3 text-center text-sm text-gray-600">
-                    Ready to add {selectedUsers.length} user{selectedUsers.length !== 1 ? "s" : ""}
+                    Ready to add {selectedUsers.length} {usertype === "manager" ? "manager" : "user"}
+                    {selectedUsers.length !== 1 ? "s" : ""}
                 </div>
             )}
         </div>

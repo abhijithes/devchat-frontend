@@ -24,6 +24,7 @@ interface ProjectDocument {
     expectedDays?: number;
     createdBy?: string | null;
     assignedUsersData?: AssignedUserType[];
+    managersData?: AssignedUserType[];
     documents?: {
         fileName: string;
         originalName: string;
@@ -171,6 +172,9 @@ export const Viewproject = () => {
                         <div className="managers mt-3 p-3 bg-primary">
                             <p className="pb-3">Managers</p>
                             <div className="flex flex-wrap gap-4 pb-4">
+                                {project.managersData?.map((user, index) => (
+                                    <Usericon key={`${user._id}-${index}`} user={user} />
+                                ))}
                                 <p className="centered cursor-pointer">
                                     <span
                                         className="text-sm"
@@ -203,7 +207,11 @@ export const Viewproject = () => {
                         }}
                         className="w-[40vw]"
                     >
-                        <AddUser projectid={id} usertype={AddUserType} />
+                        <AddUser
+                            projectid={id}
+                            usertype={AddUserType}
+                            currentMembers={project.assignedUsersData || []}
+                        />
                     </DialogueBox>
                 )}
 
