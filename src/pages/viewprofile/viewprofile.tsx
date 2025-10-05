@@ -174,7 +174,7 @@ export default function ViewProfile() {
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
                                     {/* Assigned Projects */}
-                                    {assignedProjects.map((project, i) => (
+                                    {assignedProjects.map((project) => (
                                         <div
                                             key={`assigned-${project._id}`}
                                             className="project-card bg-white border border-gray-200 rounded-lg p-4 md:p-5 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
@@ -191,7 +191,7 @@ export default function ViewProfile() {
                                     ))}
 
                                     {/* Owned Projects */}
-                                    {userProjects.map((project, i) => (
+                                    {userProjects.map((project) => (
                                         <div
                                             key={`owned-${project._id}`}
                                             className="project-card bg-white border border-gray-200 rounded-lg p-4 md:p-5 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer group"
