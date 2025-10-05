@@ -15,7 +15,7 @@ const TaskLayout: React.FC = () => {
     <div className="flex flex-col md:flex-row min-h-screen ">
       {isLoading && <GlobalLoader />}
       {/* Sidebar */}
-      <aside className="w-full md:w-64 flex-shrink-0 bg-primary p-4 md:h-screen  ">
+      <aside className="w-full md:w-64 flex-shrink-0 bg-primary p-4 md:h-screen  overflow-y-auto md:pb-20 ">
         <Link
           to={"/"}
           className="md:text-2xl font-semibold my-4 block hover:scale-x-95 transition-all"
