@@ -44,9 +44,13 @@ const UserIcon: React.FC<UserIconProps> = ({ user }) => {
     <div
       title={`View ${user.firstName}'s profile`}
       onClick={handleNavigateToProfile}
-      className={`w-10 h-10 rounded-full flex items-center justify-center ${color} text-white border-2 border-white font-bold cursor-pointer`}
+      className={`w-10 h-10 rounded-full flex items-center justify-center ${color} text-white border-2 border-white font-bold cursor-pointer overflow-hidden`}
     >
-      {user.firstName?.trim().charAt(0).toUpperCase()}
+      {!user.profilePicture ? (
+        user.firstName?.trim().charAt(0).toUpperCase()
+      ) : (
+        <img src={user.profilePicture} alt={user.firstName} className="w-full h-full object-cover" />
+      )}
     </div>
   );
 };

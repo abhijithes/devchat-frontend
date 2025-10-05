@@ -24,7 +24,7 @@ const TaskLayout: React.FC = () => {
         </Link>
         <button
           onClick={() => setShowAddProject(true)}
-          className="bg-zinc-800 text-white  px-4 py-2  flex gap-3 w-full my-2 sticky top-0"
+          className="bg-zinc-800 text-white  px-4 py-2  flex gap-3 w-full my-2 sticky top-0 z-40"
         >
           <Plus /> Add new Project
         </button>

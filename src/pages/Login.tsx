@@ -50,8 +50,8 @@ const AuthForm: React.FC = () => {
 
       if (isLogin) {
         setSuccess("Login successful!");
-        console.log("JWT Token:", data.token); // 🔹 Log JWT token
-        console.log("JWT Token from res:", response); // 🔹 Log JWT token
+        console.log("JWT token:", data.token); // 🔹 Log JWT token
+        console.log("JWT token from res:", response); // 🔹 Log JWT token
         localStorage.setItem("token", data.token);
         navigate("/");
       } else {

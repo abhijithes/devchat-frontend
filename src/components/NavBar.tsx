@@ -5,14 +5,29 @@ import {
   Settings,
 } from "@mui/icons-material";
 import { MenuIcon, XIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { getToken, removeToken } from "../utils/token";
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const navigation = useNavigate();
   const { pathname } = useLocation();
+
   const toggleMenu = () => setIsOpen(!isOpen);
+
+  useEffect(() => {
+    setIsLoggedIn(getToken() ? true : false);
+  });
+
+  const handleLogout = () => {
+    if (!confirm("Are you sure you want to logout?")) return;
+    removeToken();
+    setIsLoggedIn(false);
+    navigation("/login");
+  };
 
   return (
     <nav className=" backdrop-blur-xs bg-gradient-to-tl from-black/5 to-white/10   border-zinc-200 rounded sticky top-0 left-full w-full md:w-max z-30">
@@ -57,16 +72,42 @@ const NavBar = () => {
                 <Settings />
               </Link>
             </li>
-            <li>
-              <Link to="/profile" className="text-gray-600 hover:text-zinc-900">
-                <div
-                  title="profile page"
-                  className="w-10 h-10 rounded-full border border-zinc-300 bg-white hover:bg-gray-100 text-center text-black grid place-items-center "
+            {isLoggedIn ? (
+              <li className="relative group">
+                <Link
+                  to="/profile"
+                  className="text-gray-600 hover:text-zinc-900"
                 >
-                  M
+                  <div
+                    title="profile page"
+                    className="w-10 h-10 rounded-full border border-zinc-300 bg-white hover:bg-gray-100 text-center text-black grid place-items-center group "
+                  >
+                    M
+                  </div>
+                </Link>
+                <div className="hidden group-hover:block absolute right-0  w-48 bg-white border border-gray-200 rounded shadow-lg z-40">
+                  <li>
+                    <Link
+                      to="/profile"
+                      className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                    >
+                      Account
+                    </Link>
+                  </li>
+                  <li
+                    onClick={() => handleLogout()}
+                    className="block px-4 py-2 text-red-500 hover:bg-gray-100"
+                  >
+                    Logout
+                  </li>
                 </div>
-              </Link>
-            </li>
+              </li>
+            ) : (
+              <div>
+                <li>Login</li>
+                <li>Register</li>
+              </div>
+            )}
           </ul>
 
           {/* Mobile Menu Button */}
@@ -121,6 +162,12 @@ const NavBar = () => {
                 M
               </div>
             </Link>
+          </li>
+          <li
+            onClick={() => handleLogout()}
+            className="block px-4 py-2 text-red-500 hover:bg-gray-100"
+          >
+            Logout
           </li>
         </ul>
       )}
