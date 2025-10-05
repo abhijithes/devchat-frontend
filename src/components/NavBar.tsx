@@ -8,12 +8,14 @@ import { MenuIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getToken, removeToken } from "../utils/token";
+import { useQueryClient } from "@tanstack/react-query";
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const navigation = useNavigate();
+  const queryClient = useQueryClient();
   const { pathname } = useLocation();
 
   const toggleMenu = () => setIsOpen(!isOpen);
@@ -27,6 +29,7 @@ const NavBar = () => {
     removeToken();
     setIsLoggedIn(false);
     navigation("/login");
+    queryClient.invalidateQueries(["projects"]);
   };
 
   return (
