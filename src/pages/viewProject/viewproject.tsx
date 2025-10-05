@@ -1,10 +1,13 @@
 import { useParams } from "react-router-dom";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import UploadButton from "../../components/buttons/uploudbtn";
 import Usericon from "../../components/userIcon/usericon";
 import { endpoints } from "../../constant/constant";
 import ProjectDocuments from "../../components/buttons/downloadbtn";
 import { useLoader } from "../../contexts/GlobalLoaderContext";
+import AddUser from "../../components/AddUser/adduser";
+import DialogueBox from "../../components/dailogue-box/dialogueBox";
 
 interface AssignedUserType {
     firstName: string;
@@ -40,6 +43,8 @@ export const Viewproject = () => {
     const { id } = useParams<{ id: string }>();
     const queryClient = useQueryClient();
     const { showLoader, hideLoader }: any = useLoader();
+    const [showDialogue, setShowDialogue] = useState(false);
+    const [AddUserType, setAddUserType] = useState<"member" | "manager">("member");
 
     const {
         data: project,
@@ -151,7 +156,15 @@ export const Viewproject = () => {
                                     <Usericon key={`${user._id}-${index}`} user={user} />
                                 ))}
                                 <p className="centered cursor-pointer">
-                                    <span className="text-sm">Add more</span>
+                                    <span
+                                        className="text-sm"
+                                        onClick={() => {
+                                            setAddUserType("member");
+                                            setShowDialogue(true);
+                                        }}
+                                    >
+                                        Add more
+                                    </span>
                                 </p>
                             </div>
                         </div>
@@ -159,7 +172,15 @@ export const Viewproject = () => {
                             <p className="pb-3">Managers</p>
                             <div className="flex flex-wrap gap-4 pb-4">
                                 <p className="centered cursor-pointer">
-                                    <span className="text-sm">Add more</span>
+                                    <span
+                                        className="text-sm"
+                                        onClick={() => {
+                                            setAddUserType("manager");
+                                            setShowDialogue(true);
+                                        }}
+                                    >
+                                        Add more
+                                    </span>
                                 </p>
                             </div>
                         </div>
@@ -174,6 +195,17 @@ export const Viewproject = () => {
                         </div>
                     </div>
                 </div>
+                {/* add member and groups section end here  */}
+                {showDialogue && (
+                    <DialogueBox
+                        onClose={() => {
+                            setShowDialogue(false);
+                        }}
+                        className="w-[40vw]"
+                    >
+                        <AddUser projectid={id} usertype={AddUserType} />
+                    </DialogueBox>
+                )}
 
                 {/* Ticket List */}
                 <div className="tasklist bg-primary w-full lg:w-2/5 p-5">

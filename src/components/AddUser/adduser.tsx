@@ -10,7 +10,7 @@ interface User {
 
 const colors = ["#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#FFC733", "#33FFF5", "#B833FF", "#FF8333"];
 
-export default function AddUser() {
+export default function AddUser({ projectid, usertype }: { projectid: string; usertype: "member" | "manager" }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
 
@@ -25,7 +25,12 @@ export default function AddUser() {
         queryFn: async () => {
             if (!searchTerm.trim()) return [];
 
-            const response = await axios.get(`${endpoints.users}?search=${encodeURIComponent(searchTerm)}`);
+            const token = localStorage.getItem("token") || "";
+            const response = await axios.get(`${endpoints.searchUser}?search=${encodeURIComponent(searchTerm)}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
             // Filter out already selected users
             return response.data.filter((u: User) => !selectedUsers.some((s) => s._id === u._id));
@@ -35,13 +40,22 @@ export default function AddUser() {
         gcTime: 1000 * 60 * 10, // 10 minutes
         retry: 2,
     });
+    console.log(filteredUsers);
 
     // Add users mutation
     const addUsersMutation = useMutation({
         mutationFn: async (userIds: string[]) => {
-            const response = await axios.post(endpoints.addUsers, {
-                users: userIds,
-            });
+            const response = await axios.patch(
+                usertype == "member" ? endpoints.addmember(projectid) : endpoints.addmanager(projectid),
+                {
+                    userIds,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                    },
+                }
+            );
             return response.data;
         },
         onSuccess: (data) => {
@@ -165,7 +179,7 @@ export default function AddUser() {
 
             {addUsersMutation.isSuccess && (
                 <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-green-800 text-sm">
-                    Users added successfully!
+                    Member added successfully!
                 </div>
             )}
 
@@ -174,18 +188,16 @@ export default function AddUser() {
                 onClick={handleSubmit}
                 disabled={uploading || selectedUsers.length === 0}
                 className={`bg-black text-white px-6 sm:px-10 py-3 rounded-md w-full transition-all ${
-                    uploading || selectedUsers.length === 0
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-gray-800 transform hover:scale-105"
+                    uploading || selectedUsers.length === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-zinc-800"
                 }`}
             >
                 {uploading ? (
                     <div className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Adding Users...
+                        Adding Member...
                     </div>
                 ) : (
-                    `Add ${selectedUsers.length} User${selectedUsers.length !== 1 ? "s" : ""}`
+                    `Add ${selectedUsers.length} Member${selectedUsers.length !== 1 ? "s" : ""}`
                 )}
             </button>
 
