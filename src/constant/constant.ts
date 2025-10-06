@@ -11,8 +11,13 @@ export const endpoints = {
     searchUser: `${current_url}/users/searchUser`,
     getUserById: (id) => `${current_url}/users/${id}`,
 
+    addmember: (id) => `${current_url}/projects/addmember/${id}`,
+    removeMember: (id) => `${current_url}/projects/removeMember/${id}`,
+    addmanager: (id) => `${current_url}/projects/addmanager/${id}`,
+
     // Document Upload
     upload: `${current_url}/upload`,
+    addDoc: (id) => `${current_url}/projects/uploudDocument/${id}`,
 
     // Projects
     createProject: `${current_url}/projects/createProject`,
