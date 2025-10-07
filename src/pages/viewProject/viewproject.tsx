@@ -306,14 +306,23 @@ export const Viewproject = () => {
                             tasksData.map((task) => (
                                 <div
                                     key={task._id}
-                                    className={`task p-3 mb-3 border rounded flex justify-between items-center hover:shadow-md cursor-pointer ${
+                                    className={`task p-3 mb-3 border flex justify-between items-center hover:shadow-md cursor-pointer ${
                                         task.priority === "urgent"
-                                            ? "border-red-500 bg-red-200 text-red-500"
+                                            ? "border-red-500 "
                                             : task.priority === "required"
-                                            ? "border-yellow-500 bg-yellow-200 text-yellow-500"
-                                            : "border-green-500 bg-green-200 text-green-500"
+                                            ? "border-yellow-500 "
+                                            : "border-green-500 "
                                     }`}
                                 >
+                                    <div
+                                        className={`w-5 h-5 mr-3 rounded border-2 ${
+                                            task.priority === "urgent"
+                                                ? "border-red-300 bg-red-500"
+                                                : task.priority === "required"
+                                                ? "border-yellow-300 bg-yellow-500"
+                                                : "border-green-300 bg-green-500"
+                                        }`}
+                                    ></div>
                                     <p className="font-semibold ">{task.taskId}</p>
                                     <h6 className="flex-1 ml-3">{task.name}</h6>
                                     <ArrowRight />
