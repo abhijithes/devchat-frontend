@@ -29,5 +29,6 @@ export const endpoints = {
     `${current_url}/projects/${projectId}/tasks/${taskId}`,
   deleteTask: (projectId, taskId) =>
     `${current_url}/projects/${projectId}/tasks/${taskId}`,
+  getTaskPreview: (projectId) => `${current_url}/tickets/projects/${projectId}/tasks/preview`,
 };
 

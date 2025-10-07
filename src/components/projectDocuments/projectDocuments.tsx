@@ -1,3 +1,6 @@
+import { useState } from "react";
+import DeleteConformation from "../Conformation/DeleteConformation";
+
 interface Document {
     fileName: string;
     originalName: string;
@@ -11,6 +14,8 @@ interface DocumentProps {
 }
 
 const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", maxColumns = 2 }) => {
+    const [deleteConformationOpen, setDeleteConformationOpen] = useState(false);
+
     if (!documents || documents.length === 0) {
         return (
             <div className={`text-center py-8 ${className} `}>
@@ -96,6 +101,9 @@ const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", 
                     </div>
                 ))}
             </div>
+            {/* {deleteConformationOpen && (
+                <DeleteConformation message="delete" onCancel={handleCancle} onConfirm={handleDelete} />
+            )} */}
         </div>
     );
 };
