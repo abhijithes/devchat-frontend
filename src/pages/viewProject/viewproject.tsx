@@ -11,7 +11,6 @@ import DialogueBox from "../../components/dailogue-box/dialogueBox";
 import CheckUserRole from "../../components/check-user-role/CheckUserRole";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import DeleteConformation from "../../components/Conformation/DeleteConformation";
 
 interface AssignedUserType {
     firstName: string;
@@ -40,6 +39,7 @@ interface ProjectDocument {
         fileName: string;
         originalName: string;
         fileUrl: string;
+        _id?: String;
     }[];
     createdAt?: string;
     updatedAt?: string;
@@ -59,12 +59,12 @@ export const Viewproject = () => {
     const [showDialogue, setShowDialogue] = useState(false);
     const [AddUserType, setAddUserType] = useState<"member" | "manager">("member");
     const navigate = useNavigate();
-    const [deleteConformationOpen, setDeleteConformationOpen] = useState(true);
 
     const {
         data: project,
         isLoading,
         error,
+        refetch,
     } = useQuery({
         queryKey: ["project", id],
         queryFn: async () => {
@@ -147,13 +147,6 @@ export const Viewproject = () => {
     const handleNavigateToTasks = () => {
         navigate(`/project/${id}/viewtickets`);
     };
-    const handleCancle = () => {
-        setDeleteConformationOpen(false);
-    };
-    const handleDelete = () => {
-        console.log("delete");
-    };
-
     if (isLoading) return <div className="flex justify-center items-center h-64">Loading...</div>;
 
     if (error)
@@ -191,7 +184,12 @@ export const Viewproject = () => {
 
                 {/* Project Documents */}
                 <h2 className="text-lg font-bold mt-10">Project Documents</h2>
-                <ProjectDocuments documents={project.documents} className="my-6" />
+                <ProjectDocuments
+                    documents={project.documents}
+                    className="my-6"
+                    ProjectId={project._id}
+                    refetch={refetch}
+                />
 
                 {/* Upload Documents */}
                 <div className="space-y-4">
@@ -337,9 +335,6 @@ export const Viewproject = () => {
                     </button>
                 </div>
             </div>
-            {deleteConformationOpen && (
-                <DeleteConformation message="delete" onCancel={handleCancle} onConfirm={handleDelete} />
-            )}
         </div>
     );
 };

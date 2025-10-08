@@ -1,20 +1,61 @@
 import { useState } from "react";
 import DeleteConformation from "../Conformation/DeleteConformation";
+import { endpoints } from "../../constant/constant";
 
 interface Document {
     fileName: string;
     originalName: string;
     fileUrl: string;
+    _id?: String;
 }
 
 interface DocumentProps {
     documents?: Document[];
     className?: string;
     maxColumns?: number;
+    ProjectId?: String;
+    refetch: () => void;
 }
 
-const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", maxColumns = 2 }) => {
+const ProjectDocuments: React.FC<DocumentProps> = ({
+    documents,
+    className = "",
+    maxColumns = 2,
+    ProjectId,
+    refetch,
+}) => {
     const [deleteConformationOpen, setDeleteConformationOpen] = useState(false);
+    const [deleteFileID, setDeleteFileId] = useState<String | null>();
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleClose = () => {
+        setDeleteFileId(null);
+        setDeleteConformationOpen(false);
+    };
+
+    const handedeletemodalopen = (docId) => {
+        setDeleteFileId(docId);
+        setDeleteConformationOpen(true);
+    };
+
+    const handleDelete = async () => {
+        try {
+            if (!deleteFileID) return;
+            setIsDeleting(true);
+
+            const res = await fetch(endpoints.deleteDoc(ProjectId, deleteFileID), {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            });
+            if (!res.ok) throw new Error("Failed to delete document");
+            refetch();
+            handleClose;
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     if (!documents || documents.length === 0) {
         return (
@@ -97,13 +138,28 @@ const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", 
                                     </a>
                                 </div>
                             </div>
+                            <button className="cursor-pointer" onClick={() => handedeletemodalopen(doc._id)}>
+                                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 ))}
             </div>
-            {/* {deleteConformationOpen && (
-                <DeleteConformation message="delete" onCancel={handleCancle} onConfirm={handleDelete} />
-            )} */}
+            {deleteConformationOpen && (
+                <DeleteConformation
+                    message="Orappikkavoo??"
+                    onCancel={handleClose}
+                    onConfirm={handleDelete}
+                    isDeleting={isDeleting}
+                />
+            )}
         </div>
     );
 };
