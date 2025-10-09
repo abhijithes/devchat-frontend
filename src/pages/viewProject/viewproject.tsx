@@ -293,7 +293,7 @@ export const Viewproject = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="tasks mt-4 max-h-[300px]">
+                    <div className="tasks mt-4 max-h-[300px] flex flex-col">
                         {tasksLoading ? (
                             <div className="flex justify-center items-center h-32">Loading tasks...</div>
                         ) : tasksError ? (
@@ -327,11 +327,12 @@ export const Viewproject = () => {
                                 </div>
                             ))
                         ) : (
-                            <div className="text-sm opacity-70">No tasks found</div>
+                            <div className="text-sm opacity-70 self-center">No tasks found</div>
                         )}
                     </div>
+
                     <button className="text-blue-500" onClick={handleNavigateToTasks}>
-                        All tasks
+                        {tasksData && tasksData.length > 0 ? "All tasks" : "Add task"}
                     </button>
                 </div>
             </div>

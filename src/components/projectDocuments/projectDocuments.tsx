@@ -49,7 +49,7 @@ const ProjectDocuments: React.FC<DocumentProps> = ({
             });
             if (!res.ok) throw new Error("Failed to delete document");
             refetch();
-            handleClose;
+            handleClose();
         } catch (error) {
             console.error(error);
         } finally {
