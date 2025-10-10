@@ -3,6 +3,7 @@ import { endpoints } from "../../constant/constant";
 import { X, FileUp, Upload } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSnackBar } from "../snack-bar/snack-bar-context";
 
 interface UploadButtonProps {
     onUploadComplete: (file: UploadedFile | UploadedFile[]) => void;
@@ -29,6 +30,7 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
     const [isDragOver, setIsDragOver] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const queryClient = useQueryClient();
+    const { showSnackBar } = useSnackBar();
 
     // Mutation for uploading files to Cloudinary
     const uploadToCloudinaryMutation = useMutation({
@@ -52,6 +54,7 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
                 throw new Error(data.message || "Upload failed");
             }
 
+            showSnackBar("Uploud success", "success", 3000);
             return data as CloudinaryResponse;
         },
         onError: (error: Error) => {
