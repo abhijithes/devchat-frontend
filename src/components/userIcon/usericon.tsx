@@ -1,4 +1,4 @@
-import { ChevronRight, Eye } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
