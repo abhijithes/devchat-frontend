@@ -109,7 +109,7 @@ const ProjectDocuments: React.FC<DocumentProps> = ({
                 {documents.map((doc) => (
                     <div
                         key={doc.fileName}
-                        className="bg-white hover:bg-gray-50 rounded-lg border border-gray-200 p-4 hover:border-gray-300 transition-colors duration-200"
+                        className="bg-white hover:bg-gray-50 rounded-lg border border-gray-200 p-4 hover:border-gray-300 transition-colors duration-200 group"
                     >
                         <div className="flex items-start gap-3">
                             {getFileIcon(doc.originalName)}
@@ -139,7 +139,7 @@ const ProjectDocuments: React.FC<DocumentProps> = ({
                                     </a>
                                 </div>
                             </div>
-                            <button className="cursor-pointer" onClick={() => handedeletemodalopen(doc._id)}>
+                            <button className="cursor-pointer invisible group-hover:visible transition-opacity" onClick={() => handedeletemodalopen(doc._id)}>
                                 <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                         strokeLinecap="round"

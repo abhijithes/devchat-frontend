@@ -8,9 +8,7 @@ const ViewTickets: React.FC = () => {
 
   if (!projectId)
     return (
-      <div className="p-6 text-red-500 font-semibold">
-        Invalid project ID 🚫
-      </div>
+      <div className="p-6 text-red-500 font-semibold">Invalid project ID</div>
     );
 
   return (
