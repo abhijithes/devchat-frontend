@@ -1,6 +1,7 @@
 import { useState } from "react";
 import DeleteConformation from "../Conformation/DeleteConformation";
 import { endpoints } from "../../constant/constant";
+import SnackBar from "../snack-bar/SnackBar";
 
 interface Document {
     fileName: string;
