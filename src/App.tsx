@@ -15,27 +15,27 @@ import Viewprofile from "./pages/viewprofile/viewprofile";
 import SnackBarContextProvider from "./components/snack-bar/snack-bar-context";
 
 const App: React.FC = () => {
-  return (
-    <LoaderProvider>
-      <SnackBarContextProvider>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          {/* Task Layout :- All routes under Task Manager */}
-          <Route element={<TaskLayout />}>
-            <Route path="/project/:id" element={<Viewproject />} />
-            <Route path="/" element={<Start />} />
-            {/* <Route path="/addProject" element={<AddProject />} /> */}
-            <Route path="/profile" element={<UserProfile />} />
-            <Route path="/viewprofile/:id" element={<Viewprofile />}></Route>
-          </Route>
-          {/* Chat Layout :- All routes under Chat Section */}
-          <Route element={<ChatLayout />}>
-            <Route path="/chat" element={<Start />} />
-          </Route>
-        </Routes>
-      </SnackBarContextProvider>
-    </LoaderProvider>
-  );
+    return (
+        <LoaderProvider>
+            <SnackBarContextProvider>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+                    {/* Task Layout :- All routes under Task Manager */}
+                    <Route element={<TaskLayout />}>
+                        <Route path="/project/:id" element={<Viewproject />} />
+                        <Route path="/" element={<Start />} />
+                        {/* <Route path="/addProject" element={<AddProject />} /> */}
+                        <Route path="/profile" element={<UserProfile />} />
+                        <Route path="/viewprofile/:id" element={<Viewprofile />}></Route>
+                    </Route>
+                    {/* Chat Layout :- All routes under Chat Section */}
+                    <Route element={<ChatLayout />}>
+                        <Route path="/chat" element={<Start />} />
+                    </Route>
+                </Routes>
+            </SnackBarContextProvider>
+        </LoaderProvider>
+    );
 };
 
 export default App;

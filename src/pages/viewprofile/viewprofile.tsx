@@ -11,33 +11,28 @@ interface UserType {
     profilePicture?: string;
     about?: string;
     createdAt: Date;
-}
-
-interface Project {
-    _id: string;
-    name: string;
-}
-
-interface ProjectsData {
-    projects: Project[];
-    assignedProjects: Project[];
+    createdProjects: [
+        {
+            _id: String;
+            name: String;
+            status: String;
+        }
+    ];
+    assignedProjects: [
+        {
+            _id: String;
+            name: String;
+            status: String;
+        }
+    ];
 }
 
 // Fetch user profile function
 const fetchUserProfile = async (id: string): Promise<UserType> => {
-    const res = await fetch(endpoints.getUserById(id), {
+    const res = await fetch(endpoints.getUserWithProjects(id), {
         headers: { authorization: `Bearer ${localStorage.getItem("token") || ""}` },
     });
     if (!res.ok) throw new Error("Failed to fetch user profile");
-    return res.json();
-};
-
-// Fetch user projects function
-const fetchUserProjects = async (): Promise<ProjectsData> => {
-    const res = await fetch(endpoints.getAllProjectNames, {
-        headers: { authorization: `Bearer ${localStorage.getItem("token") || ""}` },
-    });
-    if (!res.ok) throw new Error("Failed to fetch user projects");
     return res.json();
 };
 
@@ -54,17 +49,6 @@ export default function ViewProfile() {
         queryKey: ["user", id],
         queryFn: () => fetchUserProfile(id!),
         enabled: !!id,
-    });
-
-    // TanStack Query for user projects
-    const {
-        data: projects,
-        isLoading: isLoadingProjects,
-        isError: isErrorProjects,
-        error: projectsError,
-    } = useQuery<ProjectsData, Error>({
-        queryKey: ["userProjects"],
-        queryFn: fetchUserProjects,
     });
 
     // Loading state
@@ -94,8 +78,8 @@ export default function ViewProfile() {
         );
     }
 
-    const assignedProjects = projects?.assignedProjects || [];
-    const userProjects = projects?.projects || [];
+    const assignedProjects = user.assignedProjects || [];
+    const userProjects = user.createdProjects || [];
     const allProjects = [...assignedProjects, ...userProjects];
 
     return (
@@ -149,64 +133,46 @@ export default function ViewProfile() {
                 <div className="projects-content bg-white rounded-xl border border-gray-100 p-4 md:p-6 shadow-sm">
                     <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-4 md:mb-6">Projects</h2>
 
-                    {/* Projects Loading State */}
-                    {isLoadingProjects && (
-                        <div className="flex justify-center items-center py-8">
-                            <div className="flex items-center gap-2 text-gray-500">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-                                Loading projects...
+                    <div className="projects-grid">
+                        {allProjects.length === 0 ? (
+                            <p className="text-gray-500 text-center py-8 text-sm md:text-base">No projects found</p>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
+                                {/* Owned Projects */}
+                                {userProjects.map((project) => (
+                                    <div
+                                        key={`owned-${project._id}`}
+                                        className="project-card bg-white border border-gray-200 rounded-lg p-4 md:p-5 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer group"
+                                        onClick={() => (window.location.href = `/project/${project._id}`)}
+                                    >
+                                        <h3 className="text-sm md:text-base font-medium text-gray-800 line-clamp-2">
+                                            {project.name}
+                                        </h3>
+                                        <span className="text-xs text-black font-medium bg-blue-50 px-2 py-1 rounded">
+                                            Owned
+                                        </span>
+                                        <div className="absolute inset-0 border-2 border-transparent group-hover:border-gray-200 rounded-lg pointer-events-none" />
+                                    </div>
+                                ))}
+                                {/* Assigned Projects */}
+                                {assignedProjects.map((project) => (
+                                    <div
+                                        key={`assigned-${project._id}`}
+                                        className="project-card bg-white border border-gray-200 rounded-lg p-4 md:p-5 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
+                                        onClick={() => (window.location.href = `/project/${project._id}`)}
+                                    >
+                                        <h3 className="text-sm md:text-base font-medium text-gray-800 mb-1 line-clamp-2">
+                                            {project.name}
+                                        </h3>
+                                        <span className="text-xs text-gray-800 font-medium bg-blue-50 px-2 py-1 rounded">
+                                            Assigned
+                                        </span>
+                                        <div className="absolute inset-0 border-2 border-transparent group-hover:border-blue-200 rounded-lg pointer-events-none" />
+                                    </div>
+                                ))}
                             </div>
-                        </div>
-                    )}
-
-                    {/* Projects Error State */}
-                    {isErrorProjects && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                            ⚠️ {projectsError?.message || "Failed to load projects"}
-                        </div>
-                    )}
-
-                    {/* Projects Content */}
-                    {!isLoadingProjects && !isErrorProjects && (
-                        <div className="projects-grid">
-                            {allProjects.length === 0 ? (
-                                <p className="text-gray-500 text-center py-8 text-sm md:text-base">No projects found</p>
-                            ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
-                                    {/* Assigned Projects */}
-                                    {assignedProjects.map((project) => (
-                                        <div
-                                            key={`assigned-${project._id}`}
-                                            className="project-card bg-white border border-gray-200 rounded-lg p-4 md:p-5 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
-                                            onClick={() => (window.location.href = `/project/${project._id}`)}
-                                        >
-                                            <h3 className="text-sm md:text-base font-medium text-gray-800 mb-1 line-clamp-2">
-                                                {project.name}
-                                            </h3>
-                                            <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded">
-                                                Assigned
-                                            </span>
-                                            <div className="absolute inset-0 border-2 border-transparent group-hover:border-blue-200 rounded-lg pointer-events-none" />
-                                        </div>
-                                    ))}
-
-                                    {/* Owned Projects */}
-                                    {userProjects.map((project) => (
-                                        <div
-                                            key={`owned-${project._id}`}
-                                            className="project-card bg-white border border-gray-200 rounded-lg p-4 md:p-5 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer group"
-                                            onClick={() => (window.location.href = `/project/${project._id}`)}
-                                        >
-                                            <h3 className="text-sm md:text-base font-medium text-gray-800 line-clamp-2">
-                                                {project.name}
-                                            </h3>
-                                            <div className="absolute inset-0 border-2 border-transparent group-hover:border-gray-200 rounded-lg pointer-events-none" />
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </section>
         </div>
