@@ -51,6 +51,10 @@ const AuthForm: React.FC = () => {
         setSuccess("Login successful!");
         console.log("JWT token from res:", response);
         localStorage.setItem("token", data.token);
+        localStorage.setItem(
+          "DEV_CHATX_USER_URD",
+          JSON.stringify(data.publicData)
+        );
         navigate("/");
       } else {
         setSuccess("Account created successfully!");
