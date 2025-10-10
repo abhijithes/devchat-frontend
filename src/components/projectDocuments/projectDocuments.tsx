@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DeleteConformation from "../Conformation/DeleteConformation";
 import { endpoints } from "../../constant/constant";
-import SnackBar from "../snack-bar/SnackBar";
+import { useSnackBar } from "../snack-bar/snack-bar-context";
 
 interface Document {
     fileName: string;
@@ -28,6 +28,7 @@ const ProjectDocuments: React.FC<DocumentProps> = ({
     const [deleteConformationOpen, setDeleteConformationOpen] = useState(false);
     const [deleteFileID, setDeleteFileId] = useState<String | null>();
     const [isDeleting, setIsDeleting] = useState(false);
+    const { showSnackBar } = useSnackBar();
 
     const handleClose = () => {
         setDeleteFileId(null);
@@ -51,6 +52,7 @@ const ProjectDocuments: React.FC<DocumentProps> = ({
             if (!res.ok) throw new Error("Failed to delete document");
             refetch();
             handleClose();
+            showSnackBar("Document deleted", "success", 3000);
         } catch (error) {
             console.error(error);
         } finally {
