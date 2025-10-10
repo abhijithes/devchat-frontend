@@ -154,7 +154,7 @@ const ProjectDocuments: React.FC<DocumentProps> = ({
             </div>
             {deleteConformationOpen && (
                 <DeleteConformation
-                    message="Orappikkavoo??"
+                    message="There is no Backup for your document!"
                     onCancel={handleClose}
                     onConfirm={handleDelete}
                     isDeleting={isDeleting}

@@ -10,6 +10,7 @@ export const endpoints = {
   login: `${current_url}/users/login`,
   searchUser: `${current_url}/users/searchUser`,
   getUserById: (id) => `${current_url}/users/${id}`,
+  getUserWithProjects: (id) => `${current_url}/users/${id}?include=projects`,
 
   addmember: (id) => `${current_url}/projects/addmember/${id}`,
   removeMember: (id) => `${current_url}/projects/removeMember/${id}`,

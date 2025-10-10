@@ -1,4 +1,4 @@
-import { X, Trash2, AlertTriangle } from "lucide-react";
+import { X, AlertTriangle } from "lucide-react";
 
 interface DeleteConfirmationProps {
     message: string;
@@ -17,7 +17,7 @@ export const DeleteConfirmation = ({ message, onConfirm, onCancel, isDeleting }:
                         <div className="p-2 bg-red-50 rounded-full">
                             <AlertTriangle className="w-5 h-5 text-red-600" />
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900">Confirm Deletion</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">Confirm</h3>
                     </div>
                     <button
                         onClick={onCancel}
@@ -47,8 +47,7 @@ export const DeleteConfirmation = ({ message, onConfirm, onCancel, isDeleting }:
                         className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={isDeleting}
                     >
-                        <Trash2 className="w-4 h-4" />
-                        <span>{isDeleting ? "Deleting..." : "Delete"}</span>
+                        <span>{isDeleting ? "Removing..." : "Remove"}</span>
                     </button>
                 </div>
             </div>
