@@ -14,7 +14,6 @@ const AuthForm: React.FC = () => {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
 
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
@@ -37,7 +36,7 @@ const AuthForm: React.FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "authorization": `Bearer ${localStorage.getItem("token") || ""}` // 🔹 Include token if available
+          authorization: `Bearer ${localStorage.getItem("token") || ""}`,
         },
         body: JSON.stringify(payload),
       });
@@ -50,8 +49,7 @@ const AuthForm: React.FC = () => {
 
       if (isLogin) {
         setSuccess("Login successful!");
-        console.log("JWT token:", data.token); // 🔹 Log JWT token
-        console.log("JWT token from res:", response); // 🔹 Log JWT token
+        console.log("JWT token from res:", response);
         localStorage.setItem("token", data.token);
         navigate("/");
       } else {
@@ -65,9 +63,9 @@ const AuthForm: React.FC = () => {
   };
 
   return (
-    <div className="bg-gradient-to-r from-[#eff1f3] to-[#d0d1d8] flex justify-center items-center min-h-screen">
-      <div className="bg-zinc-50 rounded-xl px-8 py-10 shadow-2xl max-w-md w-full">
-        <h2 className="text-center text-3xl bg-violet-500 text-transparent bg-clip-text mb-7 font-bold">
+    <div className="bg-gradient-to-tr from-black to-gray-900 flex justify-center items-center min-h-screen">
+      <div className=" md:border border-zinc-800  px-8 py-10  max-w-md w-full">
+        <h2 className="text-center text-3xl bg-violet-500 text-transparent bg-clip-text mb-7 p-2 font-bold">
           {isLogin ? "Login" : "Sign Up"}
         </h2>
 
@@ -85,7 +83,12 @@ const AuthForm: React.FC = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form
+          onSubmit={handleSubmit}
+          className={`text-white grid ${
+            !isLogin ? "grid-cols-2" : "grid-cols-1"
+          }  gap-2`}
+        >
           {!isLogin && (
             <>
               <div className="mb-4">
@@ -97,7 +100,7 @@ const AuthForm: React.FC = () => {
                 </label>
                 <input
                   id="FirstName"
-                  className="w-full bg-gray-300 px-3 py-3 rounded-md border border-gray-300 text-black font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full bg-zinc-900 px-3 py-3 rounded-md border border-gray-600  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
                   type="text"
                   placeholder="First name"
                   value={firstName}
@@ -115,7 +118,7 @@ const AuthForm: React.FC = () => {
                 </label>
                 <input
                   id="LastName"
-                  className="w-full bg-gray-300 px-3 py-3 rounded-md border border-gray-300 text-black font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full bg-zinc-900 px-3 py-3 rounded-md border border-gray-600  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
                   type="text"
                   placeholder="Last name"
                   value={lastName}
@@ -126,16 +129,16 @@ const AuthForm: React.FC = () => {
             </>
           )}
 
-          <div className="mb-4">
+          <div className="mb-4 col-span-2">
             <label
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium text-gray-700 mb-2 "
               htmlFor="Email"
             >
               Email
             </label>
             <input
               id="Email"
-              className="w-full bg-gray-300 px-3 py-3 rounded-md border border-gray-300 text-black font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full bg-zinc-900 px-3 py-3 rounded-md border border-gray-600  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
               type="email"
               placeholder="Email"
               value={email}
@@ -153,7 +156,7 @@ const AuthForm: React.FC = () => {
             </label>
             <input
               id="Password"
-              className="w-full bg-gray-300 px-3 py-3 rounded-md border border-gray-300 text-black font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full bg-zinc-900 px-3 py-3 rounded-md border border-gray-600  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
               type="password"
               placeholder="Password"
               value={password}
@@ -172,7 +175,7 @@ const AuthForm: React.FC = () => {
               </label>
               <input
                 id="ConfirmPassword"
-                className="w-full bg-gray-300 px-3 py-3 rounded-md border border-gray-300 text-black font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full bg-zinc-900 px-3 py-3 rounded-md border border-gray-600  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
                 type="password"
                 placeholder="Confirm password"
                 value={confirmPassword}
@@ -183,14 +186,14 @@ const AuthForm: React.FC = () => {
           )}
 
           <button
-            className="w-full bg-violet-500 text-white font-bold py-3 rounded-md hover:bg-violet-700 shadow-lg transition-all duration-300 ease-in-out"
+            className="w-full bg-violet-500 text-white font-bold py-3 rounded-md hover:bg-violet-700 shadow-lg transition-all duration-300 ease-in-out col-span-2"
             type="submit"
             disabled={loading}
           >
             {loading ? "Processing..." : isLogin ? "Login" : "Create Account"}
           </button>
 
-          <p className="text-center text-sm text-gray-600 mt-5">
+          <p className="text-center text-sm text-gray-600 mt-5 col-span-2">
             {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
             <button
               type="button"
