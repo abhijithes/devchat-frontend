@@ -1,3 +1,4 @@
+import { ChevronRight, Eye } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -44,13 +45,20 @@ const UserIcon: React.FC<UserIconProps> = ({ user }) => {
     <div
       title={`View ${user.firstName}'s profile`}
       onClick={handleNavigateToProfile}
-      className={`w-10 h-10 rounded-full flex items-center justify-center ${color} text-white border-2 border-white font-bold cursor-pointer overflow-hidden`}
+      className={`w-10 h-10 rounded-full flex items-center justify-center ${color} text-white border-2 border-white font-bold cursor-pointer overflow-hidden relative group`}
     >
       {!user.profilePicture ? (
         user.firstName?.trim().charAt(0).toUpperCase()
       ) : (
-        <img src={user.profilePicture} alt={user.firstName} className="w-full h-full object-cover" />
+        <img
+          src={user.profilePicture}
+          alt={user.firstName}
+          className="w-full h-full object-cover"
+        />
       )}
+      <div className="w-10 h-10 centered  absolute top-0 left-0 rounded-full translate-full group-hover:bg-black/60 group-hover:translate-0 transition-all">
+        <ChevronRight size={15} />
+      </div>
     </div>
   );
 };
