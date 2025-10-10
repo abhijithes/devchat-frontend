@@ -43,8 +43,15 @@ const NavBar = () => {
         profilePicture: "",
       }
     );
-    showSnackBar("Welcome to DevChats.io", "success", 3000);
+    triggerWelcomeToast();
   }, []);
+
+  const triggerWelcomeToast = () => {
+    if (!sessionStorage.getItem("DEV_CHATX_OPENED_NOS")) {
+      sessionStorage.setItem("DEV_CHATX_OPENED_NOS", true.toString());
+      showSnackBar("Welcome to DevChats.io", "success", 3000);
+    }
+  };
 
   const handleLogout = () => {
     if (!confirm("Are you sure you want to logout?")) return;
