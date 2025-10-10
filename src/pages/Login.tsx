@@ -63,10 +63,10 @@ const AuthForm: React.FC = () => {
   };
 
   return (
-    <div className="bg-gradient-to-tr from-black to-gray-900 flex justify-center items-center min-h-screen">
-      <div className=" md:border border-zinc-800  px-8 py-10  max-w-md w-full">
+    <div className="bg-gradient-to-tr from-violet-100  via-white  to-violet-100 flex justify-center items-center min-h-screen">
+      <div className=" md:border border-zinc-200  px-8 py-10  max-w-md w-full">
         <h2 className="text-center text-3xl bg-violet-500 text-transparent bg-clip-text mb-7 p-2 font-bold">
-          {isLogin ? "Login" : "Sign Up"}
+          {isLogin ? "Sign in" : "Sign Up"}
         </h2>
 
         {/* Display error message */}
@@ -85,7 +85,7 @@ const AuthForm: React.FC = () => {
 
         <form
           onSubmit={handleSubmit}
-          className={`text-white grid ${
+          className={`text-black grid ${
             !isLogin ? "grid-cols-2" : "grid-cols-1"
           }  gap-2`}
         >
@@ -100,7 +100,7 @@ const AuthForm: React.FC = () => {
                 </label>
                 <input
                   id="FirstName"
-                  className="w-full bg-zinc-900 px-3 py-3 rounded-md border border-gray-600  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full bg-transparent px-3 py-3 rounded-md border border-zinc-300  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
                   type="text"
                   placeholder="First name"
                   value={firstName}
@@ -118,7 +118,7 @@ const AuthForm: React.FC = () => {
                 </label>
                 <input
                   id="LastName"
-                  className="w-full bg-zinc-900 px-3 py-3 rounded-md border border-gray-600  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full bg-transparent px-3 py-3 rounded-md border border-zinc-300  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
                   type="text"
                   placeholder="Last name"
                   value={lastName}
@@ -138,7 +138,7 @@ const AuthForm: React.FC = () => {
             </label>
             <input
               id="Email"
-              className="w-full bg-zinc-900 px-3 py-3 rounded-md border border-gray-600  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full bg-transparent px-3 py-3 rounded-md border border-zinc-300  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
               type="email"
               placeholder="Email"
               value={email}
@@ -156,7 +156,7 @@ const AuthForm: React.FC = () => {
             </label>
             <input
               id="Password"
-              className="w-full bg-zinc-900 px-3 py-3 rounded-md border border-gray-600  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full bg-transparent px-3 py-3 rounded-md border border-zinc-300  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
               type="password"
               placeholder="Password"
               value={password}
@@ -175,7 +175,7 @@ const AuthForm: React.FC = () => {
               </label>
               <input
                 id="ConfirmPassword"
-                className="w-full bg-zinc-900 px-3 py-3 rounded-md border border-gray-600  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full bg-transparent px-3 py-3 rounded-md border border-zinc-300  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
                 type="password"
                 placeholder="Confirm password"
                 value={confirmPassword}
