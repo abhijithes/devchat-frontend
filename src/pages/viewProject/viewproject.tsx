@@ -143,7 +143,7 @@ export const Viewproject = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["project", id] });
-            showSnackBar("Member deleted successfully", "success", 3000);
+            showSnackBar("Member deleted successfully!", "success", 3000);
         },
         onError: (error) => {
             console.error("Error removing member:", error);
