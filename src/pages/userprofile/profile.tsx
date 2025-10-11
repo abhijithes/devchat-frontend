@@ -5,6 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import avatar from "../../assets/avatar.jpg";
 import { CircularProgress } from "@mui/material";
 import { Edit, Save, Cancel, CloudUpload } from "@mui/icons-material";
+import { useSnackBar } from "../../components/snack-bar/snack-bar-context";
 
 interface UserType {
   _id: string;
@@ -37,12 +38,12 @@ const fetchUserProfile = async (id: string): Promise<UserType> => {
 };
 
 // Update user profile function
-const updateUserProfile = async ({ 
-  id, 
-  userData 
-}: { 
-  id: string; 
-  userData: Partial<UserType> 
+const updateUserProfile = async ({
+  id,
+  userData,
+}: {
+  id: string;
+  userData: Partial<UserType>;
 }): Promise<UserType> => {
   const res = await fetch(`${current_url}/users/update/${id}`, {
     method: "PATCH",
@@ -82,6 +83,7 @@ export default function Profile() {
     about: false,
   });
   const queryClient = useQueryClient();
+  const { showSnackBar } = useSnackBar();
 
   // Get user ID from token
   const jwttoken = localStorage.getItem("token");
@@ -107,8 +109,8 @@ export default function Profile() {
 
   // Mutation for updating user profile
   const updateProfileMutation = useMutation<
-    UserType, 
-    Error, 
+    UserType,
+    Error,
     { id: string; userData: Partial<UserType> }
   >({
     mutationFn: updateUserProfile,
@@ -137,6 +139,7 @@ export default function Profile() {
         id,
         userData: { profilePicture: pfpUrl },
       });
+      showSnackBar("Please relogin to affect navigation image!", "info", 5000);
 
       return pfpUrl;
     },
@@ -157,7 +160,7 @@ export default function Profile() {
   ) => {
     const { name, value } = e.target;
     // Update the cached data directly
-    queryClient.setQueryData(["user", id], (oldData: UserType | undefined) => 
+    queryClient.setQueryData(["user", id], (oldData: UserType | undefined) =>
       oldData ? { ...oldData, [name]: value } : oldData
     );
   };
@@ -233,7 +236,8 @@ export default function Profile() {
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
-              {(uploadPfpMutation.isPending || updateProfileMutation.isPending) && (
+              {(uploadPfpMutation.isPending ||
+                updateProfileMutation.isPending) && (
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                   <CircularProgress size={30} className="text-white" />
                 </div>
@@ -326,7 +330,9 @@ export default function Profile() {
                     ? "border-b-2 border-blue-500 pb-1"
                     : "border-b border-transparent"
                 }`}
-                disabled={!editableFields.firstName || updateProfileMutation.isPending}
+                disabled={
+                  !editableFields.firstName || updateProfileMutation.isPending
+                }
               />
               <button
                 onClick={() =>
@@ -360,7 +366,9 @@ export default function Profile() {
                     ? "border-b-2 border-blue-500 pb-1"
                     : "border-b border-transparent"
                 }`}
-                disabled={!editableFields.lastName || updateProfileMutation.isPending}
+                disabled={
+                  !editableFields.lastName || updateProfileMutation.isPending
+                }
               />
               <button
                 onClick={() =>
@@ -393,7 +401,9 @@ export default function Profile() {
                     ? "border-b-2 border-blue-500 pb-1"
                     : "border-b border-transparent"
                 }`}
-                disabled={!editableFields.email || updateProfileMutation.isPending}
+                disabled={
+                  !editableFields.email || updateProfileMutation.isPending
+                }
               />
               <button
                 onClick={() =>
@@ -428,7 +438,9 @@ export default function Profile() {
                     ? "border-b-2 border-blue-500 pb-1"
                     : "border-b border-transparent"
                 }`}
-                disabled={!editableFields.about || updateProfileMutation.isPending}
+                disabled={
+                  !editableFields.about || updateProfileMutation.isPending
+                }
               />
               <div className="flex justify-between items-center">
                 <button

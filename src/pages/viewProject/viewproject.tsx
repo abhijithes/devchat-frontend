@@ -11,6 +11,7 @@ import DialogueBox from "../../components/dailogue-box/dialogueBox";
 import CheckUserRole from "../../components/check-user-role/CheckUserRole";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import UserIcon from "../../components/userIcon/usericon";
 
 interface AssignedUserType {
   firstName: string;
@@ -26,6 +27,14 @@ interface previewTasks {
   taskId: string;
 }
 
+interface createdByData {
+  firstName: string;
+  lastName?: string;
+  email: string;
+  _id: string;
+  profilePicture?: string;
+}
+
 interface ProjectDocument {
   _id?: string;
   name: string;
@@ -33,6 +42,7 @@ interface ProjectDocument {
   status: "not-started" | "in-progress" | "completed";
   expectedDays?: number;
   createdBy?: string | null;
+  createdByData: createdByData[] | [];
   assignedUsersData?: AssignedUserType[];
   managersData?: AssignedUserType[];
   documents?: {
@@ -190,6 +200,14 @@ export const Viewproject = () => {
           <p className="text-lg sm:text-xl font-semibold">
             Expected time: {project.expectedDays} Days
           </p>
+        </div>
+
+        <div className="flex-left gap-2 mt-5">
+          <UserIcon user={project.createdByData[0]} />
+          <div className=" font-medium capitalize">
+            <h1>{project.createdByData[0].firstName}</h1>
+            <p className="text-xs">{project.createdByData[0].lastName}</p>
+          </div>
         </div>
 
         {/* Description */}
