@@ -223,7 +223,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
     };
 
     const removeFile = (index: number) => {
-        // Revoke object URL if it's an image to prevent memory leaks
+        // Revoke object URL if it's an image to prevent memory leeaks
         if (previews[index]) {
             URL.revokeObjectURL(previews[index]);
         }
