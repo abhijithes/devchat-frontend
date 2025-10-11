@@ -274,7 +274,7 @@ export const Viewproject = () => {
                     </DialogueBox>
                 )}
 
-                {/* Ticket List */}
+                {/* Ticket List  */}
                 <div className="tasklist bg-primary w-full lg:w-2/5 p-5 flex flex-col justify-center gap-3">
                     <div className="head flex flex-col sm:flex-row justify-between gap-2">
                         <h5 className="text-lg font-medium">Tickets</h5>
