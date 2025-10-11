@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { endpoints } from "../../constant/constant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import SnackBar from "../snack-bar/SnackBar";
+import { useSnackBar } from "../snack-bar/snack-bar-context";
 
 interface User {
     _id: string;
@@ -24,7 +24,7 @@ export default function AddUser({ projectid, usertype, currentMembers = [] }: Ad
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [showCurrentMembers, setShowCurrentMembers] = useState(false);
     const queryClient = useQueryClient();
-    // const {} = SnackBar()
+    const { showSnackBar } = useSnackBar();
 
     // Search users query with debouncing
     const {
@@ -88,6 +88,7 @@ export default function AddUser({ projectid, usertype, currentMembers = [] }: Ad
             setSelectedUsers([]);
             setSearchTerm("");
             setShowCurrentMembers(false);
+            showSnackBar("User added successfully", "success", 3000);
             queryClient.invalidateQueries({ queryKey: ["project", projectid] });
         },
         onError: (error: Error) => {

@@ -14,6 +14,7 @@ export const endpoints = {
 
   addmember: (id) => `${current_url}/projects/addmember/${id}`,
   removeMember: (id) => `${current_url}/projects/removeMember/${id}`,
+  removeManager: (id) => `${current_url}/projects/removeManager/${id}`,
   addmanager: (id) => `${current_url}/projects/addmanager/${id}`,
 
   upload: `${current_url}/upload`,

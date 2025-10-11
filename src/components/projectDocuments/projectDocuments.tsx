@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DeleteConformation from "../Conformation/DeleteConformation";
 import { endpoints } from "../../constant/constant";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
