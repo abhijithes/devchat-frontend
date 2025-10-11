@@ -7,13 +7,25 @@ import {
 import { MenuIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { getToken, removeToken } from "../utils/token";
+import { getToken, getUserPublicInfo, removeToken } from "../utils/token";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSnackBar } from "./snack-bar/snack-bar-context";
+
+interface UserInfo {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  profilePicture?: string;
+}
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userInfo, setUserInfo] = useState<UserInfo>({
+    email: "",
+    firstName: "",
+    profilePicture: "",
+  });
 
   const navigation = useNavigate();
   const queryClient = useQueryClient();
@@ -24,8 +36,22 @@ const NavBar = () => {
 
   useEffect(() => {
     setIsLoggedIn(getToken() ? true : false);
-    showSnackBar("Welcome to DevChats.io", "success", 3000);
+    setUserInfo(
+      getUserPublicInfo() || {
+        email: "",
+        firstName: "",
+        profilePicture: "",
+      }
+    );
+    triggerWelcomeToast();
   }, []);
+
+  const triggerWelcomeToast = () => {
+    if (!sessionStorage.getItem("DEV_CHATX_OPENED_NOS")) {
+      sessionStorage.setItem("DEV_CHATX_OPENED_NOS", true.toString());
+      showSnackBar("Welcome to DevChats.io", "success", 3000);
+    }
+  };
 
   const handleLogout = () => {
     if (!confirm("Are you sure you want to logout?")) return;
@@ -88,7 +114,15 @@ const NavBar = () => {
                     title="profile page"
                     className="w-10 h-10 rounded-full border border-zinc-300 bg-white hover:bg-gray-100 text-center text-black grid place-items-center group "
                   >
-                    M
+                    {userInfo.profilePicture ? (
+                      <img
+                        src={userInfo.profilePicture}
+                        alt={userInfo.firstName}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      userInfo.firstName.charAt(0).toUpperCase() || "L"
+                    )}
                   </div>
                 </Link>
                 <div className="hidden group-hover:block absolute right-0  w-48 bg-white border border-gray-200 rounded shadow-lg z-40">

@@ -1,6 +1,6 @@
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import UploadButton from "../../components/buttons/uploudbtn";
 import Usericon from "../../components/userIcon/usericon";
 import { endpoints } from "../../constant/constant";
@@ -11,8 +11,6 @@ import DialogueBox from "../../components/dailogue-box/dialogueBox";
 import CheckUserRole from "../../components/check-user-role/CheckUserRole";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { useSnackBar } from "../../components/snack-bar/snack-bar-context";
 
 interface AssignedUserType {
     firstName: string;
@@ -61,7 +59,6 @@ export const Viewproject = () => {
     const [showDialogue, setShowDialogue] = useState(false);
     const [AddUserType, setAddUserType] = useState<"member" | "manager">("member");
     const navigate = useNavigate();
-    const { showSnackBar } = useSnackBar();
 
     const {
         data: project,
@@ -257,27 +254,7 @@ export const Viewproject = () => {
                             <p className="pb-3">All members</p>
                             <div className="flex flex-wrap gap-4 pb-4">
                                 {project.assignedUsersData?.map((user, index) => (
-                                    <div className="relative group">
-                                        <Usericon key={`${user._id}-${index}`} user={user} />
-                                        <CheckUserRole userRole={project.userRole}>
-                                            <div className="hidden group-hover:block absolute left-0  w-48 bg-white border border-gray-200 rounded shadow-lg z-40">
-                                                <Link
-                                                    to={`/viewprofile/${user._id}`}
-                                                    className="block px-4 py-2 text-gray-800 hover:bg-gray-200"
-                                                >
-                                                    View Profile
-                                                </Link>
-                                                <button
-                                                    className="w-full text-left block px-4 py-2 text-red-800 hover:bg-gray-200"
-                                                    onClick={() => {
-                                                        handleRemoveMember.mutate(user._id);
-                                                    }}
-                                                >
-                                                    Remove user
-                                                </button>
-                                            </div>
-                                        </CheckUserRole>
-                                    </div>
+                                    <Usericon key={`${user._id}-${index}`} user={user} />
                                 ))}
                                 <CheckUserRole userRole={project.userRole}>
                                     <p className="centered cursor-pointer">
@@ -298,27 +275,7 @@ export const Viewproject = () => {
                             <p className="pb-3">Managers</p>
                             <div className="flex flex-wrap gap-4 pb-4">
                                 {project.managersData?.map((user, index) => (
-                                    <div className="relative group">
-                                        <Usericon key={`${user._id}-${index}`} user={user} />
-                                        <CheckUserRole userRole={project.userRole}>
-                                            <div className="hidden group-hover:block absolute left-0  w-48 bg-white border border-gray-200 rounded shadow-lg z-40">
-                                                <Link
-                                                    to={`/viewprofile/${user._id}`}
-                                                    className="block px-4 py-2 text-gray-800 hover:bg-gray-200"
-                                                >
-                                                    View Profile
-                                                </Link>
-                                                <button
-                                                    className="w-full text-left block px-4 py-2 text-red-800 hover:bg-gray-200"
-                                                    onClick={() => {
-                                                        handleRemoveManager.mutate(user._id);
-                                                    }}
-                                                >
-                                                    Remove user
-                                                </button>
-                                            </div>
-                                        </CheckUserRole>
-                                    </div>
+                                    <Usericon key={`${user._id}-${index}`} user={user} />
                                 ))}
                                 <CheckUserRole userRole={project.userRole}>
                                     <p className="centered cursor-pointer">
