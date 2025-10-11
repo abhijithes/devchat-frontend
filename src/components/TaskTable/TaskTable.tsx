@@ -11,6 +11,7 @@ interface Task {
   priority: "urgent" | "required" | "completed";
   status: string;
   assignee: { email: string };
+  assigner: { email: string };
   uptime: string;
   taskId: string;
   dueDate?: Date;
@@ -44,6 +45,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
     priority: "required",
     status: "pending",
     assigneeEmail: "",
+    assignerEmail: "",
     dueDate: "",
   });
 
@@ -114,6 +116,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
           priority: newTask.priority,
           status: newTask.status,
           assigneeEmail: newTask.assigneeEmail,
+          assignerEmail: newTask.assignerEmail,
           dueDate: newTask.dueDate,
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -125,6 +128,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
         priority: "required",
         status: "pending",
         assigneeEmail: "",
+        assignerEmail: "",
         dueDate: "",
       });
 
@@ -365,6 +369,22 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                   name="assigneeEmail"
                   placeholder="Enter assignee’s email"
                   value={newTask.assigneeEmail}
+                  onChange={handleChange}
+                  required
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] bg-gray-50"
+                />
+              </div>
+
+              {/* Assigner Email (full width) */}
+              <div className="sm:col-span-2">
+                <label className="block text-gray-600 text-sm mb-1">
+                  Assigner Email
+                </label>
+                <input
+                  type="email"
+                  name="assignerEmail"
+                  placeholder="Enter assigner’s email"
+                  value={newTask.assignerEmail}
                   onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] bg-gray-50"
