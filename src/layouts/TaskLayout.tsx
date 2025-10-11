@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import AddProject from "../components/AddProject";
 import SidebarButtons from "../components/SidebarButtons";
@@ -6,10 +6,20 @@ import GlobalLoader from "./GlobalLoader";
 import { useLoader } from "../contexts/GlobalLoaderContext";
 import { Plus } from "lucide-react";
 import NavBar from "../components/NavBar";
+import { getToken } from "../utils/token";
+import { useSnackBar } from "../components/snack-bar/snack-bar-context";
 
 const TaskLayout: React.FC = () => {
   const [showAddProject, setShowAddProject] = useState(false);
   const { isLoading } = useLoader();
+  const { showSnackBar } = useSnackBar();
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      showSnackBar("Login to access all features", "error", 8000);
+    }
+  }, []);
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen ">
