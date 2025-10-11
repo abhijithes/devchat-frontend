@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { endpoints } from "../../constant/constant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSnackBar } from "../snack-bar/snack-bar-context";
 
 interface User {
   _id: string;
@@ -27,6 +28,12 @@ const colors = [
   "#FF8333",
 ];
 
+export default function AddUser({ projectid, usertype, currentMembers = [] }: AddUserProps) {
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+    const [showCurrentMembers, setShowCurrentMembers] = useState(false);
+    const queryClient = useQueryClient();
+    const { showSnackBar } = useSnackBar();
 export default function AddUser({
   projectid,
   usertype,
@@ -85,6 +92,35 @@ export default function AddUser({
     retry: 2,
   });
 
+    // Add users mutation
+    const addUsersMutation = useMutation({
+        mutationFn: async (userIds: string[]) => {
+            const response = await axios.patch(
+                usertype == "member" ? endpoints.addmember(projectid) : endpoints.addmanager(projectid),
+                {
+                    userIds,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                    },
+                }
+            );
+            return response.data;
+        },
+        onSuccess: (data) => {
+            console.log("Users added successfully:", data);
+            // Reset form
+            setSelectedUsers([]);
+            setSearchTerm("");
+            setShowCurrentMembers(false);
+            showSnackBar("User added successfully", "success", 3000);
+            queryClient.invalidateQueries({ queryKey: ["project", projectid] });
+        },
+        onError: (error: Error) => {
+            console.error("Error adding users:", error);
+        },
+    });
   // Add users mutation
   const addUsersMutation = useMutation({
     mutationFn: async (userIds: string[]) => {
