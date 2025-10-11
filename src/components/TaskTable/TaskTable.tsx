@@ -56,8 +56,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
         const res = await axios.get(endpoints.getTasks(projectId), {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log("Fetched tasks:", res.data);
-        setTasks(res.data || []);
+        setTasks(res.data.data || []);
       } catch (err) {
         console.error("Error fetching tasks:", err);
       } finally {
