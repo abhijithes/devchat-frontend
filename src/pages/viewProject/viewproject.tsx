@@ -361,6 +361,7 @@ export const Viewproject = () => {
                             projectid={id}
                             usertype={AddUserType}
                             currentMembers={project.assignedUsersData || []}
+                            ownerId={project.createdBy}
                         />
                     </DialogueBox>
                 )}

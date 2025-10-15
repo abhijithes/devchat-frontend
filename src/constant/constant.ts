@@ -1,4 +1,4 @@
-const isProduction = true;
+const isProduction = false;
 export const dev_api_url = 'http://localhost:5001/api'
 export const producttion_api_url = 'https://devchat-backend-kpfa.onrender.com/api'
 export const api_url = 'https://devchat-backend-kpfa.onrender.com/api';
@@ -11,6 +11,7 @@ export const endpoints = {
   searchUser: `${current_url}/users/searchUser`,
   getUserById: (id) => `${current_url}/users/${id}`,
   getUserWithProjects: (id) => `${current_url}/users/${id}?include=projects`,
+  updatePinnedProj: (id) => `${current_url}/users/${id}/updatePinnedProject`,
 
   addmember: (id) => `${current_url}/projects/addmember/${id}`,
   removeMember: (id) => `${current_url}/projects/removeMember/${id}`,
