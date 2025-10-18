@@ -265,7 +265,7 @@ export default function Profile() {
 
   return (
     <div>
-      <div className="w-full max-w-7xl mx-auto p-6">
+      <div className="w-full max-w-7xl mx-auto ">
         {/* Profile Header */}
         <div className="bg-gradient-to-l from-zinc-50 to-white rounded-t-2xl border border-b-0 border-gray-100 p-8">
           <div className="flex flex-col md:flex-row items-center gap-8">
