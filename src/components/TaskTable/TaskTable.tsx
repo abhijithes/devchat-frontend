@@ -4,6 +4,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import DialogueBox from "../../components/dailogue-box/dialogueBox";
 import { endpoints } from "../../constant/constant";
 import FindUser from "../find-users/FindUser";
+import { useLoader } from "../../contexts/GlobalLoaderContext";
 
 export interface CreatedBy {
   _id: string;
@@ -69,6 +70,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
   const [tasksData, setTasksData] = useState<ProjectTaskResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
+  const { showLoader, hideLoader } = useLoader();
 
   const [newTask, setNewTask] = useState({
     taskId: "",
@@ -83,6 +85,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
 
   const fetchTasks = async () => {
     try {
+      showLoader();
       const token = localStorage.getItem("token") || "";
       const res = await axios.get(endpoints.getTasks(projectId), {
         headers: { Authorization: `Bearer ${token}` },
@@ -91,6 +94,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
     } catch (err) {
       console.error("Error fetching tasks:", err);
     } finally {
+      hideLoader();
       setLoading(false);
     }
   };

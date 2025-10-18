@@ -385,7 +385,7 @@ export const Viewproject = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="tasks mt-4 max-h-[300px] flex flex-col">
+                    <div className="tasks mt-4 h-[300px] max-h-[300px] flex flex-col">
                         {tasksLoading ? (
                             <div className="flex justify-center items-center h-32">Loading tasks...</div>
                         ) : tasksError ? (
