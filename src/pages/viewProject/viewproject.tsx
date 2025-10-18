@@ -385,7 +385,7 @@ export const Viewproject = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="tasks mt-4 h-[300px] max-h-[300px] flex flex-col">
+                    <div className="tasks mt-4 h-[320px] max-h-[350px] flex flex-col overflow-auto">
                         {tasksLoading ? (
                             <div className="flex justify-center items-center h-32">Loading tasks...</div>
                         ) : tasksError ? (
@@ -396,7 +396,7 @@ export const Viewproject = () => {
                             tasksData.map((task) => (
                                 <div
                                     key={task._id}
-                                    className={`task p-3 mb-3 border flex justify-between items-center hover:shadow-md cursor-pointer ${
+                                    className={`task p-3 mb-3 border flex justify-between items-center hover:bg-white cursor-pointer ${
                                         task.priority === "urgent"
                                             ? "border-red-500 "
                                             : task.priority === "required"
@@ -414,7 +414,7 @@ export const Viewproject = () => {
                                         }`}
                                     ></div>
                                     <p className="font-semibold ">{task.taskId}</p>
-                                    <h6 className="flex-1 ml-3">{task.name}</h6>
+                                    <h6 className="flex-1 ml-3 text-xs">{task.name}</h6>
                                     <ArrowRight />
                                 </div>
                             ))
