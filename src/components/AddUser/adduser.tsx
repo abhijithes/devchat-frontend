@@ -2,7 +2,6 @@ import { useState } from "react";
 import axios from "axios";
 import { endpoints } from "../../constant/constant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import SnackBar from "../snack-bar/SnackBar";
 
 interface User {
     _id: string;
@@ -15,16 +14,16 @@ interface AddUserProps {
     projectid: string;
     usertype: "member" | "manager";
     currentMembers?: User[];
+    ownerId?: String;
 }
 
 const colors = ["#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#FFC733", "#33FFF5", "#B833FF", "#FF8333"];
 
-export default function AddUser({ projectid, usertype, currentMembers = [] }: AddUserProps) {
+export default function AddUser({ projectid, usertype, currentMembers = [], ownerId }: AddUserProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [showCurrentMembers, setShowCurrentMembers] = useState(false);
     const queryClient = useQueryClient();
-    // const {} = SnackBar()
 
     // Search users query with debouncing
     const {
@@ -51,11 +50,14 @@ export default function AddUser({ projectid, usertype, currentMembers = [] }: Ad
 
             // For member mode, use the original API search
             const token = localStorage.getItem("token") || "";
-            const response = await axios.get(`${endpoints.searchUser}?search=${encodeURIComponent(searchTerm)}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const response = await axios.get(
+                `${endpoints.searchUser}/${ownerId}?search=${encodeURIComponent(searchTerm)}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
             // Filter out already selected users
             return response.data.filter((u: User) => !selectedUsers.some((s) => s._id === u._id));

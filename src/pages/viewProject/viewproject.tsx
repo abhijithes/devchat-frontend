@@ -1,6 +1,6 @@
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import UploadButton from "../../components/buttons/uploudbtn";
 import Usericon from "../../components/userIcon/usericon";
 import { endpoints } from "../../constant/constant";
@@ -11,6 +11,8 @@ import DialogueBox from "../../components/dailogue-box/dialogueBox";
 import CheckUserRole from "../../components/check-user-role/CheckUserRole";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useSnackBar } from "../../components/snack-bar/snack-bar-context";
 
 interface AssignedUserType {
     firstName: string;
@@ -59,6 +61,7 @@ export const Viewproject = () => {
     const [showDialogue, setShowDialogue] = useState(false);
     const [AddUserType, setAddUserType] = useState<"member" | "manager">("member");
     const navigate = useNavigate();
+    const { showSnackBar } = useSnackBar();
 
     const {
         data: project,
@@ -121,6 +124,54 @@ export const Viewproject = () => {
         },
         enabled: !!id,
         staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+
+    const handleRemoveMember = useMutation({
+        mutationFn: async (userId: String) => {
+            const response = await axios.patch(
+                endpoints.removeMember(project._id),
+                {
+                    userId: userId,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                    },
+                }
+            );
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["project", id] });
+            showSnackBar("Member deleted successfully!", "success", 3000);
+        },
+        onError: (error) => {
+            console.error("Error removing member:", error);
+        },
+    });
+
+    const handleRemoveManager = useMutation({
+        mutationFn: async (userId: String) => {
+            const response = await axios.patch(
+                endpoints.removeManager(project._id),
+                {
+                    userId: userId,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                    },
+                }
+            );
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["project", id] });
+            showSnackBar("Manager deleted successfully", "success", 3000);
+        },
+        onError: (error) => {
+            console.error("Error removing member:", error);
+        },
     });
 
     const handleFileUpload = (files: UploadedFile | UploadedFile[]) => {
@@ -206,7 +257,27 @@ export const Viewproject = () => {
                             <p className="pb-3">All members</p>
                             <div className="flex flex-wrap gap-4 pb-4">
                                 {project.assignedUsersData?.map((user, index) => (
-                                    <Usericon key={`${user._id}-${index}`} user={user} />
+                                    <div className="relative group">
+                                        <Usericon key={`${user._id}-${index}`} user={user} />
+                                        <CheckUserRole userRole={project.userRole}>
+                                            <div className="hidden group-hover:block absolute left-0  w-48 bg-white border border-gray-200 rounded shadow-lg z-40">
+                                                <Link
+                                                    to={`/viewprofile/${user._id}`}
+                                                    className="block px-4 py-2 text-gray-800 hover:bg-gray-200"
+                                                >
+                                                    View Profile
+                                                </Link>
+                                                <button
+                                                    className="w-full text-left block px-4 py-2 text-red-800 hover:bg-gray-200"
+                                                    onClick={() => {
+                                                        handleRemoveMember.mutate(user._id);
+                                                    }}
+                                                >
+                                                    Remove user
+                                                </button>
+                                            </div>
+                                        </CheckUserRole>
+                                    </div>
                                 ))}
                                 <CheckUserRole userRole={project.userRole}>
                                     <p className="centered cursor-pointer">
@@ -227,7 +298,27 @@ export const Viewproject = () => {
                             <p className="pb-3">Managers</p>
                             <div className="flex flex-wrap gap-4 pb-4">
                                 {project.managersData?.map((user, index) => (
-                                    <Usericon key={`${user._id}-${index}`} user={user} />
+                                    <div className="relative group">
+                                        <Usericon key={`${user._id}-${index}`} user={user} />
+                                        <CheckUserRole userRole={project.userRole}>
+                                            <div className="hidden group-hover:block absolute left-0  w-48 bg-white border border-gray-200 rounded shadow-lg z-40">
+                                                <Link
+                                                    to={`/viewprofile/${user._id}`}
+                                                    className="block px-4 py-2 text-gray-800 hover:bg-gray-200"
+                                                >
+                                                    View Profile
+                                                </Link>
+                                                <button
+                                                    className="w-full text-left block px-4 py-2 text-red-800 hover:bg-gray-200"
+                                                    onClick={() => {
+                                                        handleRemoveManager.mutate(user._id);
+                                                    }}
+                                                >
+                                                    Remove user
+                                                </button>
+                                            </div>
+                                        </CheckUserRole>
+                                    </div>
                                 ))}
                                 <CheckUserRole userRole={project.userRole}>
                                     <p className="centered cursor-pointer">
@@ -270,11 +361,12 @@ export const Viewproject = () => {
                             projectid={id}
                             usertype={AddUserType}
                             currentMembers={project.assignedUsersData || []}
+                            ownerId={project.createdBy}
                         />
                     </DialogueBox>
                 )}
 
-                {/* Ticket List */}
+                {/* Ticket List  */}
                 <div className="tasklist bg-primary w-full lg:w-2/5 p-5 flex flex-col justify-center gap-3">
                     <div className="head flex flex-col sm:flex-row justify-between gap-2">
                         <h5 className="text-lg font-medium">Tickets</h5>
@@ -293,7 +385,7 @@ export const Viewproject = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="tasks mt-4 max-h-[300px] flex flex-col">
+                    <div className="tasks mt-4 h-[320px] max-h-[350px] flex flex-col overflow-auto">
                         {tasksLoading ? (
                             <div className="flex justify-center items-center h-32">Loading tasks...</div>
                         ) : tasksError ? (
@@ -304,7 +396,7 @@ export const Viewproject = () => {
                             tasksData.map((task) => (
                                 <div
                                     key={task._id}
-                                    className={`task p-3 mb-3 border flex justify-between items-center hover:shadow-md cursor-pointer ${
+                                    className={`task p-3 mb-3 border flex justify-between items-center hover:bg-white cursor-pointer ${
                                         task.priority === "urgent"
                                             ? "border-red-500 "
                                             : task.priority === "required"
@@ -322,7 +414,7 @@ export const Viewproject = () => {
                                         }`}
                                     ></div>
                                     <p className="font-semibold ">{task.taskId}</p>
-                                    <h6 className="flex-1 ml-3">{task.name}</h6>
+                                    <h6 className="flex-1 ml-3 text-xs">{task.name}</h6>
                                     <ArrowRight />
                                 </div>
                             ))

@@ -37,9 +37,9 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
-
     const { showLoader, hideLoader }: any = useLoader();
     const queryClient = useQueryClient();
+    const { id } = JSON.parse(localStorage.getItem("DEV_CHATX_USER_URD"));
 
     const colors = ["#3b5998", "#00acee", "#ff69b4", "#ffa500", "#4caf50"];
 
@@ -53,7 +53,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
         queryFn: async () => {
             if (!searchTerm.trim()) return [];
 
-            const response = await fetch(`${endpoints.searchUser}?search=${encodeURIComponent(searchTerm)}`);
+            const response = await fetch(`${endpoints.searchUser}/${id}?search=${encodeURIComponent(searchTerm)}`);
             if (!response.ok) throw new Error("Failed to fetch users");
 
             const data: User[] = await response.json();
@@ -223,7 +223,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
     };
 
     const removeFile = (index: number) => {
-        // Revoke object URL if it's an image to prevent memory leaks
+        // Revoke object URL if it's an image to prevent memory leeaks
         if (previews[index]) {
             URL.revokeObjectURL(previews[index]);
         }

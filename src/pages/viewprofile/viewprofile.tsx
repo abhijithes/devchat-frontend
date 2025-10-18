@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { endpoints } from "../../constant/constant";
 import avatar from "../../assets/avatar.jpg";
+import { useEffect, useState } from "react";
 
 interface UserType {
     _id: string;
@@ -11,18 +12,32 @@ interface UserType {
     profilePicture?: string;
     about?: string;
     createdAt: Date;
+    pinnedProjects: [
+        {
+            project: {
+                _id: string;
+                name: string;
+                description: string;
+                updatedAt: string;
+            };
+            role: string;
+            _id: string;
+        }
+    ];
     createdProjects: [
         {
-            _id: String;
-            name: String;
-            status: String;
+            _id: string;
+            name: string;
+            status: string;
+            updatedAt: string;
         }
     ];
     assignedProjects: [
         {
-            _id: String;
-            name: String;
-            status: String;
+            _id: string;
+            name: string;
+            status: string;
+            updatedAt: string;
         }
     ];
 }
@@ -38,6 +53,7 @@ const fetchUserProfile = async (id: string): Promise<UserType> => {
 
 export default function ViewProfile() {
     const { id } = useParams<{ id: string }>();
+    const [projects, setProjects] = useState<{ _id: string; name: string; role: string; updatedAt: string }[]>([]);
 
     // TanStack Query for user profile
     const {
@@ -69,6 +85,28 @@ export default function ViewProfile() {
         );
     }
 
+    useEffect(() => {
+        if (user.pinnedProjects && user.pinnedProjects.length > 0) {
+            setProjects(
+                user.pinnedProjects.map((p) => ({
+                    _id: p.project._id,
+                    name: p.project.name,
+                    role: p.role,
+                    updatedAt: p.project.updatedAt,
+                }))
+            );
+        } else {
+            const allProjects = [
+                ...(user.createdProjects?.map((p) => ({ ...p, role: "owner" })) || []),
+                ...(user.assignedProjects?.map((p) => ({ ...p, role: "assigned" })) || []),
+            ];
+            const sorted = allProjects
+                .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+                .slice(0, 6);
+            setProjects(sorted);
+        }
+    }, [user]);
+
     // User not found
     if (!user) {
         return (
@@ -78,14 +116,10 @@ export default function ViewProfile() {
         );
     }
 
-    const assignedProjects = user.assignedProjects || [];
-    const userProjects = user.createdProjects || [];
-    const allProjects = [...assignedProjects, ...userProjects];
-
     return (
         <div className="flex flex-col lg:flex-row w-full gap-4 md:gap-6 p-4 md:p-6">
             {/* Profile Card */}
-            <section className="profile-card bg-white rounded-xl p-4 md:p-6 w-full lg:max-w-sm shadow-sm border border-gray-100">
+            <section className="profile-card bg-white rounded-xl p-4 md:p-6 w-full lg:max-w-sm  border border-gray-100">
                 <div className="profile-header flex flex-col items-center text-center mb-6">
                     <div className="avatar-wrapper relative mb-4">
                         <div className="w-28 h-28 md:w-32 md:h-32 lg:w-40 lg:h-40 rounded-full border-4 border-blue-50 overflow-hidden">
@@ -130,16 +164,15 @@ export default function ViewProfile() {
 
             {/* Projects Section */}
             <section className="projects-section flex-1">
-                <div className="projects-content bg-white rounded-xl border border-gray-100 p-4 md:p-6 shadow-sm">
+                <div className="projects-content bg-white rounded-xl border border-gray-100 p-4 md:p-6">
                     <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-4 md:mb-6">Projects</h2>
 
                     <div className="projects-grid">
-                        {allProjects.length === 0 ? (
+                        {projects.length === 0 ? (
                             <p className="text-gray-500 text-center py-8 text-sm md:text-base">No projects found</p>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
-                                {/* Owned Projects */}
-                                {userProjects.map((project) => (
+                                {projects.map((project) => (
                                     <div
                                         key={`owned-${project._id}`}
                                         className="project-card bg-white border border-gray-200 rounded-lg p-4 md:p-5 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer group"
@@ -149,25 +182,9 @@ export default function ViewProfile() {
                                             {project.name}
                                         </h3>
                                         <span className="text-xs text-black font-medium bg-blue-50 px-2 py-1 rounded">
-                                            Owned
+                                            {project.role === "owner" ? "owned" : "assigned"}
                                         </span>
                                         <div className="absolute inset-0 border-2 border-transparent group-hover:border-gray-200 rounded-lg pointer-events-none" />
-                                    </div>
-                                ))}
-                                {/* Assigned Projects */}
-                                {assignedProjects.map((project) => (
-                                    <div
-                                        key={`assigned-${project._id}`}
-                                        className="project-card bg-white border border-gray-200 rounded-lg p-4 md:p-5 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
-                                        onClick={() => (window.location.href = `/project/${project._id}`)}
-                                    >
-                                        <h3 className="text-sm md:text-base font-medium text-gray-800 mb-1 line-clamp-2">
-                                            {project.name}
-                                        </h3>
-                                        <span className="text-xs text-gray-800 font-medium bg-blue-50 px-2 py-1 rounded">
-                                            Assigned
-                                        </span>
-                                        <div className="absolute inset-0 border-2 border-transparent group-hover:border-blue-200 rounded-lg pointer-events-none" />
                                     </div>
                                 ))}
                             </div>

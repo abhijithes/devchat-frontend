@@ -3,17 +3,50 @@ import axios from "axios";
 import { Pencil, Trash2 } from "lucide-react";
 import DialogueBox from "../../components/dailogue-box/dialogueBox";
 import { endpoints } from "../../constant/constant";
+import FindUser from "../find-users/FindUser";
+import { useLoader } from "../../contexts/GlobalLoaderContext";
 
-interface Task {
+export interface CreatedBy {
+  _id: string;
+  email: string;
+}
+
+export interface ProjectInfo {
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: CreatedBy;
+}
+
+export interface Assignee {
+  _id: string;
+  email: string;
+}
+
+export interface Task {
   _id: string;
   name: string;
-  email: string;
-  priority: "urgent" | "required" | "completed";
+  priority: string;
   status: string;
-  assignee: { email: string };
-  uptime: string;
+  assignee: Assignee;
+  project: string;
+  dueDate: string;
   taskId: string;
-  dueDate?: Date;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface ProjectTaskResponse {
+  project: ProjectInfo;
+  data: Task[];
+  userRole: string;
+  page: number;
+  limit: number;
+  totalTasks: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
 
 interface Props {
@@ -34,9 +67,10 @@ const getPriorityColor = (priority: Task["priority"]) => {
 };
 
 const TaskTable: React.FC<Props> = ({ projectId }) => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasksData, setTasksData] = useState<ProjectTaskResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
+  const { showLoader, hideLoader } = useLoader();
 
   const [newTask, setNewTask] = useState({
     taskId: "",
@@ -47,21 +81,25 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
     dueDate: "",
   });
 
+  const tasks = tasksData?.data || [];
+
+  const fetchTasks = async () => {
+    try {
+      showLoader();
+      const token = localStorage.getItem("token") || "";
+      const res = await axios.get(endpoints.getTasks(projectId), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTasksData(res.data);
+    } catch (err) {
+      console.error("Error fetching tasks:", err);
+    } finally {
+      hideLoader();
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const token = localStorage.getItem("token") || "";
-        const res = await axios.get(endpoints.getTasks(projectId), {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        console.log("Fetched tasks:", res.data);
-        setTasks(res.data || []);
-      } catch (err) {
-        console.error("Error fetching tasks:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchTasks();
   }, [projectId]);
 
@@ -72,7 +110,11 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
       await axios.delete(endpoints.deleteTask(projectId, taskId), {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setTasks((prev) => prev.filter((t) => t._id !== taskId));
+      setTasksData((prev) =>
+        prev
+          ? { ...prev, data: prev.data.filter((t) => t._id !== taskId) }
+          : prev
+      );
     } catch (err) {
       console.error("Error deleting task:", err);
     }
@@ -88,8 +130,15 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setTasks((prev) =>
-        prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t))
+      setTasksData((prev) =>
+        prev
+          ? {
+              ...prev,
+              data: prev.data.map((task) =>
+                task._id === taskId ? { ...task, status: newStatus } : task
+              ),
+            }
+          : prev
       );
     } catch (err) {
       console.error("Error updating task:", err);
@@ -127,11 +176,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
         assigneeEmail: "",
         dueDate: "",
       });
-
-      const res = await axios.get(endpoints.getTasks(projectId), {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTasks(res.data || []);
+      fetchTasks();
     } catch (err) {
       console.error("Error creating task:", err);
     }
@@ -141,24 +186,32 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
 
   return (
     <div
-      className="w-full rounded-2xl shadow-md p-6"
+      className="w-full rounded-2xl"
       style={{
         backgroundColor: "var(--color-background)",
         color: "var(--color-text)",
         fontFamily: "var(--font-family)",
       }}
     >
-      {/* Header */}
+      <div className="w-full min-h-32  space-y-2 ">
+        <h1 className="text-2xl font-medium">{tasksData.project.name}</h1>
+        <h1 className="text-sm">
+          @ {new Date(new Date(tasksData.project.createdAt)).toLocaleString()}
+        </h1>
+        <h1>
+          By{" "}
+          <span className="font-medium">
+            {tasksData.project.createdBy.email}
+          </span>{" "}
+        </h1>
+      </div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text)]">
-            Project Tasks
-          </h1>
-          <p className="text-[var(--color-secondary)] font-medium pt-2 cursor-pointer">
+          <h1 className="text-2xl font-bold">Project Tasks</h1>
+          <p className="text-[var(--color-secondary)] font-medium pt-2">
             All tasks for this project
           </p>
         </div>
-
         <div className="flex items-center gap-4 mt-3 md:mt-0">
           <p className="text-sm font-semibold">
             Total Tasks:{" "}
@@ -168,7 +221,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
           </p>
           <button
             onClick={() => setShowDialog(true)}
-            className="transition px-4 py-2 rounded-md text-sm font-medium cursor-pointer"
+            className="px-4 py-2 rounded-md text-sm font-medium"
             style={{
               backgroundColor: "var(--color-button)",
               color: "var(--color-background)",
@@ -183,7 +236,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
       <div className="mt-6 overflow-x-auto">
         <table className="min-w-full border-collapse text-sm md:text-base">
           <thead>
-            <tr className="border-b border-[var(--color-primary)]">
+            <tr className=" border-[var(--color-primary)]">
               {[
                 "ID",
                 "Task name",
@@ -194,10 +247,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                 "Edit",
                 "Delete",
               ].map((heading) => (
-                <th
-                  key={heading}
-                  className="py-3 px-4 font-semibold text-[var(--color-text)] text-left"
-                >
+                <th key={heading} className="py-3 px-4 font-semibold text-left">
                   {heading}
                 </th>
               ))}
@@ -207,7 +257,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
             {tasks.map((task) => (
               <tr
                 key={task._id}
-                className="border-b border-[var(--color-primary)] hover:bg-[var(--color-primary)] transition"
+                className=" hover:bg-[var(--color-primary)] transition"
               >
                 <td className="py-3 px-4 font-medium">{task.taskId}</td>
                 <td className="py-3 px-4 truncate max-w-[180px]">
@@ -224,7 +274,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                 <td className="py-3 px-4">{task.status}</td>
                 <td className="py-3 px-4">{task.assignee.email}</td>
                 <td className="py-3 px-4">
-                  {new Date(task.dueDate || "").toLocaleDateString("en-GB", {
+                  {new Date(task.dueDate).toLocaleDateString("en-GB", {
                     day: "numeric",
                     month: "long",
                     year: "numeric",
@@ -233,26 +283,23 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                 <td className="py-3 px-4">
                   <button
                     onClick={() => handleEdit(task._id)}
-                    className="flex items-center justify-center rounded-md p-2"
+                    className="p-2 rounded-md"
                     style={{
                       backgroundColor: "var(--color-primary)",
                       color: "var(--color-accent)",
                     }}
-                    title="Edit Task"
                   >
                     <Pencil size={16} />
                   </button>
                 </td>
-
                 <td className="py-3 px-4">
                   <button
                     onClick={() => handleDelete(task._id)}
-                    className="flex items-center justify-center rounded-md p-2"
+                    className="p-2 rounded-md"
                     style={{
                       backgroundColor: "var(--color-primary)",
                       color: "red",
                     }}
-                    title="Delete Task"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -263,127 +310,103 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
         </table>
       </div>
 
-      {/* ✅ DialogueBox for adding task */}
+      {/* Add Task Dialog */}
       {showDialog && (
         <DialogueBox onClose={() => setShowDialog(false)}>
           <form
             onSubmit={handleCreateTask}
-            className="bg-white p-6 w-full max-w-2xl mx-auto font-sans"
+            className="p-6 w-full max-w-2xl bg-white mx-auto"
           >
-            {/* Header */}
-            <h2 className="text-xl font-semibold text-gray-800 mb-5">
-              Add New Task
-            </h2>
-
-            {/* Grid layout */}
+            <h2 className="text-xl font-semibold mb-5">Add New Task</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {/* Task ID */}
               <div>
-                <label className="block text-gray-600 text-sm mb-1">
-                  Task ID
-                </label>
+                <label className="text-sm text-gray-600">Task ID</label>
                 <input
                   type="text"
                   name="taskId"
-                  placeholder="Enter unique Task ID"
                   value={newTask.taskId}
                   onChange={handleChange}
                   required
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] bg-gray-50"
+                  className="w-full bg-gray-50 border rounded-lg px-3 py-2"
                 />
               </div>
-
-              {/* Due Date */}
               <div>
-                <label className="block text-gray-600 text-sm mb-1">
-                  Due Date
-                </label>
+                <label className="text-sm text-gray-600">Due Date</label>
                 <input
                   type="date"
                   name="dueDate"
                   value={newTask.dueDate}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] bg-gray-50"
+                  className="w-full bg-gray-50 border rounded-lg px-3 py-2"
                 />
               </div>
-
-              {/* Task Name (full width) */}
               <div className="sm:col-span-2">
-                <label className="block text-gray-600 text-sm mb-1">
-                  Task Name
-                </label>
+                <label className="text-sm text-gray-600">Task Name</label>
                 <input
                   type="text"
                   name="name"
-                  placeholder="Enter task name"
                   value={newTask.name}
                   onChange={handleChange}
                   required
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] bg-gray-50"
+                  className="w-full bg-gray-50 border rounded-lg px-3 py-2"
                 />
               </div>
-
-              {/* Priority */}
               <div>
-                <label className="block text-gray-600 text-sm mb-1">
-                  Priority
-                </label>
+                <label className="text-sm text-gray-600">Priority</label>
                 <select
                   name="priority"
                   value={newTask.priority}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] bg-gray-50"
+                  className="w-full bg-gray-50 border rounded-lg px-3 py-2"
                 >
                   <option value="urgent">Urgent</option>
                   <option value="required">Required</option>
                   <option value="completed">Completed</option>
                 </select>
               </div>
-
-              {/* Status */}
               <div>
-                <label className="block text-gray-600 text-sm mb-1">
-                  Status
-                </label>
+                <label className="text-sm text-gray-600">Status</label>
                 <input
                   type="text"
                   name="status"
-                  placeholder="e.g. pending, in progress"
                   value={newTask.status}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] bg-gray-50"
+                  className="w-full bg-gray-50 border rounded-lg px-3 py-2"
                 />
               </div>
-
-              {/* Assignee Email (full width) */}
               <div className="sm:col-span-2">
-                <label className="block text-gray-600 text-sm mb-1">
-                  Assignee Email
-                </label>
-                <input
-                  type="email"
-                  name="assigneeEmail"
-                  placeholder="Enter assignee’s email"
-                  value={newTask.assigneeEmail}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] bg-gray-50"
+                <label className="text-sm text-gray-600">Assignee</label>
+                <FindUser
+                  users={[
+                    { _id: "123", name: "manuraj" },
+                    { _id: "125", name: "test" },
+                    { _id: "126", name: "user3" },
+                    { _id: "127", name: "user4" },
+                    { _id: "128", name: "user5" },
+                  ]}
+                  selectType="single"
+                  onUserSelect={(user: any) => {
+                    setNewTask((prev) => ({
+                      ...prev,
+                      assigneeEmail: user.name,
+                    }));
+                  }}
+                  activeStyle="bg-zinc-200"
+                  inputStyle="bg-gray-50 rounded-lg"
                 />
               </div>
             </div>
-
-            {/* Buttons */}
-            <div className="flex justify-end gap-3 pt-6 mt-6">
+            <div className="flex justify-end gap-3 mt-6">
               <button
                 type="button"
                 onClick={() => setShowDialog(false)}
-                className="px-5 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+                className="px-5 py-2 bg-gray-200 rounded-md text-gray-700 hover:bg-gray-300"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 rounded-md text-white font-medium transition"
+                className="px-5 py-2 rounded-md text-white"
                 style={{ backgroundColor: "var(--color-button)" }}
               >
                 Create Task
