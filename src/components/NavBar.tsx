@@ -10,6 +10,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getToken, getUserPublicInfo, removeToken } from "../utils/token";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSnackBar } from "./snack-bar/snack-bar-context";
+import NotificationBox from "./notification-box/NotificationBox";
 
 interface UserInfo {
   firstName?: string;
@@ -26,6 +27,8 @@ const NavBar = () => {
     firstName: "",
     profilePicture: "",
   });
+
+  const [openNotifiaction, setOpenNotification] = useState(false);
 
   const navigation = useNavigate();
   const queryClient = useQueryClient();
@@ -94,9 +97,15 @@ const NavBar = () => {
               </Link>
             </li>
 
-            <li>
-              <Link to="#" className="text-gray-600 hover:text-zinc-900">
+            <li onClick={() => setOpenNotification((pre) => !pre)}>
+              <Link
+                to="#"
+                className="text-gray-600 hover:text-zinc-900 relative "
+              >
                 <Notifications />
+                {openNotifiaction && (
+                  <NotificationBox style="absolute right-0 " />
+                )}
               </Link>
             </li>
             <li>
