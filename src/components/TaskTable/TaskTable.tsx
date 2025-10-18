@@ -70,6 +70,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
   const [tasksData, setTasksData] = useState<ProjectTaskResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null); // ✅ new state
   const { showLoader, hideLoader } = useLoader();
 
   const [newTask, setNewTask] = useState({
@@ -120,29 +121,17 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
     }
   };
 
-  const handleEdit = async (taskId: string) => {
-    const newStatus = prompt("Enter new status:");
-    if (!newStatus) return;
-    try {
-      const token = localStorage.getItem("token") || "";
-      await axios.put(
-        endpoints.updateTask(projectId, taskId),
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setTasksData((prev) =>
-        prev
-          ? {
-              ...prev,
-              data: prev.data.map((task) =>
-                task._id === taskId ? { ...task, status: newStatus } : task
-              ),
-            }
-          : prev
-      );
-    } catch (err) {
-      console.error("Error updating task:", err);
-    }
+  const handleEdit = (task: Task) => {
+    setEditingTask(task);
+    setNewTask({
+      taskId: task.taskId,
+      name: task.name,
+      priority: task.priority,
+      status: task.status,
+      assigneeEmail: task.assignee.email,
+      dueDate: task.dueDate ? task.dueDate.split("T")[0] : "",
+    });
+    setShowDialog(true);
   };
 
   const handleChange = (
@@ -151,23 +140,41 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
     setNewTask({ ...newTask, [e.target.name]: e.target.value });
   };
 
-  const handleCreateTask = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token") || "";
-      await axios.post(
-        endpoints.createTask(projectId),
-        {
-          taskId: newTask.taskId,
-          name: newTask.name,
-          priority: newTask.priority,
-          status: newTask.status,
-          assigneeEmail: newTask.assigneeEmail,
-          dueDate: newTask.dueDate,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      if (editingTask) {
+        await axios.put(
+          endpoints.updateTask(projectId, editingTask._id),
+          {
+            taskId: newTask.taskId,
+            name: newTask.name,
+            priority: newTask.priority,
+            status: newTask.status,
+            assigneeEmail: newTask.assigneeEmail,
+            dueDate: newTask.dueDate,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else {
+
+        await axios.post(
+          endpoints.createTask(projectId),
+          {
+            taskId: newTask.taskId,
+            name: newTask.name,
+            priority: newTask.priority,
+            status: newTask.status,
+            assigneeEmail: newTask.assigneeEmail,
+            dueDate: newTask.dueDate,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
       setShowDialog(false);
+      setEditingTask(null);
       setNewTask({
         taskId: "",
         name: "",
@@ -178,7 +185,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
       });
       fetchTasks();
     } catch (err) {
-      console.error("Error creating task:", err);
+      console.error("Error saving task:", err);
     }
   };
 
@@ -193,18 +200,19 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
         fontFamily: "var(--font-family)",
       }}
     >
-      <div className="w-full min-h-32  space-y-2 ">
-        <h1 className="text-2xl font-medium">{tasksData.project.name}</h1>
+      <div className="w-full min-h-32 space-y-2">
+        <h1 className="text-2xl font-medium">{tasksData?.project?.name}</h1>
         <h1 className="text-sm">
-          @ {new Date(new Date(tasksData.project.createdAt)).toLocaleString()}
+          @ {new Date(tasksData?.project?.createdAt || "").toLocaleString()}
         </h1>
         <h1>
           By{" "}
           <span className="font-medium">
-            {tasksData.project.createdBy.email}
-          </span>{" "}
+            {tasksData?.project?.createdBy?.email}
+          </span>
         </h1>
       </div>
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
         <div>
           <h1 className="text-2xl font-bold">Project Tasks</h1>
@@ -220,7 +228,10 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
             </span>
           </p>
           <button
-            onClick={() => setShowDialog(true)}
+            onClick={() => {
+              setEditingTask(null);
+              setShowDialog(true);
+            }}
             className="px-4 py-2 rounded-md text-sm font-medium"
             style={{
               backgroundColor: "var(--color-button)",
@@ -236,7 +247,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
       <div className="mt-6 overflow-x-auto">
         <table className="min-w-full border-collapse text-sm md:text-base">
           <thead>
-            <tr className=" border-[var(--color-primary)]">
+            <tr className="border-[var(--color-primary)]">
               {[
                 "ID",
                 "Task name",
@@ -257,7 +268,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
             {tasks.map((task) => (
               <tr
                 key={task._id}
-                className=" hover:bg-[var(--color-primary)] transition"
+                className="hover:bg-[var(--color-primary)] transition"
               >
                 <td className="py-3 px-4 font-medium">{task.taskId}</td>
                 <td className="py-3 px-4 truncate max-w-[180px]">
@@ -272,7 +283,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                   <span className="capitalize">{task.priority}</span>
                 </td>
                 <td className="py-3 px-4">{task.status}</td>
-                <td className="py-3 px-4">{task.assignee.email}</td>
+                <td className="py-3 px-4">{task.assignee?.email}</td>
                 <td className="py-3 px-4">
                   {new Date(task.dueDate).toLocaleDateString("en-GB", {
                     day: "numeric",
@@ -282,7 +293,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                 </td>
                 <td className="py-3 px-4">
                   <button
-                    onClick={() => handleEdit(task._id)}
+                    onClick={() => handleEdit(task)}
                     className="p-2 rounded-md"
                     style={{
                       backgroundColor: "var(--color-primary)",
@@ -310,14 +321,16 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
         </table>
       </div>
 
-      {/* Add Task Dialog */}
       {showDialog && (
         <DialogueBox onClose={() => setShowDialog(false)}>
           <form
-            onSubmit={handleCreateTask}
+            onSubmit={handleSubmit}
             className="p-6 w-full max-w-2xl bg-white mx-auto"
           >
-            <h2 className="text-xl font-semibold mb-5">Add New Task</h2>
+            <h2 className="text-xl font-semibold mb-5">
+              {editingTask ? "Edit Task" : "Add New Task"}
+            </h2>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
                 <label className="text-sm text-gray-600">Task ID</label>
@@ -328,6 +341,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                   onChange={handleChange}
                   required
                   className="w-full bg-gray-50 border rounded-lg px-3 py-2"
+                  disabled={!!editingTask} 
                 />
               </div>
               <div>
@@ -396,10 +410,14 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                 />
               </div>
             </div>
+
             <div className="flex justify-end gap-3 mt-6">
               <button
                 type="button"
-                onClick={() => setShowDialog(false)}
+                onClick={() => {
+                  setShowDialog(false);
+                  setEditingTask(null);
+                }}
                 className="px-5 py-2 bg-gray-200 rounded-md text-gray-700 hover:bg-gray-300"
               >
                 Cancel
@@ -409,7 +427,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                 className="px-5 py-2 rounded-md text-white"
                 style={{ backgroundColor: "var(--color-button)" }}
               >
-                Create Task
+                {editingTask ? "Update Task" : "Create Task"}
               </button>
             </div>
           </form>
