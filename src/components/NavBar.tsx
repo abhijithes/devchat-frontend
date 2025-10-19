@@ -5,7 +5,7 @@ import {
   NotificationsActive,
   Settings,
 } from "@mui/icons-material";
-import { BellDot, BellRing, MenuIcon, XIcon } from "lucide-react";
+import { MenuIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getToken, getUserPublicInfo, removeToken } from "../utils/token";
