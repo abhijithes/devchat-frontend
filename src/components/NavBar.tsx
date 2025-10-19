@@ -5,7 +5,7 @@ import {
   Settings,
 } from "@mui/icons-material";
 import { MenuIcon, XIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getToken, getUserPublicInfo, removeToken } from "../utils/token";
 import { useQueryClient } from "@tanstack/react-query";
@@ -28,6 +28,8 @@ const NavBar = () => {
     profilePicture: "",
   });
 
+  const notificationBoxRef = useRef<HTMLDivElement>(null);
+
   const [openNotifiaction, setOpenNotification] = useState(false);
 
   const navigation = useNavigate();
@@ -48,6 +50,21 @@ const NavBar = () => {
     );
     triggerWelcomeToast();
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        notificationBoxRef.current &&
+        !notificationBoxRef.current.contains(event.target as Node)
+      ) {
+        setOpenNotification(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [notificationBoxRef]);
 
   const triggerWelcomeToast = () => {
     if (!sessionStorage.getItem("DEV_CHATX_OPENED_NOS")) {
@@ -98,15 +115,12 @@ const NavBar = () => {
             </li>
 
             <li onClick={() => setOpenNotification((pre) => !pre)}>
-              <Link
-                to="#"
-                className="text-gray-600 hover:text-zinc-900 relative "
-              >
+              <button className="text-gray-600 hover:text-zinc-900 relative ">
                 <Notifications />
                 {openNotifiaction && (
-                  <NotificationBox style="absolute right-0 " />
+                  <NotificationBox ref={notificationBoxRef} />
                 )}
-              </Link>
+              </button>
             </li>
             <li>
               <Link to="#" className="text-gray-600 hover:text-zinc-900">
