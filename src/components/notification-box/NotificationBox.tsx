@@ -74,7 +74,7 @@ const NotificationBox = ({ style, ref, opened }: NotificationBoxProps) => {
             >
               <p> {notification.message}</p>
               <span className="text-xs text-gray-400">
-                {new Date(notification.timestamp).toLocaleString()}
+                {new Date(notification.timeStamp).toLocaleString()}
               </span>
             </li>
           ))}
