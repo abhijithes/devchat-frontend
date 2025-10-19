@@ -30,3 +30,32 @@
       50% 0, 0 0, 50% 50%;
   }
 }
+
+.notification-active {
+  color: rgb(52, 199, 3);
+  animation: ring 1.5s 0.5s ease-in-out infinite;
+}
+
+@keyframes ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  10% {
+    transform: rotate(15deg);
+  }
+  20% {
+    transform: rotate(-10deg);
+  }
+  30% {
+    transform: rotate(15deg);
+  }
+  40% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}

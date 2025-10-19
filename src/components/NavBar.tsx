@@ -2,15 +2,17 @@ import {
   KeyboardArrowLeft,
   KeyboardArrowRight,
   Notifications,
+  NotificationsActive,
   Settings,
 } from "@mui/icons-material";
-import { MenuIcon, XIcon } from "lucide-react";
+import { BellDot, BellRing, MenuIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getToken, getUserPublicInfo, removeToken } from "../utils/token";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSnackBar } from "./snack-bar/snack-bar-context";
 import NotificationBox from "./notification-box/NotificationBox";
+import { useSocket } from "../contexts/SocketBaseContext";
 
 interface UserInfo {
   firstName?: string;
@@ -29,8 +31,8 @@ const NavBar = () => {
   });
 
   const notificationBoxRef = useRef<HTMLDivElement>(null);
-
   const [openNotifiaction, setOpenNotification] = useState(false);
+  const { notifications } = useSocket();
 
   const navigation = useNavigate();
   const queryClient = useQueryClient();
@@ -116,7 +118,14 @@ const NavBar = () => {
 
             <li onClick={() => setOpenNotification((pre) => !pre)}>
               <button className="text-gray-600 hover:text-zinc-900 relative ">
-                <Notifications />
+                {notifications.length ? (
+                  <NotificationsActive
+                    htmlColor="green"
+                    className="notification-active "
+                  />
+                ) : (
+                  <Notifications />
+                )}
                 <NotificationBox
                   ref={notificationBoxRef}
                   opened={openNotifiaction}
