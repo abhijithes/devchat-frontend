@@ -1,9 +1,17 @@
-import { createContext, useContext, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { io, type Socket } from "socket.io-client";
 import { socket_url } from "../constant/constant";
 
 interface SocketContextType {
   socket: Socket;
+  notifications: any[];
+  setNotifications: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 const SocketBaseContext = createContext<SocketContextType | undefined>(
@@ -16,18 +24,33 @@ const socket: Socket = io(socket_url, {
 });
 
 const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    socket.on("get_notification", (data) => {
+      console.log("New message received:", data);
+      setNotifications((prevNotifications) => [data, ...prevNotifications]);
+    });
+  }, [socket]);
+
   return (
-    <SocketBaseContext.Provider value={{ socket }}>
+    <SocketBaseContext.Provider
+      value={{ socket, notifications, setNotifications }}
+    >
       {children}
     </SocketBaseContext.Provider>
   );
 };
 
-const useSocket = (): Socket => {
+const useSocket = (): SocketContextType => {
   const context = useContext(SocketBaseContext);
   if (!context)
     throw new Error("useSocket must be used within SocketBaseProvider");
-  return context.socket;
+  return {
+    socket: context.socket,
+    notifications: context.notifications,
+    setNotifications: context.setNotifications,
+  };
 };
 
 export { SocketBaseContext, SocketBaseProvider, useSocket };

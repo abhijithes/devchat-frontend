@@ -1,11 +1,10 @@
 import { Outlet } from "react-router-dom";
 import { useSocket } from "../contexts/SocketBaseContext";
 import { useEffect } from "react";
-import type { Socket } from "socket.io-client";
 import { getUserPublicInfo } from "../utils/token";
 
 const AppLayout = () => {
-  const socket: Socket = useSocket();
+  const { socket } = useSocket();
   const user = getUserPublicInfo();
 
   useEffect(() => {

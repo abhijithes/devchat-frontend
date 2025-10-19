@@ -1,5 +1,6 @@
 import { Notifications, NotificationsOutlined } from "@mui/icons-material";
 import { useState } from "react";
+import { useSocket } from "../../contexts/SocketBaseContext";
 
 interface NotificationBoxProps {
   style?: string;
@@ -14,39 +15,38 @@ interface Notification {
   timestamp: string;
 }
 
+//  {
+//       id: "1",
+//       message: "Your task 'Fix login bug' has been updated.",
+//       read: false,
+//       timestamp: new Date().toISOString(),
+//     },
+//     {
+//       id: "2",
+//       message: "New comment on task 'Design landing page'.",
+//       read: true,
+//       timestamp: new Date().toISOString(),
+//     },
+//     {
+//       id: "2",
+//       message: "New comment on task 'Design landing page'.",
+//       read: true,
+//       timestamp: new Date().toISOString(),
+//     },
+//     {
+//       id: "2",
+//       message: "New comment on task 'Design landing page'.",
+//       read: true,
+//       timestamp: new Date().toISOString(),
+//     },
+//     {
+//       id: "2",
+//       message: "New comment on task 'Design landing page'.",
+//       read: true,
+//       timestamp: new Date().toISOString(),
+//     },
 const NotificationBox = ({ style, ref, opened }: NotificationBoxProps) => {
-  const [notifications, setNotifications] = useState<Notification[] | []>([
-    {
-      id: "1",
-      message: "Your task 'Fix login bug' has been updated.",
-      read: false,
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      message: "New comment on task 'Design landing page'.",
-      read: true,
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      message: "New comment on task 'Design landing page'.",
-      read: true,
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      message: "New comment on task 'Design landing page'.",
-      read: true,
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      message: "New comment on task 'Design landing page'.",
-      read: true,
-      timestamp: new Date().toISOString(),
-    },
-  ]);
+  const { notifications } = useSocket();
 
   return (
     <div
