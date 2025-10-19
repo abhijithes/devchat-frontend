@@ -3,6 +3,7 @@ import { useState } from "react";
 interface NotificationBoxProps {
   style?: string;
   ref?: React.Ref<HTMLDivElement>;
+  opened?: boolean;
 }
 
 interface Notification {
@@ -12,7 +13,7 @@ interface Notification {
   timestamp: string;
 }
 
-const NotificationBox = ({ style, ref }: NotificationBoxProps) => {
+const NotificationBox = ({ style, ref, opened }: NotificationBoxProps) => {
   const [notifications, setNotifications] = useState<Notification[] | []>([
     {
       id: "1",
@@ -50,7 +51,9 @@ const NotificationBox = ({ style, ref }: NotificationBoxProps) => {
     <div
       onClick={(e) => e.stopPropagation()}
       ref={ref}
-      className={`min-w-sm h-[90vh] bg-white/90 shadow-xl border border-zinc-300 rounded  mt-3 fixed top-0 right-0 z-[99999]  backdrop-blur-3xl overflow-auto ${style} `}
+      className={`min-w-sm h-[90vh] bg-white/90 shadow-xl border border-zinc-300 rounded  mt-3 fixed top-0 ${
+        opened ? "right-0" : "-right-full"
+      }  z-[99999]  backdrop-blur-3xl overflow-auto transition-[1s] ${style} delay-100 `}
     >
       <div className="w-full h-max bg-white sticky top-0 p-5">
         <h1 className="font-semibold text-start  ">Notifications</h1>

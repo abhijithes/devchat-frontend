@@ -117,9 +117,10 @@ const NavBar = () => {
             <li onClick={() => setOpenNotification((pre) => !pre)}>
               <button className="text-gray-600 hover:text-zinc-900 relative ">
                 <Notifications />
-                {openNotifiaction && (
-                  <NotificationBox ref={notificationBoxRef} />
-                )}
+                <NotificationBox
+                  ref={notificationBoxRef}
+                  opened={openNotifiaction}
+                />
               </button>
             </li>
             <li>

@@ -5,13 +5,14 @@ import { socket_url } from "../constant/constant";
 const SocketBaseContext = createContext(undefined);
 
 const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
-  const socket: Socket = io(socket_url, {
-    transports: ["websocket", "polling"],
-    withCredentials: true,
-  });
+  const socket: Socket = io(socket_url, {});
 
   socket.on("connection", () => {
     console.log("Socket connected:", socket.id);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Socket disconnected");
   });
 
   return (
