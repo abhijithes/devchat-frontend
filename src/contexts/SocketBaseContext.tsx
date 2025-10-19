@@ -1,29 +1,45 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { io, type Socket } from "socket.io-client";
 import { socket_url } from "../constant/constant";
 
-const SocketBaseContext = createContext(undefined);
+interface SocketContextType {
+    socket: Socket;
+    notifications: any[];
+    setNotifications: React.Dispatch<React.SetStateAction<any[]>>;
+}
+
+const SocketBaseContext = createContext<SocketContextType | undefined>(undefined);
+
+const socket: Socket = io(socket_url, {
+    transports: ["websocket", "polling"],
+    autoConnect: true,
+});
 
 const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
-    const socket: Socket = io(socket_url, {});
+    const [notifications, setNotifications] = useState([]);
 
-    socket.on("connection", () => {
-        console.log("Socket connected:", socket.id);
-    });
+    useEffect(() => {
+        socket.on("get_notification", (data) => {
+            console.log("New message received:", data);
+            setNotifications((prevNotifications) => [data, ...prevNotifications]);
+        });
+    }, [socket]);
 
-    socket.on("disconnect", () => {
-        console.log("Socket disconnected");
-    });
-    socket.on("get_notification", (data) => {
-        console.log("📩 Notification:", data.message);
-        alert(data.message); // Or render in UI
-    });
-
-    return <SocketBaseContext.Provider value={{ socket }}>{children}</SocketBaseContext.Provider>;
+    return (
+        <SocketBaseContext.Provider value={{ socket, notifications, setNotifications }}>
+            {children}
+        </SocketBaseContext.Provider>
+    );
 };
 
-const userSocketBaseContext = (): Socket => {
-    return useContext(SocketBaseContext);
+const useSocket = (): SocketContextType => {
+    const context = useContext(SocketBaseContext);
+    if (!context) throw new Error("useSocket must be used within SocketBaseProvider");
+    return {
+        socket: context.socket,
+        notifications: context.notifications,
+        setNotifications: context.setNotifications,
+    };
 };
 
-export { SocketBaseContext, SocketBaseProvider, userSocketBaseContext };
+export { SocketBaseContext, SocketBaseProvider, useSocket };
