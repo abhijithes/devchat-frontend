@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { io, type Socket } from "socket.io-client";
 import { socket_url } from "../constant/constant";
+import { useSnackBar } from "../components/snack-bar/snack-bar-context";
 
 interface SocketContextType {
     socket: Socket;
@@ -17,11 +18,12 @@ const socket: Socket = io(socket_url, {
 
 const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
     const [notifications, setNotifications] = useState([]);
-
+    const { showSnackBar } = useSnackBar();
     useEffect(() => {
         socket.on("get_notification", (data) => {
             console.log("New message received:", data);
             setNotifications((prevNotifications) => [data, ...prevNotifications]);
+            showSnackBar("New Notification Received", "info", 2500);
         });
     }, [socket]);
 
