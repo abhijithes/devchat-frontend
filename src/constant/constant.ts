@@ -1,9 +1,9 @@
-const isProduction = true;
+const isProduction = false;
 export const dev_api_url = "http://localhost:5001/api";
 export const producttion_api_url =
   "https://devchat-backend-kpfa.onrender.com/api";
 export const api_url = "https://devchat-backend-kpfa.onrender.com/api";
-export const socket_url = "https://devchat-backend-kpfa.onrender.com";
+export const socket_url = "http://localhost:5001";
 export const current_url = isProduction ? api_url : dev_api_url;
 
 export const endpoints = {
