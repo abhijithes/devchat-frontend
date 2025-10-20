@@ -1,4 +1,4 @@
-import { Check, CheckCheck, Dot, Loader, Loader2, User, X } from "lucide-react";
+import { Check, CheckCheck, Dot, X } from "lucide-react";
 import { useSocket } from "../../contexts/SocketBaseContext";
 import axios from "axios";
 import { endpoints } from "../../constant/constant";
@@ -154,15 +154,15 @@ const NotificationBox = ({
                   >
                     <div className="cursor-pointer p-1 active:scale-50">
                       {notification.read ? (
-                        <CheckCheck
+                        <CheckCheck size={17} className="text-green-500" />
+                      ) : (
+                        <Check
                           size={17}
-                          className="text-green-500"
+                          className="text-blue-500"
                           onClick={() =>
                             handleReadedNotification(notification._id)
                           }
                         />
-                      ) : (
-                        <Check size={17} className="text-blue-500" />
                       )}
                     </div>
                     {notification.read && (
