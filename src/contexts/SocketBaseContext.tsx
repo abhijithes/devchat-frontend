@@ -9,9 +9,15 @@ import { io, type Socket } from "socket.io-client";
 import { socket_url } from "../constant/constant";
 import { useSnackBar } from "../components/snack-bar/snack-bar-context";
 
+interface Notification {
+  id: string;
+  message: string;
+  read: boolean;
+  timeStamp: string;
+}
 interface SocketContextType {
   socket: Socket;
-  notifications: any[];
+  notifications: Notification[];
   setNotifications: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
@@ -25,7 +31,20 @@ const socket: Socket = io(socket_url, {
 });
 
 const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState([
+    {
+      id: "1",
+      message: "Your task 'Fix login bug' has been updated.",
+      read: false,
+      timeStamp: new Date().toISOString(),
+    },
+    {
+      id: "2",
+      message: "New comment on task 'Design landing page'.",
+      read: true,
+      timeStamp: new Date().toISOString(),
+    },
+  ]);
   const { showSnackBar } = useSnackBar();
   useEffect(() => {
     socket.on("get_notification", (data) => {

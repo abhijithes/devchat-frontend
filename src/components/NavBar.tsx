@@ -129,6 +129,7 @@ const NavBar = () => {
                 <NotificationBox
                   ref={notificationBoxRef}
                   opened={openNotifiaction}
+                  closeNotificationBox={() => setOpenNotification(false)}
                   style="backrop-blur-2xl"
                 />
               </button>
