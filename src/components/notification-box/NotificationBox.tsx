@@ -1,9 +1,13 @@
-import { Check, CheckCheck, Dot, X } from "lucide-react";
+import { Check, CheckCheck, Dot, Loader, Loader2, User, X } from "lucide-react";
 import { useSocket } from "../../contexts/SocketBaseContext";
 import axios from "axios";
 import { endpoints } from "../../constant/constant";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import "./styles.css";
+import Spinner from "../loaders/Spinner";
+import UserIcon from "../userIcon/usericon";
 
 interface NotificationBoxProps {
   style?: string;
@@ -21,6 +25,8 @@ const NotificationBox = ({
   const { notifications } = useSocket();
   const { showSnackBar } = useSnackBar();
   const queryClient = useQueryClient();
+
+  const [loading, setLoading] = useState(false);
 
   function timeAgo(date) {
     const now: any = new Date();
@@ -45,6 +51,7 @@ const NotificationBox = ({
   }
 
   const handleReadedNotification = (id) => {
+    setLoading(true);
     axios
       .patch(
         endpoints.updateNotification(id),
@@ -58,14 +65,18 @@ const NotificationBox = ({
       )
       .then((_response) => {
         queryClient.invalidateQueries({ queryKey: ["notifications"] });
+        setLoading(false);
         showSnackBar("Notification marked as read", "success", 2500);
       })
       .catch((error) => {
+        setLoading(false);
         console.error("Error marking notification as read:", error);
+        showSnackBar("Error occured", "error", 2500);
       });
   };
 
   const handleDeleteNotification = (id) => {
+    setLoading(true);
     axios
       .delete(endpoints.deleteNotification(id), {
         headers: {
@@ -75,10 +86,12 @@ const NotificationBox = ({
       })
       .then((_response) => {
         queryClient.invalidateQueries({ queryKey: ["notifications"] });
+        setLoading(false);
         showSnackBar("Notification deleted", "success", 2500);
       })
       .catch((error) => {
         console.error("Error deleting notification:", error);
+        showSnackBar("Delete operation failed", "error", 2500);
       });
   };
 
@@ -98,6 +111,11 @@ const NotificationBox = ({
           onClick={closeNotificationBox}
         />
       </div>
+      {loading && (
+        <div className="w-full grid place-items-center p-2 mt-2">
+          <Spinner />
+        </div>
+      )}
       <div className="h-[90%]  overflow-auto">
         {notifications.length === 0 ? (
           <div className="p-4 text-gray-500">No new notifications</div>
@@ -112,6 +130,18 @@ const NotificationBox = ({
                     : " from-sky-100 to-white "
                 }`}
               >
+                <div className="mb-2 flex gap-2 items-center">
+                  <UserIcon
+                    user={{
+                      _id: notification.senderId._id,
+                      firstName: notification.senderId.email,
+                      email: notification.senderId.email,
+                      profilePicture: notification.senderId.profilePicture,
+                    }}
+                    style="w-8 h-8"
+                  />
+                  <p className="text-xs">{notification.senderId.email}</p>
+                </div>
                 <p> {notification.message}</p>
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-xs text-gray-400">
@@ -124,8 +154,6 @@ const NotificationBox = ({
                   >
                     <div className="cursor-pointer p-1 active:scale-50">
                       {notification.read ? (
-                        <Check size={17} className="text-blue-500" />
-                      ) : (
                         <CheckCheck
                           size={17}
                           className="text-green-500"
@@ -133,6 +161,8 @@ const NotificationBox = ({
                             handleReadedNotification(notification._id)
                           }
                         />
+                      ) : (
+                        <Check size={17} className="text-blue-500" />
                       )}
                     </div>
                     {notification.read && (

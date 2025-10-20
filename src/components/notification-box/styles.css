@@ -1,0 +1,12 @@
+.animate-skyline {
+  animation: move-through 5s 3s infinite ease-in-out;
+}
+
+@keyframes move-through {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
