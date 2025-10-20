@@ -43,5 +43,6 @@ export const endpoints = {
 
   //notification
   getNotifications: `${current_url}/notifications`,
+  updateNotification: (id) => `${current_url}/notifications/${id}`,
   deleteNotification: (id) => `${current_url}/notifications/${id}`,
 };

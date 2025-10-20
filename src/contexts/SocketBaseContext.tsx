@@ -8,11 +8,11 @@ import {
 import { io, type Socket } from "socket.io-client";
 import { endpoints, socket_url } from "../constant/constant";
 import { useSnackBar } from "../components/snack-bar/snack-bar-context";
-import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 
 interface Notification {
-  id: string;
+  _id: string;
   message: string;
   read: boolean;
   timeStamp: string;
@@ -36,23 +36,25 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState([]);
   const { showSnackBar } = useSnackBar();
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await axios.get(endpoints.getNotifications, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setNotifications(response.data.notifications as Notification[]);
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      } finally {
-      }
-    };
-    fetchNotifications();
-  }, []);
+  const fetchNotifications = async () => {
+    try {
+      const response = await axios.get(endpoints.getNotifications, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setNotifications(response.data.notifications as Notification[]);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    } finally {
+    }
+  };
+
+  useQuery({
+    queryKey: ["notifications"],
+    queryFn: async () => fetchNotifications(),
+  });
 
   useEffect(() => {
     socket.on("get_notification", (data) => {

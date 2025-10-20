@@ -118,7 +118,7 @@ const NavBar = () => {
 
             <li onClick={() => setOpenNotification((pre) => !pre)}>
               <button className="text-gray-600 hover:text-zinc-900 relative ">
-                {notifications.length ? (
+                {notifications.filter((item) => !item.read).length ? (
                   <NotificationsActive
                     htmlColor="green"
                     className="notification-active "
