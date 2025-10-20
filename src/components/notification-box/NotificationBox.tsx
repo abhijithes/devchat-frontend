@@ -42,7 +42,7 @@ const NotificationBox = ({
     <div
       onClick={(e) => e.stopPropagation()}
       ref={ref}
-      className={`min-w-sm h-[95vh] bg-gradient-to-b from-zinc-100 to-white  shadow-xl border border-zinc-300 rounded-3xl   fixed top-0 ${
+      className={`w-md h-[95vh] bg-gradient-to-b from-zinc-100 to-white  shadow-xl border border-zinc-300 rounded-3xl   fixed top-0 ${
         opened ? "-right-5" : "-right-full"
       }  z-[99999]  overflow-auto transition-all duration-300 delay-200  ${style}   `}
     >

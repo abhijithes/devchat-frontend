@@ -40,4 +40,8 @@ export const endpoints = {
     `${current_url}/projects/${projectId}/tasks/${taskId}`,
   getTaskPreview: (projectId) =>
     `${current_url}/tickets/projects/${projectId}/tasks/preview`,
+
+  //notification
+  getNotifications: `${current_url}/notifications`,
+  deleteNotification: (id) => `${current_url}/notifications/${id}`,
 };

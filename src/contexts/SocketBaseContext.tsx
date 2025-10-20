@@ -6,8 +6,10 @@ import {
   type ReactNode,
 } from "react";
 import { io, type Socket } from "socket.io-client";
-import { socket_url } from "../constant/constant";
+import { endpoints, socket_url } from "../constant/constant";
 import { useSnackBar } from "../components/snack-bar/snack-bar-context";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 interface Notification {
   id: string;
@@ -31,21 +33,27 @@ const socket: Socket = io(socket_url, {
 });
 
 const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
-  const [notifications, setNotifications] = useState([
-    {
-      id: "1",
-      message: "Your task 'Fix login bug' has been updated.",
-      read: false,
-      timeStamp: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      message: "New comment on task 'Design landing page'.",
-      read: true,
-      timeStamp: new Date().toISOString(),
-    },
-  ]);
+  const [notifications, setNotifications] = useState([]);
   const { showSnackBar } = useSnackBar();
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await axios.get(endpoints.getNotifications, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setNotifications(response.data.notifications as Notification[]);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      } finally {
+      }
+    };
+    fetchNotifications();
+  }, []);
+
   useEffect(() => {
     socket.on("get_notification", (data) => {
       console.log("New message received:", data);
@@ -75,3 +83,17 @@ const useSocket = (): SocketContextType => {
 };
 
 export { SocketBaseContext, SocketBaseProvider, useSocket };
+
+//dummy data
+//  {
+//       id: "1",
+//       message: "Your task 'Fix login bug' has been updated.",
+//       read: false,
+//       timeStamp: new Date().toISOString(),
+//     },
+//     {
+//       id: "2",
+//       message: "New comment on task 'Design landing page'.",
+//       read: true,
+//       timeStamp: new Date().toISOString(),
+//     },
