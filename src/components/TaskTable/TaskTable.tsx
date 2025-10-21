@@ -272,7 +272,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                   <span className="capitalize">{task.priority}</span>
                 </td>
                 <td className="py-3 px-4">{task.status}</td>
-                <td className="py-3 px-4">{task.assignee.email}</td>
+                <td className="py-3 px-4">{task?.assignee?.email}</td>
                 <td className="py-3 px-4">
                   {new Date(task.dueDate).toLocaleDateString("en-GB", {
                     day: "numeric",
