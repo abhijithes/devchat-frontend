@@ -1,34 +1,47 @@
 import { Outlet } from "react-router-dom";
 import { useSocket } from "../contexts/SocketBaseContext";
 import { useEffect } from "react";
-import { getUserPublicInfo } from "../utils/token";
+import { getToken, getUserPublicInfo } from "../utils/token";
+import { useLoader } from "../contexts/GlobalLoaderContext";
+import GlobalLoader from "./GlobalLoader";
+import { useSnackBar } from "../components/snack-bar/snack-bar-context";
 
 const AppLayout = () => {
-  const { socket } = useSocket();
-  const user = getUserPublicInfo();
+    const { socket } = useSocket();
+    const user = getUserPublicInfo();
+    const { isLoading } = useLoader();
+    const { showSnackBar } = useSnackBar();
 
-  useEffect(() => {
-    socket.on("connect", () => {
-      console.log("Socket connected with ID:", socket.id);
-    });
+    useEffect(() => {
+        const token = getToken();
+        if (!token) {
+            showSnackBar("Login to access all features", "error", 8000);
+        }
+    }, []);
 
-    socket.emit("register", user?.id);
+    useEffect(() => {
+        socket.on("connect", () => {
+            console.log("Socket connected with ID:", socket.id);
+        });
 
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected");
-    });
+        socket.emit("register", user?.id);
 
-    return () => {
-      socket.off("connect");
-      socket.off("disconnect");
-    };
-  }, [socket]);
+        socket.on("disconnect", () => {
+            console.log("Socket disconnected");
+        });
 
-  return (
-    <>
-      <Outlet />
-    </>
-  );
+        return () => {
+            socket.off("connect");
+            socket.off("disconnect");
+        };
+    }, [socket]);
+
+    return (
+        <>
+            {isLoading && <GlobalLoader />}
+            <Outlet />
+        </>
+    );
 };
 
 export default AppLayout;
