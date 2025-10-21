@@ -5,17 +5,25 @@ import { Pencil, Trash2 } from "lucide-react";
 import DialogueBox from "../../components/dailogue-box/dialogueBox";
 import { endpoints } from "../../constant/constant";
 
+interface User {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+}
+
 interface Task {
     _id: string;
     name: string;
-    email: string;
     priority: "urgent" | "required" | "completed";
-    status: string;
-    assignee: { email: string };
-    assigner: { email: string };
-    uptime: string;
+    status: "not-started" | "in-progress" | "completed";
+    assignee: User | null;
+    assigner: User;
+    project: string;
+    dueDate?: string;
     taskId: string;
-    dueDate?: Date;
+    createdAt: string;
+    updatedAt: string;
 }
 
 interface TasksResponse {
@@ -26,10 +34,35 @@ interface TasksResponse {
     totalPages: number;
     hasNextPage: boolean;
     hasPrevPage: boolean;
+    project: {
+        name: string;
+        createdAt: string;
+        updatedAt: string;
+        createdBy: { name: string; email: string };
+    };
+    userRole: string;
 }
 
 interface Props {
     projectId: string;
+}
+
+interface CreateTaskData {
+    name: string;
+    priority: "urgent" | "required" | "completed";
+    status: "not-started" | "in-progress" | "completed";
+    assignee: string; // User ID for creation
+    dueDate: string;
+    taskId: string;
+}
+
+interface UpdateTaskData {
+    name?: string;
+    priority?: "urgent" | "required" | "completed";
+    status?: "not-started" | "in-progress" | "completed";
+    assignee?: string; // User ID for update
+    dueDate?: string;
+    taskId?: string;
 }
 
 const getPriorityColor = (priority: Task["priority"]) => {
@@ -45,20 +78,33 @@ const getPriorityColor = (priority: Task["priority"]) => {
     }
 };
 
+const getStatusColor = (status: Task["status"]) => {
+    switch (status) {
+        case "not-started":
+            return "bg-gray-400";
+        case "in-progress":
+            return "bg-yellow-500";
+        case "completed":
+            return "bg-green-500";
+        default:
+            return "bg-gray-400";
+    }
+};
+
 const TaskTable: React.FC<Props> = ({ projectId }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [limit] = useState(10);
     const [showDialog, setShowDialog] = useState(false);
+    const [editingTask, setEditingTask] = useState<Task | null>(null);
     const queryClient = useQueryClient();
 
-    const [newTask, setNewTask] = useState({
-        taskId: "",
+    const [newTask, setNewTask] = useState<CreateTaskData>({
         name: "",
-        priority: "required" as "urgent" | "required" | "completed",
-        status: "pending",
-        assigneeEmail: "",
-        assignerEmail: "",
+        priority: "required",
+        status: "not-started",
+        assignee: "", // User ID
         dueDate: "",
+        taskId: "",
     });
 
     // Fetch tasks with pagination using React Query
@@ -94,48 +140,47 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
 
     // Update task mutation
     const updateTaskMutation = useMutation({
-        mutationFn: async ({ taskId, status }: { taskId: string; status: string }) => {
+        mutationFn: async ({ taskId, updateFields }: { taskId: string; updateFields: UpdateTaskData }) => {
             const token = localStorage.getItem("token") || "";
-            await axios.put(
-                endpoints.updateTask(projectId, taskId),
-                { status },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const res = await axios.put(endpoints.updateTask(projectId, taskId), updateFields, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            return res.data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+            setEditingTask(null);
         },
     });
 
     // Create task mutation
     const createTaskMutation = useMutation({
-        mutationFn: async (taskData: typeof newTask) => {
+        mutationFn: async (taskData: CreateTaskData) => {
             const token = localStorage.getItem("token") || "";
-            await axios.post(
+            const res = await axios.post(
                 endpoints.createTask(projectId),
                 {
-                    taskId: taskData.taskId,
                     name: taskData.name,
                     priority: taskData.priority,
                     status: taskData.status,
-                    assigneeEmail: taskData.assigneeEmail,
-                    assignerEmail: taskData.assignerEmail,
-                    dueDate: taskData.dueDate,
+                    assignee: taskData.assignee, // User ID
+                    dueDate: taskData.dueDate ? new Date(taskData.dueDate).toISOString() : undefined,
+                    taskId: taskData.taskId,
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+            return res.data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
             setShowDialog(false);
             setNewTask({
-                taskId: "",
                 name: "",
                 priority: "required",
-                status: "pending",
-                assigneeEmail: "",
-                assignerEmail: "",
+                status: "not-started",
+                assignee: "",
                 dueDate: "",
+                taskId: "",
             });
         },
     });
@@ -145,10 +190,24 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
         deleteTaskMutation.mutate(taskId);
     };
 
-    const handleEdit = async (taskId: string) => {
-        const newStatus = prompt("Enter new status:");
-        if (!newStatus) return;
-        updateTaskMutation.mutate({ taskId, status: newStatus });
+    const handleEdit = (task: Task) => {
+        setEditingTask(task);
+        setNewTask({
+            name: task.name,
+            priority: task.priority,
+            status: task.status,
+            assignee: task.assignee?._id || "", // Store only the user ID
+            dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "",
+            taskId: task.taskId,
+        });
+        setShowDialog(true);
+    };
+
+    const handleStatusChange = async (taskId: string, newStatus: Task["status"]) => {
+        updateTaskMutation.mutate({
+            taskId,
+            updateFields: { status: newStatus },
+        });
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -157,11 +216,54 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
 
     const handleCreateTask = async (e: React.FormEvent) => {
         e.preventDefault();
-        createTaskMutation.mutate(newTask);
+
+        if (editingTask) {
+            // Update existing task - only send fields that changed
+            const updateFields: UpdateTaskData = {};
+
+            if (newTask.name !== editingTask.name) updateFields.name = newTask.name;
+            if (newTask.priority !== editingTask.priority) updateFields.priority = newTask.priority;
+            if (newTask.status !== editingTask.status) updateFields.status = newTask.status;
+            if (newTask.taskId !== editingTask.taskId) updateFields.taskId = newTask.taskId;
+            if (newTask.assignee !== editingTask.assignee?._id) updateFields.assignee = newTask.assignee;
+
+            // Handle due date comparison
+            const editingDueDate = editingTask.dueDate ? new Date(editingTask.dueDate).toISOString().split("T")[0] : "";
+            if (newTask.dueDate !== editingDueDate) {
+                updateFields.dueDate = newTask.dueDate ? new Date(newTask.dueDate).toISOString() : undefined;
+            }
+
+            // Only update if there are changes
+            if (Object.keys(updateFields).length > 0) {
+                updateTaskMutation.mutate({
+                    taskId: editingTask._id,
+                    updateFields,
+                });
+            } else {
+                // No changes, just close the dialog
+                resetForm();
+            }
+        } else {
+            // Create new task
+            createTaskMutation.mutate(newTask);
+        }
     };
 
     const handlePageChange = (newPage: number) => {
         setCurrentPage(newPage);
+    };
+
+    const resetForm = () => {
+        setEditingTask(null);
+        setNewTask({
+            name: "",
+            priority: "required",
+            status: "not-started",
+            assignee: "",
+            dueDate: "",
+            taskId: "",
+        });
+        setShowDialog(false);
     };
 
     if (isLoading) return <p>Loading tasks...</p>;
@@ -195,7 +297,10 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                         Total Tasks: <span className="font-bold text-[var(--color-accent)]">{totalTasks}</span>
                     </p>
                     <button
-                        onClick={() => setShowDialog(true)}
+                        onClick={() => {
+                            setEditingTask(null);
+                            setShowDialog(true);
+                        }}
                         className="transition px-4 py-2 rounded-md text-sm font-medium cursor-pointer"
                         style={{
                             backgroundColor: "var(--color-button)",
@@ -212,7 +317,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                 <table className="min-w-full border-collapse text-sm md:text-base">
                     <thead>
                         <tr className="border-b border-[var(--color-primary)]">
-                            {["ID", "Task name", "Priority", "Status", "Assignee", "Due Date", "Edit", "Delete"].map(
+                            {["ID", "Task name", "Priority", "Status", "Assignee", "Due Date", "Actions"].map(
                                 (heading) => (
                                     <th
                                         key={heading}
@@ -232,12 +337,38 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                             >
                                 <td className="py-3 px-4 font-medium">{task.taskId}</td>
                                 <td className="py-3 px-4 truncate max-w-[180px]">{task.name}</td>
+
+                                {/* Priority */}
                                 <td className="py-3 px-4 flex items-center gap-2">
                                     <span className={`${getPriorityColor(task.priority)} w-3 h-3 rounded-sm`}></span>
                                     <span className="capitalize">{task.priority}</span>
                                 </td>
-                                <td className="py-3 px-4">{task.status}</td>
-                                <td className="py-3 px-4">{task.assignee?.email}</td>
+
+                                {/* Status with dropdown */}
+                                <td className="py-3 px-4">
+                                    <select
+                                        value={task.status}
+                                        onChange={(e) => handleStatusChange(task._id, e.target.value as Task["status"])}
+                                        className="border rounded px-2 py-1 text-sm capitalize"
+                                        style={{
+                                            backgroundColor: getStatusColor(task.status),
+                                            color: "white",
+                                            border: "none",
+                                        }}
+                                        disabled={updateTaskMutation.status === "pending"}
+                                    >
+                                        <option value="not-started">Not Started</option>
+                                        <option value="in-progress">In Progress</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
+                                </td>
+
+                                <td className="py-3 px-4">
+                                    {task.assignee
+                                        ? `${task.assignee.firstName} ${task.assignee.lastName} (${task.assignee.email})`
+                                        : "Unassigned"}
+                                </td>
+
                                 <td className="py-3 px-4">
                                     {task.dueDate
                                         ? new Date(task.dueDate).toLocaleDateString("en-GB", {
@@ -247,21 +378,22 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                                           })
                                         : "No due date"}
                                 </td>
-                                <td className="py-3 px-4">
+
+                                {/* Actions */}
+                                <td className="py-3 px-4 flex gap-2">
                                     <button
-                                        onClick={() => handleEdit(task._id)}
+                                        onClick={() => handleEdit(task)}
                                         className="flex items-center justify-center rounded-md p-2"
                                         style={{
                                             backgroundColor: "var(--color-primary)",
                                             color: "var(--color-accent)",
                                         }}
                                         title="Edit Task"
+                                        disabled={updateTaskMutation.status === "pending"}
                                     >
                                         <Pencil size={16} />
                                     </button>
-                                </td>
 
-                                <td className="py-3 px-4">
                                     <button
                                         onClick={() => handleDelete(task._id)}
                                         className="flex items-center justify-center rounded-md p-2"
@@ -270,6 +402,7 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                                             color: "red",
                                         }}
                                         title="Delete Task"
+                                        disabled={deleteTaskMutation.status === "pending"}
                                     >
                                         <Trash2 size={16} />
                                     </button>
@@ -313,12 +446,17 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                 )}
             </div>
 
-            {/* DialogueBox for adding task */}
+            {/* DialogueBox for adding/editing task */}
             {showDialog && (
-                <DialogueBox onClose={() => setShowDialog(false)}>
-                    <form onSubmit={handleCreateTask} className="bg-white p-6 w-full max-w-2xl mx-auto font-sans">
+                <DialogueBox onClose={resetForm}>
+                    <form
+                        onSubmit={handleCreateTask}
+                        className="bg-white p-6 w-full max-w-2xl mx-auto font-sans rounded-lg"
+                    >
                         {/* Header */}
-                        <h2 className="text-xl font-semibold text-gray-800 mb-5">Add New Task</h2>
+                        <h2 className="text-xl font-semibold text-gray-800 mb-5">
+                            {editingTask ? "Edit Task" : "Add New Task"}
+                        </h2>
 
                         {/* Grid layout */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -380,42 +518,32 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                             {/* Status */}
                             <div>
                                 <label className="block text-gray-600 text-sm mb-1">Status</label>
-                                <input
-                                    type="text"
+                                <select
                                     name="status"
-                                    placeholder="e.g. pending, in progress"
                                     value={newTask.status}
                                     onChange={handleChange}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] bg-gray-50"
-                                />
+                                >
+                                    <option value="not-started">Not Started</option>
+                                    <option value="in-progress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                                </select>
                             </div>
 
-                            {/* Assignee Email (full width) */}
+                            {/* Assignee ID (full width) */}
                             <div className="sm:col-span-2">
-                                <label className="block text-gray-600 text-sm mb-1">Assignee Email</label>
+                                <label className="block text-gray-600 text-sm mb-1">Assignee User ID</label>
                                 <input
-                                    type="email"
-                                    name="assigneeEmail"
-                                    placeholder="Enter assignee's email"
-                                    value={newTask.assigneeEmail}
+                                    type="text"
+                                    name="assignee"
+                                    placeholder="Enter assignee's user ID"
+                                    value={newTask.assignee}
                                     onChange={handleChange}
-                                    required
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] bg-gray-50"
                                 />
-                            </div>
-
-                            {/* Assigner Email (full width) */}
-                            <div className="sm:col-span-2">
-                                <label className="block text-gray-600 text-sm mb-1">Assigner Email</label>
-                                <input
-                                    type="email"
-                                    name="assignerEmail"
-                                    placeholder="Enter assigner's email"
-                                    value={newTask.assignerEmail}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] bg-gray-50"
-                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Enter the user ID of the person to assign this task to
+                                </p>
                             </div>
                         </div>
 
@@ -423,18 +551,24 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                         <div className="flex justify-end gap-3 pt-6 mt-6">
                             <button
                                 type="button"
-                                onClick={() => setShowDialog(false)}
+                                onClick={resetForm}
                                 className="px-5 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                disabled={createTaskMutation.status === "pending"}
+                                disabled={
+                                    createTaskMutation.status === "pending" || updateTaskMutation.status === "pending"
+                                }
                                 className="px-5 py-2 rounded-md text-white font-medium transition disabled:opacity-50"
                                 style={{ backgroundColor: "var(--color-button)" }}
                             >
-                                {createTaskMutation.status === "pending" ? "Creating..." : "Create Task"}
+                                {createTaskMutation.status === "pending" || updateTaskMutation.status === "pending"
+                                    ? "Saving..."
+                                    : editingTask
+                                    ? "Update Task"
+                                    : "Create Task"}
                             </button>
                         </div>
                     </form>
