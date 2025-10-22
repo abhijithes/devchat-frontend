@@ -10,9 +10,10 @@ export interface UserIconProps {
     _id: string;
     profilePicture?: string;
   };
+  style?: string;
 }
 
-const UserIcon: React.FC<UserIconProps> = ({ user }) => {
+const UserIcon: React.FC<UserIconProps> = ({ user, style }) => {
   const navigation = useNavigate();
   const colors: string[] = [
     "bg-red-500",
@@ -45,7 +46,9 @@ const UserIcon: React.FC<UserIconProps> = ({ user }) => {
     <div
       title={`View ${user.firstName}'s profile`}
       onClick={handleNavigateToProfile}
-      className={`w-10 h-10 rounded-full flex items-center justify-center ${color} text-white border-2 border-white font-bold cursor-pointer overflow-hidden relative group`}
+      className={`${
+        style ?? "w-10 h-10"
+      }  rounded-full flex items-center justify-center ${color} text-white border-2 border-white font-bold cursor-pointer overflow-hidden relative group`}
     >
       {!user.profilePicture ? (
         user.firstName?.trim().charAt(0).toUpperCase()
@@ -56,7 +59,11 @@ const UserIcon: React.FC<UserIconProps> = ({ user }) => {
           className="w-full h-full object-cover"
         />
       )}
-      <div className="w-10 h-10 centered  absolute top-0 left-0 rounded-full translate-full group-hover:bg-black/60 group-hover:translate-0 transition-all">
+      <div
+        className={`${
+          style ?? "w-10 h-10"
+        }  centered  absolute top-0 left-0 rounded-full translate-full group-hover:bg-black/60 group-hover:translate-0 transition-all`}
+      >
         <ChevronRight size={15} />
       </div>
     </div>
