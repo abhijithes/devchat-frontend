@@ -1,0 +1,44 @@
+
+export interface assignee {
+    _id: string;
+    email: string;
+}
+
+export interface Task {
+    _id: string
+    name: string;
+    priority: string; // "urgent" | "required" | "completed"
+    status: string; // "not-started" | "in-progress" | "completed" etc.
+    assignee: assignee;
+    dueDate: string;
+    taskId: string;
+}
+
+export interface CreatedBy {
+    _id: string;
+    email: string;
+}
+
+export interface ProjectInfo {
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+    createdBy: CreatedBy;
+}
+
+export interface Member {
+    _id: string;
+    email: string;
+}
+
+export interface ProjectTaskResponse {
+    project: ProjectInfo;
+    data: Task[];
+    page: number;
+    limit: number;
+    totalTasks: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    members: Member[];
+}
