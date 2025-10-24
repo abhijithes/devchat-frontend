@@ -73,11 +73,11 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
     const totalPages = tasksData?.totalPages || 1;
 
     // Edit task
-    const handleEdit = (taskId: string) => {
+    const handleEdit = async (taskId: string) => {
         const task = tasks.find((t) => t._id === taskId);
         if (!task) return;
 
-        setNewTask({
+        await setNewTask({
             _id: task._id ?? "",
             taskId: task.taskId ?? "",
             name: task.name ?? "",
@@ -175,7 +175,10 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
                         Total Tasks:{" "}
                         <span className="font-bold text-[var(--color-accent)]">{tasksData?.totalTasks || 0}</span>
                     </p>
-                    <button onClick={() => setShowDialog("add")} className="px-4 py-2 rounded-md text-sm font-medium">
+                    <button
+                        onClick={() => setShowDialog("add")}
+                        className="px-4 py-2 rounded-md text-sm font-medium bg-button text-white"
+                    >
                         New Task
                     </button>
                 </div>

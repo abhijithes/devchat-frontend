@@ -14,6 +14,7 @@ export const endpoints = {
   searchUser: `${current_url}/users/searchUser`,
   getUserById: (id) => `${current_url}/users/${id}`,
   getUserWithProjects: (id) => `${current_url}/users/${id}?include=projects`,
+  fetchPublicProfile: (id) => `${current_url}/users/publicprofile/${id}?include=projects`,
   updatePinnedProj: (id) => `${current_url}/users/${id}/updatePinnedProject`,
 
   addmember: (id) => `${current_url}/projects/addmember/${id}`,

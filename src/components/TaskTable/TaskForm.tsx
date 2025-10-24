@@ -17,8 +17,8 @@ export const TaskForm: React.FC<TaskForm> = ({ onSubmit, onClose, type, initialD
         priority: initialData?.priority ? initialData?.priority : "required",
         status: initialData?.status ? initialData?.status : "not-started",
         assignee: {
-            _id: initialData.assignee._id ?? "",
-            email: initialData.assignee.email ?? "",
+            _id: initialData?.assignee._id ?? "",
+            email: initialData?.assignee.email ?? "",
         },
         dueDate: initialData?.dueDate
             ? new Date(initialData.dueDate).toISOString().split("T")[0]
@@ -103,7 +103,7 @@ export const TaskForm: React.FC<TaskForm> = ({ onSubmit, onClose, type, initialD
                         onUserSelect={(user: any) => {
                             setTask((prev) => ({
                                 ...prev,
-                                assignee: user?._id,
+                                assignee: { _id: user?._id, email: user?.email },
                             }));
                             console.log(task);
                         }}

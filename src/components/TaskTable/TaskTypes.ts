@@ -1,5 +1,5 @@
 
-export interface assignee {
+export interface Assignee {
     _id: string;
     email: string;
 }
@@ -9,7 +9,7 @@ export interface Task {
     name: string;
     priority: string; // "urgent" | "required" | "completed"
     status: string; // "not-started" | "in-progress" | "completed" etc.
-    assignee: assignee;
+    assignee: Assignee;
     dueDate: string;
     taskId: string;
 }

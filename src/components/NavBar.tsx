@@ -148,17 +148,22 @@ const NavBar = () => {
                                     </div>
                                 </Link>
                                 <div className="hidden group-hover:block absolute right-0  w-48 bg-white border border-gray-200 rounded shadow-lg z-40">
-                                    <li>
-                                        <Link to="/profile" className="block px-4 py-2 text-gray-800 hover:bg-gray-200">
-                                            Account
-                                        </Link>
-                                    </li>
-                                    <li
-                                        onClick={() => handleLogout()}
-                                        className="block px-4 py-2 text-red-500 hover:bg-gray-100"
-                                    >
-                                        Logout
-                                    </li>
+                                    <ul>
+                                        <li>
+                                            <Link
+                                                to="/profile"
+                                                className="block px-4 py-2 text-gray-800 hover:bg-gray-200"
+                                            >
+                                                Account
+                                            </Link>
+                                        </li>
+                                        <li
+                                            onClick={() => handleLogout()}
+                                            className="block px-4 py-2 text-red-500 hover:bg-gray-100"
+                                        >
+                                            Logout
+                                        </li>
+                                    </ul>
                                 </div>
                             </li>
                         ) : (

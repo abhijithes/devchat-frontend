@@ -257,7 +257,7 @@ export const Viewproject = () => {
                             <p className="pb-3">All members</p>
                             <div className="flex flex-wrap gap-4 pb-4">
                                 {project.assignedUsersData?.map((user, index) => (
-                                    <div className="relative group">
+                                    <div className="relative group" key={index}>
                                         <Usericon key={`${user._id}-${index}`} user={user} />
                                         <CheckUserRole userRole={project.userRole}>
                                             <div className="hidden group-hover:block absolute left-0  w-48 bg-white border border-gray-200 rounded shadow-lg z-40">
@@ -298,7 +298,7 @@ export const Viewproject = () => {
                             <p className="pb-3">Managers</p>
                             <div className="flex flex-wrap gap-4 pb-4">
                                 {project.managersData?.map((user, index) => (
-                                    <div className="relative group">
+                                    <div className="relative group" key={index}>
                                         <Usericon key={`${user._id}-${index}`} user={user} />
                                         <CheckUserRole userRole={project.userRole}>
                                             <div className="hidden group-hover:block absolute left-0  w-48 bg-white border border-gray-200 rounded shadow-lg z-40">
