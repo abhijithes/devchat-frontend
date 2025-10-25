@@ -2,6 +2,8 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { endpoints } from "../../constant/constant";
 import avatar from "../../assets/avatar.jpg";
+import ProfileFullView from "../../components/view-profile-picture-component/ProfileFullView";
+import { useState } from "react";
 
 interface UserType {
   _id: string;
@@ -34,9 +36,8 @@ const fetchUserProfile = async (id: string): Promise<UserType> => {
 
 export default function ViewProfile() {
   const { id } = useParams<{ id: string }>();
-  // const [projects, setProjects] = useState<{ _id: string; name: string; role: string; updatedAt: string }[]>([]);
+  const [loadProfilePic, setLoadProfilePic] = useState(false);
 
-  // TanStack Query for user profile
   const {
     data: user,
     isLoading: isLoadingUser,
@@ -79,11 +80,20 @@ export default function ViewProfile() {
 
   return (
     <div className="min-h-screen  w-full  flex flex-col items-center pb-5 px-6  overflow-y-auto">
+      {loadProfilePic && (
+        <ProfileFullView
+          src={user.profilePicture}
+          onClose={() => setLoadProfilePic(false)}
+        />
+      )}
       {/* Profile Header */}
       <section className="w-full   backdrop-blur-lg rounded-3xl border border-white/40 p-10 text-center ">
         <div className=" flex gap-5 flex-col md:flex-row items-center space-y-6">
           {/* Avatar */}
-          <div className="w-40 h-40 rounded-2xl overflow-hidden  border border-zinc-300 bg-gradient-to-br from-yellow-300 to-pink-300">
+          <div
+            onClick={() => setLoadProfilePic(true)}
+            className="w-40 h-40 rounded-2xl overflow-hidden  border border-zinc-300 bg-gradient-to-br from-yellow-300 to-pink-300"
+          >
             <img
               src={user.profilePicture || avatar}
               alt={`${user.firstName} ${user.lastName}`}
@@ -121,7 +131,7 @@ export default function ViewProfile() {
           </p>
 
           {/* Social Media */}
-          {/* <div>
+          <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-3">
               Social medias
             </h2>
@@ -142,7 +152,7 @@ export default function ViewProfile() {
             ) : (
               <p className="text-gray-500">No social media links</p>
             )}
-          </div> */}
+          </div>
         </div>
       </section>
 

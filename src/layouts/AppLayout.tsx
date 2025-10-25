@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { useSocket } from "../contexts/SocketBaseContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getToken, getUserPublicInfo } from "../utils/token";
 import { useLoader } from "../contexts/GlobalLoaderContext";
 import GlobalLoader from "./GlobalLoader";
@@ -12,13 +12,15 @@ const AppLayout = () => {
   const user = getUserPublicInfo();
   const { isLoading } = useLoader();
   const { showSnackBar } = useSnackBar();
+  const [isLogged, setIsLogged] = useState(false);
 
   useEffect(() => {
     const token = getToken();
+    setIsLogged(!!token);
     if (!token) {
-      showSnackBar("Login to access all features", "error", 8000);
+      showSnackBar("Login to access all features", "error", 3000);
     }
-  }, []);
+  }, [getToken()]);
 
   useEffect(() => {
     socket.on("connect", () => {
@@ -39,7 +41,7 @@ const AppLayout = () => {
 
   return (
     <>
-      <NavBar />
+      {isLogged && <NavBar />}
       {isLoading && <GlobalLoader />}
       <Outlet />
     </>
