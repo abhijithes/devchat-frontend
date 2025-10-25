@@ -22,3 +22,7 @@
 .top-left {
   @apply flex items-start justify-start;
 }
+
+.border-light-bottom {
+  @apply border-b border-zinc-300;
+}

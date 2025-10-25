@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { endpoints } from "../../constant/constant";
 import avatar from "../../assets/avatar.jpg";
 import ProfileFullView from "../../components/view-profile-picture-component/ProfileFullView";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLoader } from "../../contexts/GlobalLoaderContext";
 
 interface UserType {
   _id: string;
@@ -37,6 +38,7 @@ const fetchUserProfile = async (id: string): Promise<UserType> => {
 export default function ViewProfile() {
   const { id } = useParams<{ id: string }>();
   const [loadProfilePic, setLoadProfilePic] = useState(false);
+  const { showLoader, hideLoader } = useLoader();
 
   const {
     data: user,
@@ -48,6 +50,11 @@ export default function ViewProfile() {
     queryFn: () => fetchUserProfile(id!),
     enabled: !!id,
   });
+
+  useEffect(() => {
+    if (isLoadingUser) showLoader();
+    else hideLoader();
+  }, [isLoadingUser]);
 
   // Loading state
   if (isLoadingUser) {
@@ -87,12 +94,12 @@ export default function ViewProfile() {
         />
       )}
       {/* Profile Header */}
-      <section className="w-full   backdrop-blur-lg rounded-3xl border border-white/40 p-10 text-center ">
-        <div className=" flex gap-5 flex-col md:flex-row items-center space-y-6">
+      <section className="w-full   backdrop-blur-lg rounded-3xl border border-white/40  text-center ">
+        <div className="h-max border-light-bottom  p-5  flex gap-5 flex-col md:flex-row items-center space-y-6 ">
           {/* Avatar */}
           <div
             onClick={() => setLoadProfilePic(true)}
-            className="w-40 h-40 rounded-2xl overflow-hidden  border border-zinc-300 bg-gradient-to-br from-yellow-300 to-pink-300"
+            className="w-40 h-40  rounded-2xl overflow-hidden  border border-zinc-300 bg-gradient-to-br from-yellow-300 to-pink-300"
           >
             <img
               src={user.profilePicture || avatar}
@@ -103,7 +110,7 @@ export default function ViewProfile() {
 
           {/* Name + Info */}
           <div className="text-start">
-            <h1 className="text-xl md:text-2xl font-semibold text-gray-900">
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1">
               {user.firstName} {user.lastName}
             </h1>
             <p className="text-gray-600">{user.email}</p>
@@ -124,7 +131,7 @@ export default function ViewProfile() {
         </div>
 
         {/* About Section */}
-        <div className="mt-10 text-left space-y-6 ">
+        <div className="mt-10 text-left space-y-6   border-light-bottom pb-5">
           <h2 className="text-lg font-semibold text-gray-900">About me</h2>
           <p className="text-gray-700 leading-relaxed  whitespace-pre-line">
             {`${user.about}` || `No mentions.`}
@@ -157,7 +164,7 @@ export default function ViewProfile() {
       </section>
 
       {/* Projects Section */}
-      <section className="w-full p-8 ">
+      <section className="w-full mt-8">
         <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-3">
           Active projects
         </h2>
