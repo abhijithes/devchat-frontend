@@ -8,6 +8,8 @@ import { AddTask } from "./AddTask";
 import { EditTask } from "./EditTask";
 import DeleteConfirmation from "../Conformation/DeleteConformation";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
+import { Link } from "react-router-dom";
+import CheckUserRole from "../check-user-role/CheckUserRole";
 
 interface TaskTableProps {
     projectId: string;
@@ -53,6 +55,16 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
         assignee: {
             _id: "",
             email: "",
+            firstName: "",
+            lastName: "",
+            profilePicture: "",
+        },
+        assigner: {
+            _id: "",
+            email: "",
+            firstName: "",
+            lastName: "",
+            profilePicture: "",
         },
         dueDate: "",
     });
@@ -71,6 +83,10 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
     const tasks = tasksData?.data || [];
     const members = tasksData?.members || [];
     const totalPages = tasksData?.totalPages || 1;
+    const TableHeaders =
+        tasksData?.userRole !== "member"
+            ? ["ID", "Task name", "Priority", "Status", "Assignee", "Due Date", "Edit", "Delete"]
+            : ["ID", "Task name", "Priority", "Status", "Assignee", "Due Date"];
 
     // Edit task
     const handleEdit = async (taskId: string) => {
@@ -86,6 +102,9 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
             assignee: {
                 _id: task.assignee._id ?? "",
                 email: task.assignee.email ?? "",
+                firstName: task.assignee.firstName ?? "",
+                lastName: task.assignee.lastName ?? "",
+                profilePicture: task.assignee.profilePicture ?? "",
             },
             dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "",
         });
@@ -175,12 +194,14 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
                         Total Tasks:{" "}
                         <span className="font-bold text-[var(--color-accent)]">{tasksData?.totalTasks || 0}</span>
                     </p>
-                    <button
-                        onClick={() => setShowDialog("add")}
-                        className="px-4 py-2 rounded-md text-sm font-medium bg-button text-white"
-                    >
-                        New Task
-                    </button>
+                    <CheckUserRole userRole={tasksData.userRole}>
+                        <button
+                            onClick={() => setShowDialog("add")}
+                            className="px-4 py-2 rounded-md text-sm font-medium bg-button text-white"
+                        >
+                            New Task
+                        </button>
+                    </CheckUserRole>
                 </div>
             </div>
 
@@ -189,18 +210,20 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
                 <table className="min-w-full border-collapse text-sm md:text-base">
                     <thead>
                         <tr className="border-[var(--color-primary)]">
-                            {["ID", "Task name", "Priority", "Status", "Assignee", "Due Date", "Edit", "Delete"].map(
-                                (heading) => (
-                                    <th key={heading} className="py-3 px-4 font-semibold text-left">
-                                        {heading}
-                                    </th>
-                                )
-                            )}
+                            {TableHeaders.map((heading) => (
+                                <th key={heading} className="py-3 px-4 font-semibold text-left">
+                                    {heading}
+                                </th>
+                            ))}
                         </tr>
                     </thead>
                     <tbody>
                         {tasks.map((task) => (
-                            <tr key={task._id} className="hover:bg-[var(--color-primary)] transition">
+                            <tr
+                                key={task._id}
+                                className="hover:bg-[var(--color-primary)] transition"
+                                title={`Assigned By ${task.assigner?.firstName} ${task.assigner?.lastName}`}
+                            >
                                 <td className="py-3 px-4 font-medium">{task.taskId}</td>
                                 <td className="py-3 px-4 truncate max-w-[180px]">{task.name}</td>
                                 <td className="py-3 px-4 flex items-center gap-2">
@@ -217,19 +240,26 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
                                             year: "numeric",
                                         })}
                                 </td>
-                                <td className="py-3 px-4">
-                                    <button onClick={() => handleEdit(task._id)} className="p-2 rounded-md">
-                                        <Pencil size={16} />
-                                    </button>
-                                </td>
-                                <td className="py-3 px-4">
-                                    <button
-                                        onClick={() => openDeleteModel(task._id, task.name)}
-                                        className="p-2 rounded-md"
-                                    >
-                                        <Trash2 size={16} color="red" />
-                                    </button>
-                                </td>
+                                <CheckUserRole userRole={tasksData.userRole}>
+                                    <td className="py-3 px-4">
+                                        <button
+                                            onClick={() => handleEdit(task._id)}
+                                            className="p-2 rounded-md"
+                                            title="Edit"
+                                        >
+                                            <Pencil size={16} />
+                                        </button>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                        <button
+                                            onClick={() => openDeleteModel(task._id, task.name)}
+                                            className="p-2 rounded-md"
+                                            title="Delete"
+                                        >
+                                            <Trash2 size={16} color="red" />
+                                        </button>
+                                    </td>
+                                </CheckUserRole>
                             </tr>
                         ))}
                     </tbody>
@@ -256,15 +286,46 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
                     Next
                 </button>
             </div>
-            {/* Members */}
             {members.length > 0 && (
-                <div className="mt-4">
-                    <h2 className="text-lg font-semibold">Project Members</h2>
-                    <ul>
-                        {members.map((member) => (
-                            <li key={member._id}>{member.email}</li>
-                        ))}
-                    </ul>
+                <div className="mt-6 rounded-lg bg-white">
+                    <div className="px-4 py-3">
+                        <h2 className="text-lg font-semibold text-gray-800">Project Team</h2>
+                    </div>
+                    <div className="p-4">
+                        <div className="flex flex-wrap gap-3">
+                            {members.map((member) => (
+                                <Link to={`/viewprofile/${member._id}`}>
+                                    <div
+                                        key={member._id}
+                                        className="flex items-center space-x-3 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100"
+                                    >
+                                        <div className="flex-shrink-0">
+                                            {member.profilePicture ? (
+                                                <img
+                                                    src={member.profilePicture}
+                                                    alt={`${member.firstName} ${member.lastName}`}
+                                                    className="w-8 h-8 rounded-full object-cover border border-gray-300"
+                                                />
+                                            ) : (
+                                                <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center">
+                                                    <span className="text-blue-600 text-sm font-medium">
+                                                        {member.firstName?.[0]}
+                                                        {member.lastName?.[0]}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium text-gray-900 truncate">
+                                                {member.firstName} {member.lastName}
+                                            </p>
+                                            <p className="text-xs text-gray-500 truncate">{member.email}</p>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             )}
 

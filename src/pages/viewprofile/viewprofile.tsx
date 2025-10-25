@@ -76,7 +76,7 @@ export default function ViewProfile() {
     }
 
     return (
-        <div className="flex flex-col lg:flex-row w-full gap-4 md:gap-6 p-4 md:p-6 ">
+        <div className="flex flex-col lg:flex-row w-full gap-4 md:gap-6 p-4 md:p-6">
             {/* Profile Card */}
             <section className="profile-card bg-white rounded-xl p-4 md:p-6 w-full lg:max-w-sm  border border-gray-100">
                 <div className="profile-header flex flex-col items-center text-center mb-6">
@@ -135,7 +135,6 @@ export default function ViewProfile() {
                                     <div
                                         key={`owned-${project._id}`}
                                         className="project-card bg-white border border-gray-200 rounded-lg p-4 md:p-5 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer group"
-                                        onClick={() => (window.location.href = `/project/${project._id}`)}
                                     >
                                         <h3 className="text-sm md:text-base font-medium text-gray-800 line-clamp-2">
                                             {project.project.name}

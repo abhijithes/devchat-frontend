@@ -5,12 +5,12 @@ import type { Member, Task } from "./TaskTypes";
 interface TaskForm {
     onSubmit: (taskData) => void;
     onClose: () => void;
-    type: "add" | "edit";
     initialData?: Task;
     members: Member[];
+    isLoading?: boolean;
 }
 
-export const TaskForm: React.FC<TaskForm> = ({ onSubmit, onClose, type, initialData, members }) => {
+export const TaskForm: React.FC<TaskForm> = ({ onSubmit, onClose, initialData, members, isLoading }) => {
     const [task, setTask] = useState({
         taskId: initialData?.taskId ? initialData?.taskId : "",
         name: initialData?.name ? initialData?.name : "",
@@ -35,7 +35,7 @@ export const TaskForm: React.FC<TaskForm> = ({ onSubmit, onClose, type, initialD
 
     return (
         <form onSubmit={handleSubmit} className="p-6 w-full max-w-2xl bg-white mx-auto">
-            <h2 className="text-xl font-semibold mb-5">{type === "edit" ? "Edit task" : "Add New Task"}</h2>
+            <h2 className="text-xl font-semibold mb-5">{initialData ? "Update task" : "Add New Task"}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                     <label className="text-sm text-gray-600">Task ID</label>
@@ -125,8 +125,15 @@ export const TaskForm: React.FC<TaskForm> = ({ onSubmit, onClose, type, initialD
                     type="submit"
                     className="px-5 py-2 rounded-md text-white"
                     style={{ backgroundColor: "var(--color-button)" }}
+                    disabled={isLoading}
                 >
-                    Create Task
+                    {initialData
+                        ? isLoading
+                            ? "Updating.."
+                            : "Update Task"
+                        : isLoading
+                        ? "Creating.."
+                        : "Create Task"}
                 </button>
             </div>
         </form>
