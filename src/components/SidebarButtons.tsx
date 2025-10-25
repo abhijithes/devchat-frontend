@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { endpoints } from "../constant/constant";
 import { useLoader } from "../contexts/GlobalLoaderContext";
@@ -26,6 +26,8 @@ const SidebarButtons: React.FC = () => {
   const { showLoader, hideLoader } = useLoader();
   const projectButtonRef = useRef<(HTMLAnchorElement | null)[]>([]);
   const navigate = useNavigate();
+  const params = useParams();
+
   // TanStack Query with explicit generics
   const {
     data: projects,
@@ -115,7 +117,13 @@ const SidebarButtons: React.FC = () => {
           <button
             onContextMenu={(e) => handleOpenOptions(e, index)}
             onClick={() => navigate(`/project/${project._id}`)}
-            className="bg-white text-black px-3 py-2 md:px-4 md:py-2 w-full text-left hover:bg-zinc-200 hover:border-zinc-300 transition-all duration-200 block rounded border border-transparent"
+            className={`
+             ${
+               params?.id !== project._id
+                 ? "from-white to-zinc-200"
+                 : "from-blue-100 to-zinc-200"
+             }  
+              bg-gradient-to-tr  text-black px-3 py-2 md:px-4 md:py-2 w-full text-left hover:bg-zinc-200 hover:border-zinc-300 transition-all duration-200 block rounded border border-transparent`}
           >
             <span className="truncate block text-sm md:text-base">
               {project.name}
@@ -159,7 +167,14 @@ const SidebarButtons: React.FC = () => {
         <Link
           key={project._id}
           to={`/project/${project._id}`}
-          className="bg-white text-black px-3 py-2 md:px-4 md:py-2 w-full text-left hover:bg-zinc-200 transition-all duration-200 block rounded border border-transparent hover:border-gray-200 group"
+          // className="bg-white text-black px-3 py-2 md:px-4 md:py-2 w-full text-left hover:bg-zinc-200 transition-all duration-200 block rounded border border-transparent hover:border-gray-200 group"
+          className={`
+             ${
+               params?.id !== project._id
+                 ? "from-white to-zinc-200"
+                 : "from-blue-100 to-zinc-200"
+             }  
+              bg-gradient-to-tr  text-black px-3 py-2 md:px-4 md:py-2 w-full text-left hover:bg-zinc-200 hover:border-zinc-300 transition-all duration-200 block rounded border border-transparent`}
         >
           <span className="truncate block text-sm md:text-base">
             {project.name}
