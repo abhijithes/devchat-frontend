@@ -2,6 +2,9 @@
 export interface Assignee {
     _id: string;
     email: string;
+    firstName: string;
+    lastName: string;
+    profilePicture: string;
 }
 
 export interface Task {
@@ -10,6 +13,7 @@ export interface Task {
     priority: string; // "urgent" | "required" | "completed"
     status: string; // "not-started" | "in-progress" | "completed" etc.
     assignee: Assignee;
+    assigner?: Assignee;
     dueDate: string;
     taskId: string;
 }
@@ -29,11 +33,15 @@ export interface ProjectInfo {
 export interface Member {
     _id: string;
     email: string;
+    firstName: string;
+    lastName: string;
+    profilePicture: string;
 }
 
 export interface ProjectTaskResponse {
     project: ProjectInfo;
     data: Task[];
+    userRole: "member" | "manager" | "owner" | "admin";
     page: number;
     limit: number;
     totalTasks: number;
