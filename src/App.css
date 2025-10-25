@@ -1,33 +1,58 @@
 /* HTML: <div class="loader"></div> */
+/* From Uiverse.io by Z4drus */ 
 .loader {
-  --c: no-repeat linear-gradient(rgb(214, 255, 255) 0 0);
-  background: var(--c), var(--c), var(--c), var(--c), var(--c), var(--c),
-    var(--c), var(--c), var(--c);
-  background-size: 16px 16px;
-  animation: l32-1 1s infinite, l32-2 1s infinite;
+  display: inline-block;
+  width: 100px;
+  height: 100px;
+  position: relative;
 }
-@keyframes l32-1 {
-  0%,
+
+.loader svg {
+  width: 100%;
+  height: 100%;
+  animation: rotate-svg 2s linear infinite;
+  transform-origin: center center;
+}
+
+.loader-circle {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.circle-1 {
+  stroke-dasharray: 251.3274; /* 2 * π * 40 */
+  stroke-dashoffset: 251.3274;
+  animation: dash-circle1 1.5s cubic-bezier(0.66, 0, 0.34, 1) infinite alternate;
+}
+
+.circle-2 {
+  stroke-dasharray: 188.4956; /* 2 * π * 30 */
+  stroke-dashoffset: 0;
+  animation: dash-circle2 1.5s cubic-bezier(0.66, 0, 0.34, 1) infinite alternate;
+}
+
+@keyframes rotate-svg {
   100% {
-    width: 45px;
-    height: 45px;
-  }
-  35%,
-  65% {
-    width: 65px;
-    height: 65px;
+    transform: rotate(360deg);
   }
 }
-@keyframes l32-2 {
-  0%,
-  40% {
-    background-position: 0 0, 0 50%, 0 100%, 50% 100%, 100% 100%, 100% 50%,
-      100% 0, 50% 0, 50% 50%;
+
+@keyframes dash-circle1 {
+  0% {
+    stroke-dashoffset: 251.3274;
   }
-  60%,
   100% {
-    background-position: 0 50%, 0 100%, 50% 100%, 100% 100%, 100% 50%, 100% 0,
-      50% 0, 0 0, 50% 50%;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes dash-circle2 {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 188.4956;
   }
 }
 

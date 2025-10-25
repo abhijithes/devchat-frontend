@@ -1,11 +1,15 @@
 const isProduction = true;
+
 export const dev_api_url = "http://localhost:5001/api";
 export const producttion_api_url =
   "https://devchat-backend-kpfa.onrender.com/api";
 export const api_url = "https://devchat-backend-kpfa.onrender.com/api";
-// export const socket_url = "http://localhost:5001";
-export const socket_url = "https://devchat-backend-kpfa.onrender.com";
-export const current_url = isProduction ? api_url : dev_api_url;
+
+export const socket_url = isProduction
+  ? "https://devchat-backend-kpfa.onrender.com"
+  : "http://localhost:5001";
+
+export const current_url = isProduction ? producttion_api_url : dev_api_url;
 
 export const endpoints = {
   // Existing routes...
@@ -14,7 +18,8 @@ export const endpoints = {
   searchUser: `${current_url}/users/searchUser`,
   getUserById: (id) => `${current_url}/users/${id}`,
   getUserWithProjects: (id) => `${current_url}/users/${id}?include=projects`,
-  fetchPublicProfile: (id) => `${current_url}/users/publicprofile/${id}?include=projects`,
+  fetchPublicProfile: (id) =>
+    `${current_url}/users/publicprofile/${id}?include=projects`,
   updatePinnedProj: (id) => `${current_url}/users/${id}/updatePinnedProject`,
 
   addmember: (id) => `${current_url}/projects/addmember/${id}`,
@@ -34,7 +39,8 @@ export const endpoints = {
   // New Task routes
   createTask: (projectId) =>
     `${current_url}/tickets/projects/${projectId}/tasks`,
-  getTasks: (projectId, page, limit) => `${current_url}/tickets/projects/${projectId}/tasks?page=${page}&&limit=${limit}`,
+  getTasks: (projectId, page, limit) =>
+    `${current_url}/tickets/projects/${projectId}/tasks?page=${page}&&limit=${limit}`,
   updateTask: (projectId, taskId) =>
     `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
   deleteTask: (projectId, taskId) =>
@@ -44,6 +50,7 @@ export const endpoints = {
 
   //notification
   getNotifications: `${current_url}/notifications`,
-  updateNotification: (id) => `${current_url}/notifications/${id}`,
+  updateNotification: (id: string) =>
+    `${current_url}/notifications/${id}`,
   deleteNotification: (id) => `${current_url}/notifications/${id}`,
 };
