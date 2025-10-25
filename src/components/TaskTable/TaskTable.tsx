@@ -10,6 +10,7 @@ import DeleteConfirmation from "../Conformation/DeleteConformation";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
 import { Link } from "react-router-dom";
 import CheckUserRole from "../check-user-role/CheckUserRole";
+import { useLoader } from "../../contexts/GlobalLoaderContext";
 
 interface TaskTableProps {
     projectId: string;
@@ -39,6 +40,10 @@ const fetchTasks = async (projectId: string, page: number, limit: number): Promi
     const res = await api.get(endpoints.getTasks(projectId, page, limit));
     return res.data;
 };
+const patchUpdate = async ({ projectId, id, field, value }) => {
+    await api.patch(endpoints.updateTask(projectId, id), { [field]: value });
+    return `${field} updated Successfully`;
+};
 
 const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }) => {
     const [showDialog, setShowDialog] = useState<"false" | "edit" | "add" | "delete">("false");
@@ -46,6 +51,7 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
     const [currentPage, setCurrentPage] = useState(page);
     const queryClient = useQueryClient();
     const { showSnackBar } = useSnackBar();
+    const { showLoader, hideLoader } = useLoader();
     const [newTask, setNewTask] = useState<Task>({
         _id: "",
         taskId: "",
@@ -136,7 +142,20 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
         },
     });
 
-    const handleOptionChange = (field, id, value) => {};
+    const patchTask = useMutation({
+        mutationFn: patchUpdate,
+        onMutate: () => showLoader(),
+        onError: (error) => showSnackBar(`Failed to update:${error}`, "error", 3000),
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+            showSnackBar(data, "success", 3000);
+        },
+        onSettled: () => hideLoader(),
+    });
+
+    const handleOptionChange = (field, id, value) => {
+        patchTask.mutate({ projectId, id, field, value });
+    };
 
     const handleDelete = async () => {
         try {
@@ -230,14 +249,23 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
                                 <td className="py-3 px-4 truncate max-w-[180px]">{task.name}</td>
                                 <td className="py-3 px-4 flex items-center gap-2">
                                     <span className={`${getPriorityColor(task.priority)} w-3 h-3 rounded-sm`}></span>
-                                    <span className="capitalize">{task.priority}</span>
+                                    <select
+                                        name="priority"
+                                        value={task.priority}
+                                        onChange={(e) => handleOptionChange("priority", task._id, e.target.value)}
+                                        className="w-full bg-gray-50 px-3 py-2"
+                                    >
+                                        <option value="urgent">Urgent</option>
+                                        <option value="required">Required</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
                                 </td>
                                 <td className="py-3 px-4">
                                     <select
                                         name="status"
                                         value={task.status}
                                         onChange={(e) => handleOptionChange("status", task._id, e.target.value)}
-                                        className="w-full bg-gray-50 border rounded-lg px-3 py-2"
+                                        className="w-full bg-gray-50 px-3 py-2"
                                     >
                                         <option value="not-started">Not started</option>
                                         <option value="in-progress">In progress</option>
@@ -307,7 +335,7 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
                     <div className="p-4">
                         <div className="flex flex-wrap gap-3">
                             {members.map((member) => (
-                                <Link to={`/viewprofile/${member._id}`}>
+                                <Link to={`/viewprofile/${member._id}`} key={member._id}>
                                     <div
                                         key={member._id}
                                         className="flex items-center space-x-3 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100"

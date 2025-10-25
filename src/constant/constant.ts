@@ -35,8 +35,7 @@ export const endpoints = {
   createTask: (projectId) =>
     `${current_url}/tickets/projects/${projectId}/tasks`,
   getTasks: (projectId, page, limit) => `${current_url}/tickets/projects/${projectId}/tasks?page=${page}&&limit=${limit}`,
-  updateTask: (projectId, taskId) =>
-    `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
+  updateTask: (projectId, taskId) => `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
   deleteTask: (projectId, taskId) =>
     `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
   getTaskPreview: (projectId) =>

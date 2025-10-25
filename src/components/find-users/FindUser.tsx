@@ -36,7 +36,7 @@ const FindUser = ({
         const timeout = setTimeout(() => {
             const search = input.toLowerCase();
             const result = users.filter(
-                (user) => user.name.toLowerCase().includes(search) || user.email.toLowerCase().includes(search)
+                (user) => user.name?.toLowerCase().includes(search) || user.email.toLowerCase().includes(search)
             );
             setFiltered(result);
         }, 200);
@@ -47,6 +47,7 @@ const FindUser = ({
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setInput(e.target.value);
+        setDropdownOpen(true);
     };
 
     const handleSelectUser = (user: User) => {
@@ -76,7 +77,7 @@ const FindUser = ({
                     placeholder="Search user..."
                     onChange={handleInputChange}
                     value={input}
-                    onClick={() => setDropdownOpen(true)}
+                    // onClick={() => setDropdownOpen(true)}
                 />
                 <div
                     onClick={dropdownOpen ? submitSelection : () => setDropdownOpen(true)}
