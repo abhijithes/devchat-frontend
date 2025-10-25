@@ -116,8 +116,8 @@ export default function ViewProfile() {
         {/* About Section */}
         <div className="mt-10 text-left space-y-6 ">
           <h2 className="text-lg font-semibold text-gray-900">About me</h2>
-          <p className="text-gray-700 leading-relaxed">
-            {user.about || `No mentions.`}
+          <p className="text-gray-700 leading-relaxed  whitespace-pre-line">
+            {`${user.about}` || `No mentions.`}
           </p>
 
           {/* Social Media */}

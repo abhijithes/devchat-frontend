@@ -50,7 +50,6 @@ export const endpoints = {
 
   //notification
   getNotifications: `${current_url}/notifications`,
-  updateNotification: (id: string) =>
-    `${current_url}/notifications/${id}`,
+  updateNotification: (id: string) => `${current_url}/notifications/${id}`,
   deleteNotification: (id) => `${current_url}/notifications/${id}`,
 };
