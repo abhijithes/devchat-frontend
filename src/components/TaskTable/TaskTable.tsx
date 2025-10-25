@@ -136,6 +136,8 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
         },
     });
 
+    const handleOptionChange = (field, id, value) => {};
+
     const handleDelete = async () => {
         try {
             if (!deletingTask.id) return;
@@ -230,7 +232,18 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
                                     <span className={`${getPriorityColor(task.priority)} w-3 h-3 rounded-sm`}></span>
                                     <span className="capitalize">{task.priority}</span>
                                 </td>
-                                <td className="py-3 px-4">{task.status}</td>
+                                <td className="py-3 px-4">
+                                    <select
+                                        name="status"
+                                        value={task.status}
+                                        onChange={(e) => handleOptionChange("status", task._id, e.target.value)}
+                                        className="w-full bg-gray-50 border rounded-lg px-3 py-2"
+                                    >
+                                        <option value="not-started">Not started</option>
+                                        <option value="in-progress">In progress</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
+                                </td>
                                 <td className="py-3 px-4">{task.assignee?.email}</td>
                                 <td className="py-3 px-4">
                                     {task.dueDate &&
