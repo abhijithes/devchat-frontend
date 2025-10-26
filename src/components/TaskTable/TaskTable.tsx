@@ -10,7 +10,7 @@ import DeleteConfirmation from "../Conformation/DeleteConformation";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
 import { Link } from "react-router-dom";
 import CheckUserRole from "../check-user-role/CheckUserRole";
-import { useLoader } from "../../contexts/GlobalLoaderContext";
+// import { useLoader } from "../../contexts/GlobalLoaderContext";
 
 interface TaskTableProps {
     projectId: string;
@@ -51,7 +51,7 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
     const [currentPage, setCurrentPage] = useState(page);
     const queryClient = useQueryClient();
     const { showSnackBar } = useSnackBar();
-    const { showLoader, hideLoader } = useLoader();
+    // const { showLoader, hideLoader } = useLoader();
     const [newTask, setNewTask] = useState<Task>({
         _id: "",
         taskId: "",
@@ -144,13 +144,38 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
 
     const patchTask = useMutation({
         mutationFn: patchUpdate,
-        onMutate: () => showLoader(),
-        onError: (error) => showSnackBar(`Failed to update:${error}`, "error", 3000),
+        onMutate: async (variables: { projectId: string; id: string; field: string; value: string }) => {
+            // showLoader();
+            const queryKey = ["tasks", projectId, currentPage, limit];
+
+            await queryClient.cancelQueries({ queryKey });
+
+            const previousData = queryClient.getQueryData<ProjectTaskResponse>(queryKey);
+
+            queryClient.setQueryData<ProjectTaskResponse>(queryKey, (oldData) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    data: oldData.data.map((t) =>
+                        t._id === variables.id ? { ...t, [variables.field]: variables.value } : t
+                    ),
+                };
+            });
+
+            return { previousData, queryKey };
+        },
+        onError: (error, _vars, context) => {
+            if (context?.previousData) {
+                queryClient.setQueryData(["tasks", projectId], context.previousData);
+            }
+            showSnackBar(`Failed to update: ${error}`, "error", 3000);
+        },
         onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
             showSnackBar(data, "success", 3000);
         },
-        onSettled: () => hideLoader(),
+        onSettled: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+        },
     });
 
     const handleOptionChange = (field, id, value) => {

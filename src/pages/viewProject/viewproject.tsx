@@ -424,7 +424,11 @@ export const Viewproject = () => {
                     </div>
 
                     <button className="text-blue-500" onClick={handleNavigateToTasks}>
-                        {tasksData && tasksData.length > 0 ? "All tasks" : "Add task"}
+                        {tasksData && tasksData.length > 0
+                            ? "All tasks"
+                            : project?.userRole !== "member"
+                            ? "Add task"
+                            : ""}
                     </button>
                 </div>
             </div>
