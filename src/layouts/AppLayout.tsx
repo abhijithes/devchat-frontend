@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useSocket } from "../contexts/SocketBaseContext";
 import { useEffect, useState } from "react";
 import { getToken, getUserPublicInfo } from "../utils/token";
@@ -13,11 +13,13 @@ const AppLayout = () => {
   const { isLoading } = useLoader();
   const { showSnackBar } = useSnackBar();
   const [isLogged, setIsLogged] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = getToken();
     setIsLogged(!!token);
     if (!token) {
+      navigate("/login");
       showSnackBar("Login to access all features", "error", 3000);
     }
   }, [getToken()]);

@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -10,6 +11,11 @@ import { endpoints, socket_url } from "../constant/constant";
 import { useSnackBar } from "../components/snack-bar/snack-bar-context";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
+import {
+  NotifationSoundOne,
+  NotifationSoundThree,
+  NotificationSounds,
+} from "../constant/audio-files";
 
 interface Notification {
   _id: string;
@@ -47,6 +53,15 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
   const [read, setRead] = useState(false);
   const { showSnackBar } = useSnackBar();
 
+  const audioRef = useRef(new Audio(NotifationSoundOne));
+
+  const playAudio = () => {
+    audioRef.current
+      .play()
+      .then(() => console.log("Audio playing"))
+      .catch((err) => console.error("Playback failed:", err));
+  };
+
   const fetchNotifications = async (): Promise<Notification[]> => {
     try {
       const response = await axios.get(
@@ -77,10 +92,17 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const notificationSoundId = localStorage.getItem("DEV_CHATS_NOTI_SOUND");
+
     if (token) {
       socket.auth = { token };
       socket.connect();
     }
+
+    audioRef.current = new Audio(
+      NotificationSounds.find((item) => item.audioId == +notificationSoundId)
+        .src || NotificationSounds[0].src
+    );
 
     // On connect
     socket.on("connect", () => {
@@ -102,13 +124,13 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
 
     // On disconnect
     socket.on("disconnect", (reason) => {
-      console.log("⚠️ Socket disconnected:", reason);
+      console.log("Socket disconnected:", reason);
     });
 
     // On receiving notification
     socket.on("get_notification", (data: Notification) => {
-      console.log("📩 New notification received:", data);
       setNotifications((prev) => [data, ...prev]);
+      playAudio();
       showSnackBar("New Notification Received", "info", 2500);
     });
 
@@ -122,8 +144,6 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    console.log("changed!", read);
-
     refetch();
   }, [read]);
 
