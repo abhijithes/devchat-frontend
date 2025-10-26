@@ -327,10 +327,13 @@ export default function Profile() {
         <div className="p-5 px-8 border border-zinc-100 space-y-3 group ">
           {/* <h1 className="text-lg font-semibold">View your public profile</h1> */}
           <Link
-            className="text-green-600 flex gap-2 items-center  "
+            className=" w-max flex gap-2 items-center  text-cliped-gradient-blue  "
             to={`/viewprofile/${user._id}/?isViewMode=true`}
           >
-            <ChevronsRight size={17} className="group-hover:translate-x-1 transition-all" />
+            <ChevronsRight
+              size={17}
+              className="text-blue-500 group-hover:translate-x-1 transition-all"
+            />
             View in public mode
           </Link>
         </div>

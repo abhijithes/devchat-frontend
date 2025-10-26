@@ -26,3 +26,11 @@
 .border-light-bottom {
   @apply border-b border-zinc-300;
 }
+
+.text-cliped-gradient-blue {
+  @apply text-transparent bg-gradient-to-r from-cyan-500 to-blue-800 bg-clip-text;
+  transition: 0.5s;
+}
+.text-cliped-gradient-blue:hover {
+  @apply text-transparent bg-gradient-to-r from-sky-500 to-cyan-500 bg-clip-text;
+}
