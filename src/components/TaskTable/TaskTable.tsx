@@ -10,7 +10,7 @@ import DeleteConfirmation from "../Conformation/DeleteConformation";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
 import { Link } from "react-router-dom";
 import CheckUserRole from "../check-user-role/CheckUserRole";
-import { useLoader } from "../../contexts/GlobalLoaderContext";
+// import { useLoader } from "../../contexts/GlobalLoaderContext";
 
 interface TaskTableProps {
     projectId: string;
@@ -51,7 +51,7 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
     const [currentPage, setCurrentPage] = useState(page);
     const queryClient = useQueryClient();
     const { showSnackBar } = useSnackBar();
-    const { showLoader, hideLoader } = useLoader();
+    // const { showLoader, hideLoader } = useLoader();
     const [newTask, setNewTask] = useState<Task>({
         _id: "",
         taskId: "",
@@ -144,13 +144,38 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
 
     const patchTask = useMutation({
         mutationFn: patchUpdate,
-        onMutate: () => showLoader(),
-        onError: (error) => showSnackBar(`Failed to update:${error}`, "error", 3000),
+        onMutate: async (variables: { projectId: string; id: string; field: string; value: string }) => {
+            // showLoader();
+            const queryKey = ["tasks", projectId, currentPage, limit];
+
+            await queryClient.cancelQueries({ queryKey });
+
+            const previousData = queryClient.getQueryData<ProjectTaskResponse>(queryKey);
+
+            queryClient.setQueryData<ProjectTaskResponse>(queryKey, (oldData) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    data: oldData.data.map((t) =>
+                        t._id === variables.id ? { ...t, [variables.field]: variables.value } : t
+                    ),
+                };
+            });
+
+            return { previousData, queryKey };
+        },
+        onError: (error, _vars, context) => {
+            if (context?.previousData) {
+                queryClient.setQueryData(["tasks", projectId], context.previousData);
+            }
+            showSnackBar(`Failed to update: ${error}`, "error", 3000);
+        },
         onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
             showSnackBar(data, "success", 3000);
         },
-        onSettled: () => hideLoader(),
+        onSettled: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+        },
     });
 
     const handleOptionChange = (field, id, value) => {
@@ -208,7 +233,9 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
                 <div>
                     <h1 className="text-2xl font-bold">Project Tasks</h1>
-                    <p className="text-[var(--color-secondary)] font-medium pt-2">All tasks for this project</p>
+                    <p className="text-[var(--color-secondary)] font-medium pt-2">
+                        {tasks.length === 0 ? "No tasks available!" : "All tasks for this project"}
+                    </p>
                 </div>
                 <div className="flex items-center gap-4 mt-3 md:mt-0">
                     <p className="text-sm font-semibold">
@@ -227,106 +254,136 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
             </div>
 
             {/* Task Table */}
-            <div className="mt-6 overflow-x-auto">
-                <table className="min-w-full border-collapse text-sm md:text-base">
-                    <thead>
-                        <tr className="border-[var(--color-primary)]">
-                            {TableHeaders.map((heading) => (
-                                <th key={heading} className="py-3 px-4 font-semibold text-left">
-                                    {heading}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {tasks.map((task) => (
-                            <tr
-                                key={task._id}
-                                className="hover:bg-[var(--color-primary)] transition"
-                                title={`Assigned By ${task.assigner?.firstName} ${task.assigner?.lastName}`}
-                            >
-                                <td className="py-3 px-4 font-medium">{task.taskId}</td>
-                                <td className="py-3 px-4 truncate max-w-[180px]">{task.name}</td>
-                                <td className="py-3 px-4 flex items-center gap-2">
-                                    <span className={`${getPriorityColor(task.priority)} w-3 h-3 rounded-sm`}></span>
-                                    <select
-                                        name="priority"
-                                        value={task.priority}
-                                        onChange={(e) => handleOptionChange("priority", task._id, e.target.value)}
-                                        className="w-full bg-gray-50 px-3 py-2"
-                                    >
-                                        <option value="urgent">Urgent</option>
-                                        <option value="required">Required</option>
-                                        <option value="completed">Completed</option>
-                                    </select>
-                                </td>
-                                <td className="py-3 px-4">
-                                    <select
-                                        name="status"
-                                        value={task.status}
-                                        onChange={(e) => handleOptionChange("status", task._id, e.target.value)}
-                                        className="w-full bg-gray-50 px-3 py-2"
-                                    >
-                                        <option value="not-started">Not started</option>
-                                        <option value="in-progress">In progress</option>
-                                        <option value="completed">Completed</option>
-                                    </select>
-                                </td>
-                                <td className="py-3 px-4">{task.assignee?.email}</td>
-                                <td className="py-3 px-4">
-                                    {task.dueDate &&
-                                        new Date(task.dueDate).toLocaleDateString("en-GB", {
-                                            day: "numeric",
-                                            month: "long",
-                                            year: "numeric",
-                                        })}
-                                </td>
-                                <CheckUserRole userRole={tasksData.userRole}>
-                                    <td className="py-3 px-4">
-                                        <button
-                                            onClick={() => handleEdit(task._id)}
-                                            className="p-2 rounded-md"
-                                            title="Edit"
-                                        >
-                                            <Pencil size={16} />
-                                        </button>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <button
-                                            onClick={() => openDeleteModel(task._id, task.name)}
-                                            className="p-2 rounded-md"
-                                            title="Delete"
-                                        >
-                                            <Trash2 size={16} color="red" />
-                                        </button>
-                                    </td>
-                                </CheckUserRole>
+            {tasks.length !== 0 ? (
+                <div className="mt-6 overflow-x-auto">
+                    <table className="min-w-full border-collapse text-sm md:text-base">
+                        <thead>
+                            <tr className="border-[var(--color-primary)]">
+                                {TableHeaders.map((heading) => (
+                                    <th key={heading} className="py-3 px-4 font-semibold text-left">
+                                        {heading}
+                                    </th>
+                                ))}
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            {tasks.map((task) => (
+                                <tr
+                                    key={task._id}
+                                    className="hover:bg-[var(--color-primary)] transition"
+                                    title={`Assigned By ${task.assigner?.firstName} ${task.assigner?.lastName}`}
+                                >
+                                    <td className="py-3 px-4 font-medium">{task.taskId}</td>
+                                    <td className="py-3 px-4 truncate max-w-[180px]">{task.name}</td>
+                                    <td className="py-3 px-4 flex items-center gap-2">
+                                        <span
+                                            className={`${getPriorityColor(task.priority)} w-3 h-3 rounded-sm`}
+                                        ></span>
+                                        <select
+                                            name="priority"
+                                            value={task.priority}
+                                            onChange={(e) => handleOptionChange("priority", task._id, e.target.value)}
+                                            className="w-full bg-gray-50 px-3 py-2"
+                                        >
+                                            <option value="urgent">Urgent</option>
+                                            <option value="required">Required</option>
+                                            <option value="completed">Completed</option>
+                                        </select>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                        <select
+                                            name="status"
+                                            value={task.status}
+                                            onChange={(e) => handleOptionChange("status", task._id, e.target.value)}
+                                            className="w-full bg-gray-50 px-3 py-2"
+                                        >
+                                            <option value="not-started">Not started</option>
+                                            <option value="in-progress">In progress</option>
+                                            <option value="completed">Completed</option>
+                                        </select>
+                                    </td>
+                                    <td className="py-3 px-4">{task.assignee?.email}</td>
+                                    <td className="py-3 px-4">
+                                        {task.dueDate &&
+                                            new Date(task.dueDate).toLocaleDateString("en-GB", {
+                                                day: "numeric",
+                                                month: "long",
+                                                year: "numeric",
+                                            })}
+                                    </td>
+                                    <CheckUserRole userRole={tasksData.userRole}>
+                                        <td className="py-3 px-4">
+                                            <button
+                                                onClick={() => handleEdit(task._id)}
+                                                className="p-2 rounded-md"
+                                                title="Edit"
+                                            >
+                                                <Pencil size={16} />
+                                            </button>
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            <button
+                                                onClick={() => openDeleteModel(task._id, task.name)}
+                                                className="p-2 rounded-md"
+                                                title="Delete"
+                                            >
+                                                <Trash2 size={16} color="red" />
+                                            </button>
+                                        </td>
+                                    </CheckUserRole>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
+                <div className="no-tasks h-60 flex flex-col items-center justify-center text-center p-8">
+                    <div className="text-gray-400 mb-4">
+                        <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1}
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                            />
+                        </svg>
+                    </div>
+                    <p className="text-gray-500 mb-4">Create your first task to get started with this project</p>
+                    <button
+                        onClick={() => setShowDialog("add")}
+                        className="px-4 py-2 rounded-md text-sm font-medium transition hover:opacity-90"
+                        style={{
+                            backgroundColor: "var(--color-button)",
+                            color: "var(--color-background)",
+                        }}
+                    >
+                        Create First Task
+                    </button>
+                </div>
+            )}
 
             {/* Pagination */}
-            <div className="flex justify-end items-center gap-2 mt-4 pr-20">
-                <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 rounded-md border bg-white text-black disabled:opacity-50"
-                >
-                    Prev
-                </button>
+            {tasks.length > 0 && (
+                <div className="flex justify-end items-center gap-2 mt-4 pr-20">
+                    <button
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 rounded-md border bg-white text-black disabled:opacity-50"
+                    >
+                        Prev
+                    </button>
 
-                {paginationButtons}
+                    {paginationButtons}
 
-                <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 rounded-md border bg-white text-black disabled:opacity-50"
-                >
-                    Next
-                </button>
-            </div>
+                    <button
+                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1 rounded-md border bg-white text-black disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
             {members.length > 0 && (
                 <div className="mt-6 rounded-lg bg-white">
                     <div className="px-4 py-3">
