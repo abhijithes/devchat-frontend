@@ -10,8 +10,8 @@ export interface Assignee {
 export interface Task {
     _id: string
     name: string;
-    priority: string; // "urgent" | "required" | "completed"
-    status: string; // "not-started" | "in-progress" | "completed" etc.
+    priority: string;
+    status: string;
     assignee: Assignee;
     assigner?: Assignee;
     dueDate: string;
