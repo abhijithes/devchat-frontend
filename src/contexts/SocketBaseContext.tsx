@@ -13,7 +13,6 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import {
   NotifationSoundOne,
-  NotifationSoundThree,
   NotificationSounds,
 } from "../constant/audio-files";
 
@@ -80,11 +79,15 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const { data, refetch, isLoading } = useQuery<Notification[]>({
+  const { data, isLoading } = useQuery<Notification[]>({
     queryKey: ["notifications"],
     queryFn: fetchNotifications,
     gcTime: 0,
   });
+
+  useEffect(() => {
+    audioRef.current.load();
+  }, []);
 
   useEffect(() => {
     if (data) setNotifications(data);
@@ -109,7 +112,7 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
       const userId = localStorage.getItem("userId");
       if (userId) {
         socket.emit("addUser", userId);
-        console.log("✅ Socket connected with ID:", socket.id);
+        console.log("Socket connected with ID:", socket.id);
       }
     });
 
@@ -118,7 +121,7 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
       const userId = localStorage.getItem("userId");
       if (userId) {
         socket.emit("addUser", userId);
-        console.log("🔁 Socket reconnected with ID:", socket.id);
+        console.log("Socket reconnected with ID:", socket.id);
       }
     });
 
@@ -142,10 +145,6 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
       socket.off("reconnect");
     };
   }, []);
-
-  useEffect(() => {
-    refetch();
-  }, [read]);
 
   return (
     <SocketBaseContext.Provider
