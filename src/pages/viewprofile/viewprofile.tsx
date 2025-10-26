@@ -90,7 +90,7 @@ export default function ViewProfile() {
             {loadProfilePic && <ProfileFullView src={user.profilePicture} onClose={() => setLoadProfilePic(false)} />}
             {/* Profile Header */}
             <section className="w-full   backdrop-blur-lg rounded-3xl border border-white/40  text-center ">
-                <div className="h-max border-light-bottom  p-5  flex gap-5 flex-col md:flex-row items-center space-y-6 ">
+                <div className="h-max border-light-bottom px-0 p-5  flex gap-5 flex-col md:flex-row items-center space-y-6 ">
                     {/* Avatar */}
                     <div
                         onClick={() => setLoadProfilePic(true)}
