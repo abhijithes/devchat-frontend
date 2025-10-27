@@ -83,7 +83,7 @@ const SidebarButtons: React.FC = () => {
   const assignedProjects = projects?.assignedProjects || [];
 
   return (
-    <div className="flex flex-col gap-2 w-full max-h-full relative z-30">
+    <div className="flex flex-col gap-2 w-full max-h-full relative z-30 ">
       {/* Loading State */}
       {isLoading && (
         <div className="bg-white text-black px-3 py-2 md:px-4 md:py-2 w-full text-left rounded">
@@ -97,7 +97,7 @@ const SidebarButtons: React.FC = () => {
       {/* Error State */}
       {isError && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 md:px-4 md:py-2 w-full text-left rounded text-sm">
-          ⚠️ {error?.message || "Failed to load projects"}
+          {error?.message || "Failed to load projects"}
         </div>
       )}
 

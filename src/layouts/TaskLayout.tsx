@@ -3,7 +3,6 @@ import { Link, Outlet } from "react-router-dom";
 import AddProject from "../components/AddProject";
 import SidebarButtons from "../components/SidebarButtons";
 import { Plus } from "lucide-react";
-import NavBar from "../components/NavBar";
 
 const TaskLayout: React.FC = () => {
   const [showAddProject, setShowAddProject] = useState(false);
@@ -11,7 +10,7 @@ const TaskLayout: React.FC = () => {
   return (
     <div className="flex flex-col md:flex-row min-h-screen ">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 flex-shrink-0 bg-primary p-4 md:h-screen  overflow-y-auto md:pb-20 ">
+      <aside className="w-full md:w-64 flex-shrink-0 bg-primary    p-4 md:h-screen  overflow-y-auto md:pb-20 ">
         <Link
           to={"/"}
           className="md:text-2xl font-semibold my-4 block hover:scale-x-95 transition-all"

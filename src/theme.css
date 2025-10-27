@@ -34,3 +34,11 @@
 .text-cliped-gradient-blue:hover {
   @apply text-transparent bg-gradient-to-r from-sky-500 to-cyan-500 bg-clip-text;
 }
+
+.heading {
+  @apply text-2xl font-bold;
+}
+
+.sub-heading {
+  @apply text-xl font-semibold;
+}

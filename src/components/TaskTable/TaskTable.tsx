@@ -11,6 +11,8 @@ import { useSnackBar } from "../snack-bar/snack-bar-context";
 import { Link } from "react-router-dom";
 import CheckUserRole from "../check-user-role/CheckUserRole";
 import { useLoader } from "../../contexts/GlobalLoaderContext";
+import DvcSideBar from "../dvc-side-bar/DvcSideBar";
+import DetailedTaskView from "./DetailedTaskView";
 
 interface TaskTableProps {
   projectId: string;
@@ -87,6 +89,8 @@ const TaskTable: React.FC<TaskTableProps> = ({
     },
     dueDate: "",
   });
+  const [detailedView, setDetailedView] = useState(false);
+  const [activeTask, setActiveTask] = useState<Task | {}>({});
 
   // React Query
   const {
@@ -222,6 +226,11 @@ const TaskTable: React.FC<TaskTableProps> = ({
     });
   }, [currentPage, totalPages]);
 
+  const handleTaskClick = (task: Task) => {
+    setDetailedView(true);
+    setActiveTask(task);
+  };
+
   if (isLoading)
     return (
       <div className="centered">
@@ -232,6 +241,11 @@ const TaskTable: React.FC<TaskTableProps> = ({
 
   return (
     <div className="w-full rounded-2xl">
+      {/* ASide detailed view component  */}
+      <DvcSideBar active={detailedView} onClose={() => setDetailedView(false)}>
+        <DetailedTaskView {...(activeTask as Task)} />
+      </DvcSideBar>
+
       {/* Project Info */}
       <div className="w-full min-h-32 space-y-2">
         <h1 className="text-2xl font-medium">{tasksData?.project.name}</h1>
@@ -287,6 +301,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
           <tbody>
             {tasks.map((task) => (
               <tr
+                onClick={() => handleTaskClick(task)}
                 key={task._id}
                 className="hover:bg-[var(--color-primary)] transition"
                 title={`Assigned By ${task.assigner?.firstName} ${task.assigner?.lastName}`}
