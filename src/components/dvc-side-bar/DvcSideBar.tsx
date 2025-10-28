@@ -43,6 +43,17 @@ const DvcSideBar = ({
     };
   }, [active, handleClickOutside]);
 
+  useEffect(() => {
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") onClose();
+    });
+
+    return () => {
+      document.removeEventListener("keydown", (e) => {
+        if (e.key === "Escape") onClose();
+      });
+    };
+  }, []);
   return (
     <div
       ref={asideViewRef}
