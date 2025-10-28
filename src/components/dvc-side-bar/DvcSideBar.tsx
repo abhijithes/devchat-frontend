@@ -46,7 +46,7 @@ const DvcSideBar = ({
   return (
     <div
       ref={asideViewRef}
-      className={`w-[60vw] h-screen bg-white shadow-2xl py-8 fixed top-0 
+      className={`w-full md:w-[40vw] h-screen bg-white shadow-2xl py-8 fixed top-0 
         ${active ? "right-0" : "-right-full"} 
         z-[999] transition-all duration-600`}
     >

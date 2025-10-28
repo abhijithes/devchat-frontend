@@ -4,7 +4,7 @@ import axios from "axios";
 import { endpoints } from "../../constant/constant";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./styles.css";
 import Spinner from "../loaders/Spinner";
 import UserIcon from "../userIcon/usericon";
@@ -115,6 +115,8 @@ const NotificationBox = ({
     setActiveOptions(index);
   };
 
+  console.log(isLoading ? "loading" : "end...");
+
   return (
     <div
       onClick={(e) => e.stopPropagation()}
@@ -200,13 +202,14 @@ const NotificationBox = ({
                         {notification.read ? (
                           <CheckCheck size={17} className="text-green-500" />
                         ) : (
-                          <Check
-                            size={17}
-                            className="text-blue-500"
+                          <div
+                            className="p-2 hover:bg-zinc-200 rounded-full transition-opacity"
                             onClick={() =>
                               handleReadedNotification(notification._id)
                             }
-                          />
+                          >
+                            <Check size={17} className="text-blue-500" />
+                          </div>
                         )}
                       </div>
                       {notification.read && (

@@ -79,7 +79,7 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const { data, isLoading } = useQuery<Notification[]>({
+  const { data, isFetching } = useQuery<Notification[]>({
     queryKey: ["notifications"],
     queryFn: fetchNotifications,
     gcTime: 0,
@@ -154,7 +154,7 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
         setNotifications,
         read,
         setRead,
-        isLoading,
+        isLoading: isFetching,
       }}
     >
       {children}

@@ -13,6 +13,7 @@ import CheckUserRole from "../check-user-role/CheckUserRole";
 import { useLoader } from "../../contexts/GlobalLoaderContext";
 import DvcSideBar from "../dvc-side-bar/DvcSideBar";
 import DetailedTaskView from "./DetailedTaskView";
+import { MoreHoriz } from "@mui/icons-material";
 
 interface TaskTableProps {
   projectId: string;
@@ -117,8 +118,17 @@ const TaskTable: React.FC<TaskTableProps> = ({
           "Due Date",
           "Edit",
           "Delete",
+          "View",
         ]
-      : ["ID", "Task name", "Priority", "Status", "Assignee", "Due Date"];
+      : [
+          "ID",
+          "Task name",
+          "Priority",
+          "Status",
+          "Assignee",
+          "Due Date",
+          "View",
+        ];
 
   // Edit task
   const handleEdit = async (taskId: string) => {
@@ -301,9 +311,8 @@ const TaskTable: React.FC<TaskTableProps> = ({
           <tbody>
             {tasks.map((task) => (
               <tr
-                onClick={() => handleTaskClick(task)}
                 key={task._id}
-                className="hover:bg-[var(--color-primary)] transition"
+                className="hover:bg-[var(--color-primary)] transition "
                 title={`Assigned By ${task.assigner?.firstName} ${task.assigner?.lastName}`}
               >
                 <td className="py-3 px-4 font-medium">{task.taskId}</td>
@@ -372,6 +381,13 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     </button>
                   </td>
                 </CheckUserRole>
+
+                <td
+                  onClick={() => handleTaskClick(task)}
+                  className="text-zinc-400 hover:text-zinc-900 grid place-items-center cursor-pointer   "
+                >
+                  <MoreHoriz />
+                </td>
               </tr>
             ))}
           </tbody>

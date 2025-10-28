@@ -40,5 +40,9 @@
 }
 
 .sub-heading {
-  @apply text-xl font-semibold;
+  @apply text-xl font-medium;
+}
+
+.null-value-text {
+  @apply text-sm text-center;
 }
