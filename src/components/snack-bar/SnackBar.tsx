@@ -21,7 +21,7 @@ interface Props {
 
 const SnackBar = ({ message, type = "info", user }: Props) => {
   const baseClasses =
-    "fixed text-base flex items-center justify-start gap-2 px-4 py-2 rounded  border border-zinc-300 shadow-2xl z-50 snack-show transition-all duration-300";
+    "fixed text-base flex  items-center justify-start gap-2 px-4 py-2 rounded  border border-zinc-300 shadow-2xl z-50 snack-show transition-all duration-300";
 
   const typeClasses =
     type === "success"
@@ -31,7 +31,7 @@ const SnackBar = ({ message, type = "info", user }: Props) => {
       : type === "info"
       ? "bg-white text-black"
       : type === "drop-notification"
-      ? "text-black bg-gradient-to-tr from-white/40 to-blue-200/40   backdrop-blur-md rounded-xl"
+      ? "flex-col text-black bg-transparent backdrop-blur-xl rounded-md"
       : "";
 
   // You can later extend this to support dynamic positions easily
@@ -40,8 +40,9 @@ const SnackBar = ({ message, type = "info", user }: Props) => {
   return (
     <div className={`${baseClasses} ${typeClasses} ${positionClasses}`}>
       {user && (
-        <div>
-          <UserIcon user={user as User} />
+        <div className="w-full flex gap-2  items-center justify-start ">
+          <UserIcon user={user as User} style="w-8 h-8" />
+          <p>{user.email}</p>
         </div>
       )}
       {type !== "drop-notification" && <Info />} {message}
