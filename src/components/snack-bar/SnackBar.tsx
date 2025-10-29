@@ -7,7 +7,7 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
-  profilePic?: string;
+  profilePicture?: string;
 }
 
 interface Props {

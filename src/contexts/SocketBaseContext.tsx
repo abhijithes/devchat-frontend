@@ -141,7 +141,7 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
           email: data.data.senderId.email,
           firstName: data.data.senderId.email,
           lastName: data.data.senderId.email,
-          profilePic: data.data.senderId.profilePicture,
+          profilePicture: data.data.senderId.profilePicture,
         });
       }
     );
