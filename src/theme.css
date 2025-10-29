@@ -3,7 +3,7 @@
 @theme {
   --color-primary: #eeeaea;
   --color-primary: #f5f4f4;
-  --color-secondary: #ec4899;
+  --color-secondary: #011111;
   --color-background: #ffffff;
   --color-text: #000000;
   --color-accent: black;
@@ -21,4 +21,28 @@
 }
 .top-left {
   @apply flex items-start justify-start;
+}
+
+.border-light-bottom {
+  @apply border-b border-zinc-300;
+}
+
+.text-cliped-gradient-blue {
+  @apply text-transparent bg-gradient-to-r from-cyan-500 to-blue-800 bg-clip-text;
+  transition: 0.5s;
+}
+.text-cliped-gradient-blue:hover {
+  @apply text-transparent bg-gradient-to-r from-sky-500 to-cyan-500 bg-clip-text;
+}
+
+.heading {
+  @apply text-2xl font-bold;
+}
+
+.sub-heading {
+  @apply text-xl font-medium;
+}
+
+.null-value-text {
+  @apply text-sm text-center;
 }

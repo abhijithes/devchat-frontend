@@ -1,4 +1,9 @@
+import { NotificationSounds } from "../constant/audio-files";
 export const Start = () => {
+  const onSelectChange = (selectedSoundId) => {
+    localStorage.setItem("DEV_CHATS_NOTI_SOUND", selectedSoundId ?? 1001);
+  };
+
   return (
     <div className="min-h-screen  text-gray-900 p-6">
       <div className="max-w-4xl mx-auto   rounded-lg p-8">
@@ -12,7 +17,9 @@ export const Start = () => {
         <section className="mb-10">
           <h2 className="text-2xl font-semibold mb-4">Key Features</h2>
           <ul className="space-y-2 list-disc list-inside text-gray-700">
-            <li>Create and manage development tasks with tags and priorities</li>
+            <li>
+              Create and manage development tasks with tags and priorities
+            </li>
             <li>Organize work by projects, sprints, and milestones</li>
             <li>Track progress using Kanban board views</li>
             <li>Integrated Pomodoro timer for focused productivity</li>
@@ -33,12 +40,18 @@ export const Start = () => {
             </div>
 
             <div className="p-4 border rounded-lg bg-gray-50">
-              <label className="block font-medium mb-2">Notification Sound</label>
-              <select className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-500">
-                <option>Default</option>
-                <option>Chime</option>
-                <option>Pop</option>
-                <option>Silent</option>
+              <label className="block font-medium mb-2">
+                Notification Sound
+              </label>
+              <select
+                onChange={(e) => onSelectChange(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-500"
+              >
+                {NotificationSounds.map((sound, index) => (
+                  <option value={sound.audioId} key={index}>
+                    {sound.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -55,5 +68,5 @@ export const Start = () => {
         </footer>
       </div>
     </div>
-  )
+  );
 };

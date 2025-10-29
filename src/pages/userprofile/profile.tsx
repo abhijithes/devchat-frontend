@@ -8,6 +8,8 @@ import { Edit, Save, Cancel, CloudUpload } from "@mui/icons-material";
 import { useSnackBar } from "../../components/snack-bar/snack-bar-context";
 import { Pinnedprojects } from "../../components/pinnedprojects/pinnedprojects";
 import { setUserPublicInfo } from "../../utils/token";
+import { Link } from "react-router-dom";
+import { ChevronsRight, Eye } from "lucide-react";
 
 interface UserType {
   _id: string;
@@ -319,6 +321,21 @@ export default function Profile() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* view in public mode */}
+        <div className="p-5 px-8 border border-zinc-100 space-y-3 group ">
+          {/* <h1 className="text-lg font-semibold">View your public profile</h1> */}
+          <Link
+            className=" w-max flex gap-2 items-center  text-cliped-gradient-blue  "
+            to={`/viewprofile/${user._id}/?isViewMode=true`}
+          >
+            <ChevronsRight
+              size={17}
+              className="text-blue-500 group-hover:translate-x-1 transition-all"
+            />
+            View in public mode
+          </Link>
         </div>
 
         {/* Edit Profile Form */}

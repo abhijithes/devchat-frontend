@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { endpoints } from "../constant/constant";
 import { useLoader } from "../contexts/GlobalLoaderContext";
@@ -25,6 +25,8 @@ const fetchProjects = async (): Promise<Project> => {
 const SidebarButtons: React.FC = () => {
   const { showLoader, hideLoader } = useLoader();
   const projectButtonRef = useRef<(HTMLAnchorElement | null)[]>([]);
+  const navigate = useNavigate();
+  const params = useParams();
 
   // TanStack Query with explicit generics
   const {
@@ -81,8 +83,8 @@ const SidebarButtons: React.FC = () => {
   const assignedProjects = projects?.assignedProjects || [];
 
   return (
-    <div className="flex flex-col gap-2 w-full max-h-full relative z-30">
-      {/* 🔄 Loading State */}
+    <div className="flex flex-col gap-2 w-full max-h-full relative z-30 ">
+      {/* Loading State */}
       {isLoading && (
         <div className="bg-white text-black px-3 py-2 md:px-4 md:py-2 w-full text-left rounded">
           <div className="flex items-center gap-2">
@@ -92,14 +94,14 @@ const SidebarButtons: React.FC = () => {
         </div>
       )}
 
-      {/* ❌ Error State */}
+      {/* Error State */}
       {isError && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 md:px-4 md:py-2 w-full text-left rounded text-sm">
-          ⚠️ {error?.message || "Failed to load projects"}
+          {error?.message || "Failed to load projects"}
         </div>
       )}
 
-      {/* ✅ Your Projects Section */}
+      {/* Your Projects Section */}
       <h5 className="font-semibold mt-2 text-sm md:text-base px-2">
         Your projects
       </h5>
@@ -111,23 +113,27 @@ const SidebarButtons: React.FC = () => {
       )}
 
       {userProjects.map((project, index) => (
-        <Link
-          // ref={(el) => {
-          //     projectButtonRef.current[index] = el;
-          // }}
-          onContextMenu={(e) => handleOpenOptions(e, index)}
-          key={project._id}
-          to={`/project/${project._id}`}
-          className="bg-white text-black px-3 py-2 md:px-4 md:py-2 w-full text-left hover:bg-zinc-200 hover:border-zinc-300 transition-all duration-200 block relative rounded border border-transparent  group"
-        >
-          <span className="truncate block text-sm md:text-base">
-            {project.name}
-          </span>
+        <div key={project._id} className="relative group">
+          <button
+            onContextMenu={(e) => handleOpenOptions(e, index)}
+            onClick={() => navigate(`/project/${project._id}`)}
+            className={`
+             ${
+               params?.id !== project._id
+                 ? "from-white to-zinc-200"
+                 : "from-blue-100 to-zinc-200"
+             }  
+              bg-gradient-to-tr  text-black px-3 py-2 md:px-4 md:py-2 w-full text-left hover:bg-zinc-200 hover:border-zinc-300 transition-all duration-200 block rounded border border-transparent`}
+          >
+            <span className="truncate block text-sm md:text-base">
+              {project.name}
+            </span>
+          </button>
 
-          {/* Context Menu */}
+          {/* Context Menu (sibling, not nested inside <a> or <button>) */}
           <div
             onClick={(e) => e.stopPropagation()}
-            className="hidden absolute left-full top-0 w-48 sm:w-56 md:w-64 lg:w-72 h-max flex-col gap-3 bg-white border border-zinc-200 rounded-lg z-50 p-4 shadow-xl"
+            className="hidden absolute left-full top-0 w-48 sm:w-56 md:w-64 lg:w-72 h-max flex-col gap-3 bg-white border border-zinc-200 rounded-lg z-50 p-4 shadow-xl "
           >
             <h1 className="font-bold text-base md:text-lg">Options</h1>
             <div className="flex flex-col gap-2 mt-1">
@@ -143,13 +149,10 @@ const SidebarButtons: React.FC = () => {
               ))}
             </div>
           </div>
-
-          {/* Hover indicator */}
-          <div className="absolute inset-0 border-2 border-transparent  rounded pointer-events-none" />
-        </Link>
+        </div>
       ))}
 
-      {/* ✅ Assigned Projects Section */}
+      {/* Assigned Projects Section */}
       <h5 className="font-semibold mt-4 md:mt-6 text-sm md:text-base px-2">
         Assigned projects
       </h5>
@@ -164,7 +167,14 @@ const SidebarButtons: React.FC = () => {
         <Link
           key={project._id}
           to={`/project/${project._id}`}
-          className="bg-white text-black px-3 py-2 md:px-4 md:py-2 w-full text-left hover:bg-zinc-200 transition-all duration-200 block rounded border border-transparent hover:border-gray-200 group"
+          // className="bg-white text-black px-3 py-2 md:px-4 md:py-2 w-full text-left hover:bg-zinc-200 transition-all duration-200 block rounded border border-transparent hover:border-gray-200 group"
+          className={`
+             ${
+               params?.id !== project._id
+                 ? "from-white to-zinc-200"
+                 : "from-blue-100 to-zinc-200"
+             }  
+              bg-gradient-to-tr  text-black px-3 py-2 md:px-4 md:py-2 w-full text-left hover:bg-zinc-200 hover:border-zinc-300 transition-all duration-200 block rounded border border-transparent`}
         >
           <span className="truncate block text-sm md:text-base">
             {project.name}

@@ -1,56 +1,28 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
-import DialogueBox from "../../components/dailogue-box/dialogueBox";
+import type { ProjectTaskResponse, Task } from "./TaskTypes";
+import api from "../../utils/axios";
 import { endpoints } from "../../constant/constant";
-import FindUser from "../find-users/FindUser";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AddTask } from "./AddTask";
+import { EditTask } from "./EditTask";
+import DeleteConfirmation from "../Conformation/DeleteConformation";
+import { useSnackBar } from "../snack-bar/snack-bar-context";
+import { Link } from "react-router-dom";
+import CheckUserRole from "../check-user-role/CheckUserRole";
 import { useLoader } from "../../contexts/GlobalLoaderContext";
+import DvcSideBar from "../dvc-side-bar/DvcSideBar";
+import DetailedTaskView from "./DetailedTaskView";
+import { MoreHoriz } from "@mui/icons-material";
 
-export interface CreatedBy {
-  _id: string;
-  email: string;
-}
-
-export interface ProjectInfo {
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: CreatedBy;
-}
-
-export interface Assignee {
-  _id: string;
-  email: string;
-}
-
-export interface Task {
-  _id: string;
-  name: string;
-  priority: string;
-  status: string;
-  assignee: Assignee;
-  project: string;
-  dueDate: string;
-  taskId: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-}
-
-export interface ProjectTaskResponse {
-  project: ProjectInfo;
-  data: Task[];
-  userRole: string;
-  page: number;
-  limit: number;
-  totalTasks: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-}
-
-interface Props {
+interface TaskTableProps {
   projectId: string;
+  page?: number;
+  limit?: number;
+}
+interface deleteTask {
+  id: string;
+  name: string;
 }
 
 const getPriorityColor = (priority: Task["priority"]) => {
@@ -66,145 +38,239 @@ const getPriorityColor = (priority: Task["priority"]) => {
   }
 };
 
-const TaskTable: React.FC<Props> = ({ projectId }) => {
-  const [tasksData, setTasksData] = useState<ProjectTaskResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [showDialog, setShowDialog] = useState(false);
-  const { showLoader, hideLoader } = useLoader();
+// Fetch tasks
+const fetchTasks = async (
+  projectId: string,
+  page: number,
+  limit: number
+): Promise<ProjectTaskResponse> => {
+  const res = await api.get(endpoints.getTasks(projectId, page, limit));
+  return res.data;
+};
+const patchUpdate = async ({ projectId, id, field, value }) => {
+  await api.patch(endpoints.updateTask(projectId, id), { [field]: value });
+  return `${field} updated Successfully`;
+};
 
-  const [newTask, setNewTask] = useState({
+const TaskTable: React.FC<TaskTableProps> = ({
+  projectId,
+  page = 1,
+  limit = 10,
+}) => {
+  const [showDialog, setShowDialog] = useState<
+    "false" | "edit" | "add" | "delete"
+  >("false");
+  const [deletingTask, setDeletingTask] = useState<deleteTask | null>({
+    id: "",
+    name: "",
+  });
+  const [currentPage, setCurrentPage] = useState(page);
+  const queryClient = useQueryClient();
+  const { showSnackBar } = useSnackBar();
+  const { showLoader, hideLoader } = useLoader();
+  const [newTask, setNewTask] = useState<Task>({
+    _id: "",
     taskId: "",
     name: "",
     priority: "required",
-    status: "pending",
-    assigneeEmail: "",
+    status: "not-started",
+    assignee: {
+      _id: "",
+      email: "",
+      firstName: "",
+      lastName: "",
+      profilePicture: "",
+    },
+    assigner: {
+      _id: "",
+      email: "",
+      firstName: "",
+      lastName: "",
+      profilePicture: "",
+    },
     dueDate: "",
+  });
+  const [detailedView, setDetailedView] = useState(false);
+  const [activeTask, setActiveTask] = useState<Task | {}>({});
+
+  // React Query
+  const {
+    data: tasksData,
+    isLoading,
+    isError,
+  } = useQuery<ProjectTaskResponse, Error>({
+    queryKey: ["tasks", projectId, currentPage, limit],
+    queryFn: () => fetchTasks(projectId, currentPage, limit),
+    staleTime: 1000 * 60,
   });
 
   const tasks = tasksData?.data || [];
+  const members = tasksData?.members || [];
+  const totalPages = tasksData?.totalPages || 1;
+  const TableHeaders =
+    tasksData?.userRole !== "member"
+      ? [
+          "ID",
+          "Task name",
+          "Priority",
+          "Status",
+          "Assignee",
+          "Due Date",
+          "Edit",
+          "Delete",
+          "View",
+        ]
+      : [
+          "ID",
+          "Task name",
+          "Priority",
+          "Status",
+          "Assignee",
+          "Due Date",
+          "View",
+        ];
 
-  const fetchTasks = async () => {
+  // Edit task
+  const handleEdit = async (taskId: string) => {
+    const task = tasks.find((t) => t._id === taskId);
+    if (!task) return;
+
+    await setNewTask({
+      _id: task._id ?? "",
+      taskId: task.taskId ?? "",
+      name: task.name ?? "",
+      priority: task.priority ?? "required",
+      status: task.status ?? "not-started",
+      assignee: {
+        _id: task.assignee._id ?? "",
+        email: task.assignee.email ?? "",
+        firstName: task.assignee.firstName ?? "",
+        lastName: task.assignee.lastName ?? "",
+        profilePicture: task.assignee.profilePicture ?? "",
+      },
+      dueDate: task.dueDate
+        ? new Date(task.dueDate).toISOString().split("T")[0]
+        : "",
+    });
+
+    setShowDialog("edit");
+  };
+
+  const openDeleteModel = (taskId: string, taskName: string) => {
+    setDeletingTask({ id: taskId, name: taskName });
+    setShowDialog("delete");
+  };
+  const closeDeleteModel = () => {
+    setDeletingTask(null);
+    setShowDialog("false");
+  };
+
+  const deleteTask = useMutation({
+    mutationFn: async (taskId: string) => {
+      await api.delete(endpoints.deleteTask(projectId, taskId));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+      closeDeleteModel();
+      showSnackBar("Deleted Task Successfully", "success", 3000);
+    },
+    onError: (error) => {
+      console.error("task deletion failed", error);
+      showSnackBar("Deleted Task Failed", "error", 3000);
+    },
+  });
+
+  const patchTask = useMutation({
+    mutationFn: patchUpdate,
+    onMutate: () => showLoader(),
+    onError: (error) =>
+      showSnackBar(`Failed to update:${error}`, "error", 3000),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+      showSnackBar(data, "success", 3000);
+    },
+    onSettled: () => hideLoader(),
+  });
+
+  const handleOptionChange = (field, id, value) => {
+    patchTask.mutate({ projectId, id, field, value });
+  };
+
+  const handleDelete = async () => {
     try {
-      showLoader();
-      const token = localStorage.getItem("token") || "";
-      const res = await axios.get(endpoints.getTasks(projectId), {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTasksData(res.data);
-    } catch (err) {
-      console.error("Error fetching tasks:", err);
+      if (!deletingTask.id) return;
+      deleteTask.mutate(deletingTask.id);
+    } catch (error) {
+      console.error(error);
     } finally {
-      hideLoader();
-      setLoading(false);
+      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
     }
+  };
+
+  const closeDialogueBox = () => {
+    setShowDialog("false");
   };
 
   useEffect(() => {
-    fetchTasks();
-  }, [projectId]);
+    if (isLoading) showLoader();
+    else hideLoader();
+  }, [isLoading]);
 
-  const handleDelete = async (taskId: string) => {
-    if (!confirm("Are you sure you want to delete this task?")) return;
-    try {
-      const token = localStorage.getItem("token") || "";
-      await axios.delete(endpoints.deleteTask(projectId, taskId), {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTasksData((prev) =>
-        prev
-          ? { ...prev, data: prev.data.filter((t) => t._id !== taskId) }
-          : prev
+  const paginationButtons = useMemo(() => {
+    return Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+      const pageNum = i + Math.max(currentPage - 2, 1);
+      if (pageNum > totalPages) return null;
+      return (
+        <button
+          key={pageNum}
+          onClick={() => setCurrentPage(pageNum)}
+          className={`px-3 py-1 rounded-md border ${
+            pageNum === currentPage
+              ? "bg-[var(--color-accent)] text-white"
+              : "bg-white text-black"
+          }`}
+        >
+          {pageNum}
+        </button>
       );
-    } catch (err) {
-      console.error("Error deleting task:", err);
-    }
+    });
+  }, [currentPage, totalPages]);
+
+  const handleTaskClick = (task: Task) => {
+    setDetailedView(true);
+    setActiveTask(task);
   };
 
-  const handleEdit = async (taskId: string) => {
-    const newStatus = prompt("Enter new status:");
-    if (!newStatus) return;
-    try {
-      const token = localStorage.getItem("token") || "";
-      await axios.put(
-        endpoints.updateTask(projectId, taskId),
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setTasksData((prev) =>
-        prev
-          ? {
-              ...prev,
-              data: prev.data.map((task) =>
-                task._id === taskId ? { ...task, status: newStatus } : task
-              ),
-            }
-          : prev
-      );
-    } catch (err) {
-      console.error("Error updating task:", err);
-    }
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    setNewTask({ ...newTask, [e.target.name]: e.target.value });
-  };
-
-  const handleCreateTask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem("token") || "";
-      await axios.post(
-        endpoints.createTask(projectId),
-        {
-          taskId: newTask.taskId,
-          name: newTask.name,
-          priority: newTask.priority,
-          status: newTask.status,
-          assigneeEmail: newTask.assigneeEmail,
-          dueDate: newTask.dueDate,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setShowDialog(false);
-      setNewTask({
-        taskId: "",
-        name: "",
-        priority: "required",
-        status: "pending",
-        assigneeEmail: "",
-        dueDate: "",
-      });
-      fetchTasks();
-    } catch (err) {
-      console.error("Error creating task:", err);
-    }
-  };
-
-  if (loading) return <p>Loading tasks...</p>;
+  if (isLoading)
+    return (
+      <div className="centered">
+        <p>Loading your tickets</p>
+      </div>
+    );
+  if (isError) return <p>Failed to load tasks</p>;
 
   return (
-    <div
-      className="w-full rounded-2xl"
-      style={{
-        backgroundColor: "var(--color-background)",
-        color: "var(--color-text)",
-        fontFamily: "var(--font-family)",
-      }}
-    >
-      <div className="w-full min-h-32  space-y-2 ">
-        <h1 className="text-2xl font-medium">{tasksData.project.name}</h1>
+    <div className="w-full rounded-2xl">
+      {/* ASide detailed view component  */}
+      <DvcSideBar active={detailedView} onClose={() => setDetailedView(false)}>
+        <DetailedTaskView {...(activeTask as Task)} />
+      </DvcSideBar>
+
+      {/* Project Info */}
+      <div className="w-full min-h-32 space-y-2">
+        <h1 className="text-2xl font-medium">{tasksData?.project.name}</h1>
         <h1 className="text-sm">
-          @ {new Date(new Date(tasksData.project.createdAt)).toLocaleString()}
+          @ {new Date(tasksData?.project.createdAt || "").toLocaleString()}
         </h1>
         <h1>
           By{" "}
           <span className="font-medium">
-            {tasksData.project.createdBy.email}
-          </span>{" "}
+            {tasksData?.project.createdBy.email}
+          </span>
         </h1>
       </div>
+
+      {/* Header & New Task */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
         <div>
           <h1 className="text-2xl font-bold">Project Tasks</h1>
@@ -216,37 +282,26 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
           <p className="text-sm font-semibold">
             Total Tasks:{" "}
             <span className="font-bold text-[var(--color-accent)]">
-              {tasks.length}
+              {tasksData?.totalTasks || 0}
             </span>
           </p>
-          <button
-            onClick={() => setShowDialog(true)}
-            className="px-4 py-2 rounded-md text-sm font-medium"
-            style={{
-              backgroundColor: "var(--color-button)",
-              color: "var(--color-background)",
-            }}
-          >
-            New Task
-          </button>
+          <CheckUserRole userRole={tasksData.userRole}>
+            <button
+              onClick={() => setShowDialog("add")}
+              className="px-4 py-2 rounded-md text-sm font-medium bg-button text-white"
+            >
+              New Task
+            </button>
+          </CheckUserRole>
         </div>
       </div>
 
-      {/* Table */}
+      {/* Task Table */}
       <div className="mt-6 overflow-x-auto">
         <table className="min-w-full border-collapse text-sm md:text-base">
           <thead>
-            <tr className=" border-[var(--color-primary)]">
-              {[
-                "ID",
-                "Task name",
-                "Priority",
-                "Status",
-                "Assignee",
-                "Uptime",
-                "Edit",
-                "Delete",
-              ].map((heading) => (
+            <tr className="border-[var(--color-primary)]">
+              {TableHeaders.map((heading) => (
                 <th key={heading} className="py-3 px-4 font-semibold text-left">
                   {heading}
                 </th>
@@ -257,7 +312,8 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
             {tasks.map((task) => (
               <tr
                 key={task._id}
-                className=" hover:bg-[var(--color-primary)] transition"
+                className="hover:bg-[var(--color-primary)] transition "
+                title={`Assigned By ${task.assigner?.firstName} ${task.assigner?.lastName}`}
               >
                 <td className="py-3 px-4 font-medium">{task.taskId}</td>
                 <td className="py-3 px-4 truncate max-w-[180px]">
@@ -269,40 +325,68 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
                       task.priority
                     )} w-3 h-3 rounded-sm`}
                   ></span>
-                  <span className="capitalize">{task.priority}</span>
-                </td>
-                <td className="py-3 px-4">{task.status}</td>
-                <td className="py-3 px-4">{task?.assignee?.email}</td>
-                <td className="py-3 px-4">
-                  {new Date(task.dueDate).toLocaleDateString("en-GB", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </td>
-                <td className="py-3 px-4">
-                  <button
-                    onClick={() => handleEdit(task._id)}
-                    className="p-2 rounded-md"
-                    style={{
-                      backgroundColor: "var(--color-primary)",
-                      color: "var(--color-accent)",
-                    }}
+                  <select
+                    name="priority"
+                    value={task.priority}
+                    onChange={(e) =>
+                      handleOptionChange("priority", task._id, e.target.value)
+                    }
+                    className="w-full bg-gray-50 px-3 py-2"
                   >
-                    <Pencil size={16} />
-                  </button>
+                    <option value="urgent">Urgent</option>
+                    <option value="required">Required</option>
+                    <option value="completed">Completed</option>
+                  </select>
                 </td>
                 <td className="py-3 px-4">
-                  <button
-                    onClick={() => handleDelete(task._id)}
-                    className="p-2 rounded-md"
-                    style={{
-                      backgroundColor: "var(--color-primary)",
-                      color: "red",
-                    }}
+                  <select
+                    name="status"
+                    value={task.status}
+                    onChange={(e) =>
+                      handleOptionChange("status", task._id, e.target.value)
+                    }
+                    className="w-full bg-gray-50 px-3 py-2"
                   >
-                    <Trash2 size={16} />
-                  </button>
+                    <option value="not-started">Not started</option>
+                    <option value="in-progress">In progress</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </td>
+                <td className="py-3 px-4">{task.assignee?.email}</td>
+                <td className="py-3 px-4">
+                  {task.dueDate &&
+                    new Date(task.dueDate).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                </td>
+                <CheckUserRole userRole={tasksData.userRole}>
+                  <td className="py-3 px-4">
+                    <button
+                      onClick={() => handleEdit(task._id)}
+                      className="p-2 rounded-md"
+                      title="Edit"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                  </td>
+                  <td className="py-3 px-4">
+                    <button
+                      onClick={() => openDeleteModel(task._id, task.name)}
+                      className="p-2 rounded-md"
+                      title="Delete"
+                    >
+                      <Trash2 size={16} color="red" />
+                    </button>
+                  </td>
+                </CheckUserRole>
+
+                <td
+                  onClick={() => handleTaskClick(task)}
+                  className="text-zinc-400 hover:text-zinc-900 grid place-items-center cursor-pointer   "
+                >
+                  <MoreHoriz />
                 </td>
               </tr>
             ))}
@@ -310,110 +394,98 @@ const TaskTable: React.FC<Props> = ({ projectId }) => {
         </table>
       </div>
 
-      {/* Add Task Dialog */}
-      {showDialog && (
-        <DialogueBox onClose={() => setShowDialog(false)}>
-          <form
-            onSubmit={handleCreateTask}
-            className="p-6 w-full max-w-2xl bg-white mx-auto"
-          >
-            <h2 className="text-xl font-semibold mb-5">Add New Task</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <label className="text-sm text-gray-600">Task ID</label>
-                <input
-                  type="text"
-                  name="taskId"
-                  value={newTask.taskId}
-                  onChange={handleChange}
-                  required
-                  className="w-full bg-gray-50 border rounded-lg px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-gray-600">Due Date</label>
-                <input
-                  type="date"
-                  name="dueDate"
-                  value={newTask.dueDate}
-                  onChange={handleChange}
-                  className="w-full bg-gray-50 border rounded-lg px-3 py-2"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="text-sm text-gray-600">Task Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={newTask.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full bg-gray-50 border rounded-lg px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-gray-600">Priority</label>
-                <select
-                  name="priority"
-                  value={newTask.priority}
-                  onChange={handleChange}
-                  className="w-full bg-gray-50 border rounded-lg px-3 py-2"
-                >
-                  <option value="urgent">Urgent</option>
-                  <option value="required">Required</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-sm text-gray-600">Status</label>
-                <input
-                  type="text"
-                  name="status"
-                  value={newTask.status}
-                  onChange={handleChange}
-                  className="w-full bg-gray-50 border rounded-lg px-3 py-2"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="text-sm text-gray-600">Assignee</label>
-                <FindUser
-                  users={[
-                    { _id: "123", name: "manuraj" },
-                    { _id: "125", name: "test" },
-                    { _id: "126", name: "user3" },
-                    { _id: "127", name: "user4" },
-                    { _id: "128", name: "user5" },
-                  ]}
-                  selectType="single"
-                  onUserSelect={(user: any) => {
-                    setNewTask((prev) => ({
-                      ...prev,
-                      assigneeEmail: user.name,
-                    }));
-                  }}
-                  activeStyle="bg-zinc-200"
-                  inputStyle="bg-gray-50 rounded-lg"
-                />
-              </div>
+      {/* Pagination */}
+      <div className="flex justify-end items-center gap-2 mt-4 pr-20">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="px-3 py-1 rounded-md border bg-white text-black disabled:opacity-50"
+        >
+          Prev
+        </button>
+
+        {paginationButtons}
+
+        <button
+          onClick={() =>
+            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+          }
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 rounded-md border bg-white text-black disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+      {members.length > 0 && (
+        <div className="mt-6 rounded-lg bg-white">
+          <div className="px-4 py-3">
+            <h2 className="text-lg font-semibold text-gray-800">
+              Project Team
+            </h2>
+          </div>
+          <div className="p-4">
+            <div className="flex flex-wrap gap-3">
+              {members.map((member) => (
+                <Link to={`/viewprofile/${member._id}`} key={member._id}>
+                  <div
+                    key={member._id}
+                    className="flex items-center space-x-3 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100"
+                  >
+                    <div className="flex-shrink-0">
+                      {member.profilePicture ? (
+                        <img
+                          src={member.profilePicture}
+                          alt={`${member.firstName} ${member.lastName}`}
+                          className="w-8 h-8 rounded-full object-cover border border-gray-300"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center">
+                          <span className="text-blue-600 text-sm font-medium">
+                            {member.firstName?.[0]}
+                            {member.lastName?.[0]}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {member.firstName} {member.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {member.email}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                type="button"
-                onClick={() => setShowDialog(false)}
-                className="px-5 py-2 bg-gray-200 rounded-md text-gray-700 hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2 rounded-md text-white"
-                style={{ backgroundColor: "var(--color-button)" }}
-              >
-                Create Task
-              </button>
-            </div>
-          </form>
-        </DialogueBox>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Task Dialog */}
+      {showDialog === "add" && (
+        <AddTask
+          onClose={closeDialogueBox}
+          member={members}
+          projectId={projectId}
+        />
+      )}
+      {showDialog === "edit" && (
+        <EditTask
+          onClose={closeDialogueBox}
+          member={members}
+          projectId={projectId}
+          initialData={newTask}
+        />
+      )}
+      {showDialog === "delete" && (
+        <DeleteConfirmation
+          message={`Are you sure to delete "${deletingTask.name}?"`}
+          onConfirm={handleDelete}
+          onCancel={closeDeleteModel}
+          isDeleting={deleteTask.isPending}
+        />
       )}
     </div>
   );

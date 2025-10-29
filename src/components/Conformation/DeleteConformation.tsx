@@ -4,7 +4,7 @@ interface DeleteConfirmationProps {
     message: string;
     onConfirm: () => void;
     onCancel: () => void;
-    isDeleting: boolean;
+    isDeleting?: boolean;
 }
 
 export const DeleteConfirmation = ({ message, onConfirm, onCancel, isDeleting }: DeleteConfirmationProps) => {
