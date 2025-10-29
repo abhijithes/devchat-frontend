@@ -18,10 +18,10 @@ interface UserType {
     socials?: any[];
     pinnedProjects: {
         project: {
-            _id: string;
-            name: string;
-            description: string;
-            updatedAt: string;
+            _id?: string;
+            name?: string;
+            description?: string;
+            updatedAt?: string;
         };
         role: string;
         _id?: string;
