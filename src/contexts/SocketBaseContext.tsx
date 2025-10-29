@@ -131,11 +131,20 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
     });
 
     // On receiving notification
-    socket.on("get_notification", (data: Notification) => {
-      setNotifications((prev) => [data, ...prev]);
-      playAudio();
-      showSnackBar("New Notification Received", "info", 2500);
-    });
+    socket.on(
+      "get_notification",
+      (data: { data: Notification; slug: string }) => {
+        setNotifications((prev) => [data.data, ...prev]);
+        playAudio();
+        showSnackBar(data.slug, "drop-notification", 4500, {
+          _id: data.data.senderId._id,
+          email: data.data.senderId.email,
+          firstName: data.data.senderId.email,
+          lastName: data.data.senderId.email,
+          profilePic: data.data.senderId.profilePicture,
+        });
+      }
+    );
 
     // Cleanup on unmount
     return () => {

@@ -41,6 +41,21 @@ const AppLayout = () => {
     };
   }, [socket]);
 
+  // useEffect(() => {
+  //   showSnackBar(
+  //     "New message found from something test",
+  //     "drop-notification",
+  //     1000000,
+  //     {
+  //       _id: "",
+  //       email: "test@gmail.com",
+  //       firstName: "test",
+  //       lastName: "test",
+  //       profilePic: "",
+  //     }
+  //   );
+  // }, []);
+
   return (
     <>
       {isLogged && <NavBar />}

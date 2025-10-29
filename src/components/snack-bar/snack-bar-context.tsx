@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import SnackBar from "./SnackBar";
+import SnackBar, { type User } from "./SnackBar";
 
 const SnackBarContext = createContext(undefined);
 
 interface SnackParams {
   message: string;
-  type: "success" | "error" | "info";
+  type: "success" | "error" | "info" | "drop-notification";
+  user?: User;
   duration?: number;
 }
 const SnackBarContextProvider = ({ children }: { children: ReactNode }) => {
@@ -13,10 +14,11 @@ const SnackBarContextProvider = ({ children }: { children: ReactNode }) => {
 
   const showSnackBar = (
     message: string,
-    type: "success" | "error" | "info",
-    duration: number
+    type: "success" | "error" | "info" | "drop-notification",
+    duration: number,
+    user?: User
   ) => {
-    setSnackContent({ message, type, duration });
+    setSnackContent({ message, type, duration, user });
     setTimeout(() => {
       setSnackContent(null);
     }, duration || 3000);
@@ -46,8 +48,9 @@ export const useSnackBar = () => {
   }: {
     showSnackBar: (
       message: string,
-      type: "success" | "error" | "info",
-      duration: number
+      type: "success" | "error" | "info" | "drop-notification",
+      duration: number,
+      user?: User
     ) => void;
   } = useContext(SnackBarContext);
   return { showSnackBar };

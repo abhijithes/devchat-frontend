@@ -4,7 +4,7 @@ import axios from "axios";
 import { endpoints } from "../../constant/constant";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import "./styles.css";
 import Spinner from "../loaders/Spinner";
 import UserIcon from "../userIcon/usericon";
@@ -114,8 +114,6 @@ const NotificationBox = ({
   const handleChangeOptions = (options: NotificationOption, index: number) => {
     setActiveOptions(index);
   };
-
-  console.log(isLoading ? "loading" : "end...");
 
   return (
     <div
