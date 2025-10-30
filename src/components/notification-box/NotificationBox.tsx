@@ -8,6 +8,9 @@ import { useState } from "react";
 import "./styles.css";
 import Spinner from "../loaders/Spinner";
 import UserIcon from "../userIcon/usericon";
+import { Delete } from "@mui/icons-material";
+import DeleteConfirmation from "../Conformation/DeleteConformation";
+import { deleteBulkNotifications } from "./notification-service";
 
 interface NotificationBoxProps {
   style?: string;
@@ -47,6 +50,10 @@ const NotificationBox = ({
 
   const [loading, setLoading] = useState(false);
   const [activeOptions, setActiveOptions] = useState(0);
+  const [openConformation, setOpenConformation] = useState(false);
+  const [selectedNotifications, setSelectedNotification] = useState<string[]>(
+    []
+  );
 
   function timeAgo(date) {
     const now: any = new Date();
@@ -119,6 +126,27 @@ const NotificationBox = ({
     setActiveOptions(index);
   };
 
+  const handleSelectComment = (id: string, currentState: boolean) => {
+    if (currentState) {
+      setSelectedNotification((prev) => [...prev, id]);
+    } else {
+      setSelectedNotification(() =>
+        selectedNotifications.filter((item) => item != id)
+      );
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setLoading(true);
+    const res = await deleteBulkNotifications(selectedNotifications);
+    if (res.status === 200) {
+      setOpenConformation(false);
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      showSnackBar("Deleted selected notifications", "success", 2000);
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       onClick={(e) => e.stopPropagation()}
@@ -127,6 +155,13 @@ const NotificationBox = ({
         opened ? "-right-3" : "-right-full"
       }  z-[99999]  overflow-hidden transition-all duration-300 delay-200  ${style}   `}
     >
+      {openConformation && (
+        <DeleteConfirmation
+          message="Do you want to delete bulk notification ?"
+          onCancel={() => setOpenConformation(false)}
+          onConfirm={handleBulkDelete}
+        />
+      )}
       <div className="w-full h-max bg-white sticky top-0 p-5 flex items-center justify-between border-b border-zinc-200 ">
         <h1 className="font-semibold text-start  ">Notifications</h1>
 
@@ -141,7 +176,7 @@ const NotificationBox = ({
           <Spinner />
         </div>
       )}
-      <div className="w-full  p-2 px-8 flex gap-2 items-end justify-end sticky top-0 ">
+      <div className="w-full  max-h-12   p-2 px-8 flex gap-2 items-end justify-end sticky top-0  overflow-x-auto">
         {NotificationOptions.map((options, index) => (
           <span
             style={
@@ -156,6 +191,15 @@ const NotificationBox = ({
             {options.text}
           </span>
         ))}
+
+        {selectedNotifications.length ? (
+          <button
+            onClick={() => setOpenConformation(true)}
+            className="px-4 p-1 text-sm  rounded-full hover:bg-red-300 cursor-pointer transition-all"
+          >
+            <Delete fontSize="small" className="text-red-500" />
+          </button>
+        ) : null}
       </div>
       <div className="h-[83%]  overflow-auto">
         {notifications.length === 0 ? (
@@ -182,7 +226,17 @@ const NotificationBox = ({
                     }`}
                   >
                     <div className="flex items-center justify-end">
-                      {state.text === "delete" && <input type="checkbox" />}
+                      {state.text === "delete" && (
+                        <input
+                          type="checkbox"
+                          onChange={(e) =>
+                            handleSelectComment(
+                              notification._id,
+                              e.target.checked
+                            )
+                          }
+                        />
+                      )}
                     </div>
                     <div className="mb-2 flex gap-2 items-center">
                       <UserIcon

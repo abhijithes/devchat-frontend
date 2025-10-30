@@ -39,8 +39,10 @@ export const endpoints = {
   // New Task routes
   createTask: (projectId) =>
     `${current_url}/tickets/projects/${projectId}/tasks`,
-  getTasks: (projectId, page, limit) => `${current_url}/tickets/projects/${projectId}/tasks?page=${page}&&limit=${limit}`,
-  updateTask: (projectId, taskId) => `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
+  getTasks: (projectId, page, limit) =>
+    `${current_url}/tickets/projects/${projectId}/tasks?page=${page}&&limit=${limit}`,
+  updateTask: (projectId, taskId) =>
+    `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
   deleteTask: (projectId, taskId) =>
     `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
   getTaskPreview: (projectId) =>
@@ -50,4 +52,5 @@ export const endpoints = {
   getNotifications: `${current_url}/notifications`,
   updateNotification: (id: string) => `${current_url}/notifications/${id}`,
   deleteNotification: (id) => `${current_url}/notifications/${id}`,
+  deleteNotificationBulk: `${current_url}/notifications/bulkdelete`,
 };
