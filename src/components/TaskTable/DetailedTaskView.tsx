@@ -31,7 +31,7 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
                 <p>{data?.ticket.status}</p>
             </div>
             <div className="flex-left gap-3">
-                <div className={`${getPriorityColor(data.ticket.priority)} w-3 h-3 rounded-sm`}></div>
+                <div className={`${getPriorityColor(data?.ticket.priority)} w-3 h-3 rounded-sm`}></div>
                 <p>{data?.ticket.priority}</p>
             </div>
             <br />
