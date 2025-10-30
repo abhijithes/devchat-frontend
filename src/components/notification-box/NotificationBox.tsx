@@ -8,6 +8,9 @@ import { useState } from "react";
 import "./styles.css";
 import Spinner from "../loaders/Spinner";
 import UserIcon from "../userIcon/usericon";
+import { Delete } from "@mui/icons-material";
+import DeleteConfirmation from "../Conformation/DeleteConformation";
+import { deleteBulkNotifications } from "./notification-service";
 
 interface NotificationBoxProps {
     style?: string;
