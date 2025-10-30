@@ -51,20 +51,27 @@ export interface ProjectTaskResponse {
     members: Member[];
 }
 
-export interface DetailedTaskView {
-    _id: string;
-    name: string;
-    priority: string;
-    status: string;
-    assigner?: Assignee;
-    assignee?: Assignee;
-    project: ProjectInfo;
-    dueDate: string;
-    taskId: string;
-    documents: any[];
-    comments: any[];
-    createdAt: string;
-    updatedAt: string;
-    __v: number;
-    taskDescription: string;
+export interface DetailedTaskViewType {
+    message: string;
+    ticket: {
+        _id: string;
+        name: string;
+        priority: string;
+        status: string;
+        assigner?: Assignee;
+        assignee?: Assignee;
+        project: {
+            _id: string;
+            name: string;
+            description: string;
+        };
+        dueDate: string;
+        taskId: string;
+        documents: any[];
+        comments: any[];
+        createdAt: string;
+        updatedAt: string;
+        __v: number;
+        taskDescription: string;
+    }
 }

@@ -12,8 +12,8 @@ import { Link } from "react-router-dom";
 import CheckUserRole from "../check-user-role/CheckUserRole";
 import { useLoader } from "../../contexts/GlobalLoaderContext";
 import DvcSideBar from "../dvc-side-bar/DvcSideBar";
-import DetailedTaskView from "./DetailedTaskView";
 import { MoreHoriz } from "@mui/icons-material";
+import DetailedTaskView from "./DetailedTaskView";
 
 interface TaskTableProps {
     projectId: string;
@@ -25,7 +25,7 @@ interface deleteTask {
     name: string;
 }
 
-const getPriorityColor = (priority: Task["priority"]) => {
+export const getPriorityColor = (priority: Task["priority"]) => {
     switch (priority) {
         case "urgent":
             return "bg-red-500";
