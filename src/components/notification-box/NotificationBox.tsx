@@ -122,7 +122,7 @@ const NotificationBox = ({
       });
   };
 
-  const handleChangeOptions = (options: NotificationOption, index: number) => {
+  const handleChangeOptions = (_options: NotificationOption, index: number) => {
     setActiveOptions(index);
   };
 
