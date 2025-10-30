@@ -14,14 +14,14 @@ interface UserType {
     profilePicture?: string;
     about?: string;
     createdAt: Date;
-    location: string;
-    socials: any[];
+    location?: string;
+    socials?: any[];
     pinnedProjects: {
         project: {
-            _id: string;
-            name: string;
-            description: string;
-            updatedAt: string;
+            _id?: string;
+            name?: string;
+            description?: string;
+            updatedAt?: string;
         };
         role: string;
         _id?: string;
@@ -133,9 +133,9 @@ export default function ViewProfile() {
                     {/* Social Media */}
                     <div>
                         <h2 className="text-lg font-semibold text-gray-900 mb-3">Social medias</h2>
-                        {user.socials && user.socials.length > 0 ? (
+                        {user?.socials && user?.socials?.length > 0 ? (
                             <div className="flex flex-wrap gap-4 text-blue-600 font-medium">
-                                {user.socials.map((link, idx) => (
+                                {user?.socials.map((link, idx) => (
                                     <a
                                         key={idx}
                                         href={link.url}

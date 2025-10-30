@@ -29,8 +29,7 @@ export const endpoints = {
 
   upload: `${current_url}/upload`,
   addDoc: (id) => `${current_url}/projects/uploudDocument/${id}`,
-  deleteDoc: (projectid, docId) =>
-    `${current_url}/projects/${projectid}/deleteDoc/${docId}`,
+  deleteDoc: (projectid, docId) => `${current_url}/projects/${projectid}/deleteDoc/${docId}`,
 
   createProject: `${current_url}/projects/createProject`,
   getAllProjectNames: `${current_url}/projects/projectNames`,
