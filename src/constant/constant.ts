@@ -1,4 +1,4 @@
-const isProduction = false;
+const isProduction = true;
 
 export const dev_api_url = "http://localhost:5001/api";
 export const producttion_api_url =
@@ -40,13 +40,14 @@ export const endpoints = {
     `${current_url}/tickets/projects/${projectId}/tasks`,
   getTasks: (projectId, page, limit) => `${current_url}/tickets/projects/${projectId}/tasks?page=${page}&&limit=${limit}`,
   updateTask: (projectId, taskId) => `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
-  deleteTask: (projectId, taskId) =>
-    `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
-  getTaskPreview: (projectId) =>
-    `${current_url}/tickets/projects/${projectId}/tasks/preview`,
+  deleteTask: (projectId, taskId) => `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
+  getTaskPreview: (projectId) => `${current_url}/tickets/projects/${projectId}/tasks/preview`,
 
+  getTaskData: (id) => `${current_url}/tickets/projects/task/${id}`,
+  UpdateTaskData: (id) => `${current_url}/tickets/task/${id}/edit-doc-desc`,
   //notification
   getNotifications: `${current_url}/notifications`,
   updateNotification: (id: string) => `${current_url}/notifications/${id}`,
   deleteNotification: (id) => `${current_url}/notifications/${id}`,
 };
+// https://devchat-backend-kpfa.onrender.com/api/tickets/projects//tasks/preview

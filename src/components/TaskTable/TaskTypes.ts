@@ -50,3 +50,21 @@ export interface ProjectTaskResponse {
     hasPrevPage: boolean;
     members: Member[];
 }
+
+export interface DetailedTaskView {
+    _id: string;
+    name: string;
+    priority: string;
+    status: string;
+    assigner?: Assignee;
+    assignee?: Assignee;
+    project: ProjectInfo;
+    dueDate: string;
+    taskId: string;
+    documents: any[];
+    comments: any[];
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+    taskDescription: string;
+}

@@ -1,52 +1,70 @@
+import { useQuery } from "@tanstack/react-query";
+import { endpoints } from "../../constant/constant";
+import api from "../../utils/axios";
 import UserIcon from "../userIcon/usericon";
-import type { Task } from "./TaskTypes";
+import type { DetailedTaskView, Task } from "./TaskTypes";
 
-const DetailedTaskView = (task: Task | null) => {
+interface DetailedTaskViewProps {
+    id: string;
+}
+
+const gettaskDetails = async (id) => {
+    console.log(id.id);
+    const res = await api.get<Task>(endpoints.getTaskData(id));
+    return res.data;
+};
+
+const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
+    const { data, isLoading, isError, error } = useQuery<DetailedTaskView, Error>({
+        queryKey: ["taskDetails", id],
+        queryFn: () => gettaskDetails(id),
+        enabled: !!id,
+    });
     return (
         <div className="pb-8">
-            <p className="font-semibold">{task?.taskId}</p>
-            <h1 className="text-xl">{task?.name}</h1>
+            <p className="font-semibold">{data?._id}</p>
+            <h1 className="text-xl">{data?.name}</h1>
             <p className="mt-2 text-zinc-500">No detailed description mentioned</p>
             <br />
             <div className="flex-left gap-3">
                 <div className="w-4 h-4 bg-black rounded-sm border-2 border-zinc-300"></div>
-                <p>{task?.priority}</p>{" "}
+                <p>{data?.priority}</p>{" "}
             </div>
             <div className="flex-left gap-3">
                 <div className="w-4 h-4 bg-black rounded-sm border-2 border-zinc-300"></div>
-                <p>{task?.status}</p>
+                <p>{data?.status}</p>
             </div>
             <br />
             <p>
-                {task?.dueDate &&
-                    new Date(task.dueDate).toLocaleDateString("en-GB", {
+                {data?.dueDate &&
+                    new Date(data.dueDate).toLocaleDateString("en-GB", {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
                     })}
             </p>
             <br />
-            {task?.assignee && (
+            {data?.assignee && (
                 <div className="mt-5">
                     <h1 className="sub-heading">Assignee</h1>
                     <div className="flex-left gap-2 mt-3">
-                        {task.assignee && <UserIcon user={task?.assignee} />}
+                        {data.assignee && <UserIcon user={data?.assignee} />}
                         <h3 className="flex flex-col ">
-                            {task?.assignee?.firstName} {task?.assignee?.lastName}
-                            <p className="text-sm">{task?.assignee?.email}</p>
+                            {data?.assignee?.firstName} {data?.assignee?.lastName}
+                            <p className="text-sm">{data?.assignee?.email}</p>
                         </h3>
                     </div>
                 </div>
             )}
 
-            {task?.assigner && (
+            {data?.assigner && (
                 <div className="mt-5">
                     <h1 className="sub-heading">Assigner</h1>
                     <div className="flex-left gap-2 mt-3">
-                        {task.assigner && <UserIcon user={task?.assigner} />}
+                        {data.assigner && <UserIcon user={data?.assigner} />}
                         <h3 className="flex flex-col ">
-                            {task?.assigner?.firstName} {task?.assigner?.lastName}
-                            <p className="text-sm">{task?.assigner?.email}</p>
+                            {data?.assigner?.firstName} {data?.assigner?.lastName}
+                            <p className="text-sm">{data?.assigner?.email}</p>
                         </h3>
                     </div>
                 </div>
