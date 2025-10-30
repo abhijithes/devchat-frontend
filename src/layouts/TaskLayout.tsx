@@ -35,7 +35,7 @@ const TaskLayout: React.FC = () => {
         </div>
       </main>
 
-      {/* ✅ Popup sits above sidebar + content */}
+      {/*  Popup sits above sidebar + content */}
       {showAddProject && (
         <AddProject onClose={() => setShowAddProject(false)} />
       )}

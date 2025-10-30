@@ -55,6 +55,7 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
   const audioRef = useRef(new Audio(NotifationSoundOne));
 
   const playAudio = () => {
+    audioRef.current.currentTime = 0;
     audioRef.current
       .play()
       .then(() => console.log("Audio playing"))
@@ -87,7 +88,8 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     audioRef.current.load();
-  }, []);
+    audioRef.current.preload = "auto";
+  }, [localStorage]);
 
   useEffect(() => {
     if (data) setNotifications(data);
