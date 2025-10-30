@@ -33,7 +33,7 @@ const NotificationOptions: NotificationOption[] = [
     state: true,
   },
   {
-    text: "delete",
+    text: "select",
     state: false,
   },
 ];
@@ -143,6 +143,7 @@ const NotificationBox = ({
       setOpenConformation(false);
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       showSnackBar("Deleted selected notifications", "success", 2000);
+      setSelectedNotification([]);
       setLoading(false);
     }
   };
@@ -226,7 +227,7 @@ const NotificationBox = ({
                     }`}
                   >
                     <div className="flex items-center justify-end">
-                      {state.text === "delete" && (
+                      {state.text === "select" && (
                         <input
                           type="checkbox"
                           onChange={(e) =>
