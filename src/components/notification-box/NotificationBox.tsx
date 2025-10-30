@@ -4,7 +4,7 @@ import axios from "axios";
 import { endpoints } from "../../constant/constant";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
 import { useQueryClient } from "@tanstack/react-query";
-import {  useState } from "react";
+import { useState } from "react";
 import "./styles.css";
 import Spinner from "../loaders/Spinner";
 import UserIcon from "../userIcon/usericon";
@@ -28,6 +28,10 @@ const NotificationOptions: NotificationOption[] = [
   {
     text: "Unread",
     state: true,
+  },
+  {
+    text: "delete",
+    state: false,
   },
 ];
 
@@ -165,67 +169,74 @@ const NotificationBox = ({
                   return notification;
                 } else return notification.read != state;
               })
-              .map((notification) => (
-                <li
-                  key={notification._id}
-                  className={`bg-gradient-to-tr  p-4  rounded-xl   border border-zinc-100 hover:border-zinc-300 hover:bg-white transition-all ${
-                    notification.read
-                      ? "from-zinc-200 to-white "
-                      : " from-sky-100 to-white "
-                  }`}
-                >
-                  <div className="mb-2 flex gap-2 items-center">
-                    <UserIcon
-                      user={{
-                        _id: notification.senderId._id,
-                        firstName: notification.senderId.email,
-                        email: notification.senderId.email,
-                        profilePicture: notification.senderId.profilePicture,
-                      }}
-                      style="w-8 h-8"
-                    />
-                    <p className="text-xs">{notification.senderId.email}</p>
-                  </div>
-                  <p> {notification.message}</p>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xs text-gray-400">
-                      {new Date(notification.timeStamp).toLocaleString()}
-                    </span>
+              .map((notification) => {
+                const state = NotificationOptions[activeOptions];
 
-                    <span
-                      title={notification.read ? "Read" : "Mark as Read"}
-                      className="text-xs text-gray-400 flex items-center"
-                    >
-                      <div className="cursor-pointer p-1 active:scale-50">
-                        {notification.read ? (
-                          <CheckCheck size={17} className="text-green-500" />
-                        ) : (
-                          <div
-                            className="p-2 hover:bg-zinc-200 rounded-full transition-opacity"
+                return (
+                  <li
+                    key={notification._id}
+                    className={`bg-gradient-to-tr  p-4  rounded-xl   border border-zinc-100 hover:border-zinc-300 hover:bg-white transition-all ${
+                      notification.read
+                        ? "from-zinc-200 to-white "
+                        : " from-sky-100 to-white "
+                    }`}
+                  >
+                    <div className="flex items-center justify-end">
+                      {state.text === "delete" && <input type="checkbox" />}
+                    </div>
+                    <div className="mb-2 flex gap-2 items-center">
+                      <UserIcon
+                        user={{
+                          _id: notification.senderId._id,
+                          firstName: notification.senderId.email,
+                          email: notification.senderId.email,
+                          profilePicture: notification.senderId.profilePicture,
+                        }}
+                        style="w-8 h-8"
+                      />
+                      <p className="text-xs">{notification.senderId.email}</p>
+                    </div>
+                    <p> {notification.message}</p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="text-xs text-gray-400">
+                        {new Date(notification.timeStamp).toLocaleString()}
+                      </span>
+
+                      <span
+                        title={notification.read ? "Read" : "Mark as Read"}
+                        className="text-xs text-gray-400 flex items-center"
+                      >
+                        <div className="cursor-pointer p-1 active:scale-50">
+                          {notification.read ? (
+                            <CheckCheck size={17} className="text-green-500" />
+                          ) : (
+                            <div
+                              className="p-2 hover:bg-zinc-200 rounded-full transition-opacity"
+                              onClick={() =>
+                                handleReadedNotification(notification._id)
+                              }
+                            >
+                              <Check size={17} className="text-blue-500" />
+                            </div>
+                          )}
+                        </div>
+                        {notification.read && (
+                          <span
+                            className="text-red-400"
                             onClick={() =>
-                              handleReadedNotification(notification._id)
+                              handleDeleteNotification(notification._id)
                             }
                           >
-                            <Check size={17} className="text-blue-500" />
-                          </div>
+                            delete
+                          </span>
                         )}
-                      </div>
-                      {notification.read && (
-                        <span
-                          className="text-red-400"
-                          onClick={() =>
-                            handleDeleteNotification(notification._id)
-                          }
-                        >
-                          delete
-                        </span>
-                      )}
-                      <Dot className="text-blue-500" size={27} />{" "}
-                      {timeAgo(notification.timeStamp)}
-                    </span>
-                  </div>
-                </li>
-              ))}
+                        <Dot className="text-blue-500" size={27} />{" "}
+                        {timeAgo(notification.timeStamp)}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
           </ul>
         )}
       </div>
