@@ -51,4 +51,3 @@ export const endpoints = {
   deleteNotification: (id) => `${current_url}/notifications/${id}`,
   deleteNotificationBulk: `${current_url}/notifications/bulkdelete`,
 };
-// https://devchat-backend-kpfa.onrender.com/api/tickets/projects//tasks/preview
