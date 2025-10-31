@@ -12,8 +12,8 @@ import { Link } from "react-router-dom";
 import CheckUserRole from "../check-user-role/CheckUserRole";
 import { useLoader } from "../../contexts/GlobalLoaderContext";
 import DvcSideBar from "../dvc-side-bar/DvcSideBar";
-import DetailedTaskView from "./DetailedTaskView";
 import { MoreHoriz } from "@mui/icons-material";
+import DetailedTaskView from "./DetailedTaskView";
 
 interface TaskTableProps {
     projectId: string;
@@ -25,7 +25,7 @@ interface deleteTask {
     name: string;
 }
 
-const getPriorityColor = (priority: Task["priority"]) => {
+export const getPriorityColor = (priority: Task["priority"]) => {
     switch (priority) {
         case "urgent":
             return "bg-red-500";
@@ -81,7 +81,7 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
         dueDate: "",
     });
     const [detailedView, setDetailedView] = useState(false);
-    const [activeTask, setActiveTask] = useState<Task | {}>({});
+    const [activeTask, setActiveTask] = useState<string>("");
 
     // React Query
     const {
@@ -152,13 +152,42 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
 
     const patchTask = useMutation({
         mutationFn: patchUpdate,
-        onMutate: () => showLoader(),
-        onError: (error) => showSnackBar(`Failed to update:${error}`, "error", 3000),
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
-            showSnackBar(data, "success", 3000);
+
+        // Optimistic update
+        onMutate: async ({ projectId, id, field, value }) => {
+            await queryClient.cancelQueries({ queryKey: ["tasks", projectId, currentPage, limit] });
+            const previousTasks = queryClient.getQueryData<ProjectTaskResponse>([
+                "tasks",
+                projectId,
+                currentPage,
+                limit,
+            ]);
+            queryClient.setQueryData<ProjectTaskResponse>(["tasks", projectId, currentPage, limit], (old) => {
+                if (!old) return old;
+                return {
+                    ...old,
+                    data: old.data.map((task) => (task._id === id ? { ...task, [field]: value } : task)),
+                };
+            });
+            return { previousTasks };
         },
-        onSettled: () => hideLoader(),
+
+        onError: (error, variables, context) => {
+            if (context?.previousTasks) {
+                queryClient.setQueryData(["tasks", variables.projectId, currentPage, limit], context.previousTasks);
+            }
+            showSnackBar(`Failed to update: ${error.message}`, "error", 3000);
+        },
+
+        onSuccess: (data) => {
+            showSnackBar(data || "Task updated successfully!", "success", 3000);
+        },
+
+        onSettled: (_data, _error, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: ["tasks", variables.projectId, currentPage, limit],
+            });
+        },
     });
 
     const handleOptionChange = (field, id, value) => {
@@ -203,9 +232,9 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
         });
     }, [currentPage, totalPages]);
 
-    const handleTaskClick = (task: Task) => {
+    const handleTaskClick = (id: string) => {
         setDetailedView(true);
-        setActiveTask(task);
+        setActiveTask(id);
     };
 
     if (isLoading)
@@ -220,9 +249,9 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
         <div className="w-full rounded-2xl">
             {/* ASide detailed view component  */}
             <DvcSideBar active={detailedView} onClose={() => setDetailedView(false)}>
-                <DetailedTaskView {...(activeTask as Task)} />
+                <DetailedTaskView id={activeTask} />
             </DvcSideBar>
-
+            IntrinsicAttributes
             {/* Project Info */}
             <div className="w-full min-h-32 space-y-2">
                 <h1 className="text-2xl font-medium">{tasksData?.project.name}</h1>
@@ -231,12 +260,13 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
                     By <span className="font-medium">{tasksData?.project.createdBy.email}</span>
                 </h1>
             </div>
-
             {/* Header & New Task */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
                 <div>
                     <h1 className="text-2xl font-bold">Project Tasks</h1>
-                    <p className="text-[var(--color-secondary)] font-medium pt-2">All tasks for this project</p>
+                    <p className="text-[var(--color-secondary)] font-medium pt-2">
+                        {tasksData.data.length === 0 ? "No Tasks Available" : "All tasks for this project"}
+                    </p>
                 </div>
                 <div className="flex items-center gap-4 mt-3 md:mt-0">
                     <p className="text-sm font-semibold">
@@ -253,115 +283,132 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
                     </CheckUserRole>
                 </div>
             </div>
-
             {/* Task Table */}
-            <div className="mt-6 overflow-x-auto">
-                <table className="min-w-full border-collapse text-sm md:text-base">
-                    <thead>
-                        <tr className="border-[var(--color-primary)]">
-                            {TableHeaders.map((heading) => (
-                                <th key={heading} className="py-3 px-4 font-semibold text-left">
-                                    {heading}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {tasks.map((task) => (
-                            <tr
-                                key={task._id}
-                                className="hover:bg-[var(--color-primary)] transition "
-                                title={`Assigned By ${task.assigner?.firstName} ${task.assigner?.lastName}`}
-                            >
-                                <td className="py-3 px-4 font-medium">{task.taskId}</td>
-                                <td className="py-3 px-4 truncate max-w-[180px]">{task.name}</td>
-                                <td className="py-3 px-4 flex items-center gap-2">
-                                    <span className={`${getPriorityColor(task.priority)} w-3 h-3 rounded-sm`}></span>
-                                    <select
-                                        name="priority"
-                                        value={task.priority}
-                                        onChange={(e) => handleOptionChange("priority", task._id, e.target.value)}
-                                        className="w-full bg-gray-50 px-3 py-2"
-                                    >
-                                        <option value="urgent">Urgent</option>
-                                        <option value="required">Required</option>
-                                        <option value="completed">Completed</option>
-                                    </select>
-                                </td>
-                                <td className="py-3 px-4">
-                                    <select
-                                        name="status"
-                                        value={task.status}
-                                        onChange={(e) => handleOptionChange("status", task._id, e.target.value)}
-                                        className="w-full bg-gray-50 px-3 py-2"
-                                    >
-                                        <option value="not-started">Not started</option>
-                                        <option value="in-progress">In progress</option>
-                                        <option value="completed">Completed</option>
-                                    </select>
-                                </td>
-                                <td className="py-3 px-4">{task.assignee?.email}</td>
-                                <td className="py-3 px-4">
-                                    {task.dueDate &&
-                                        new Date(task.dueDate).toLocaleDateString("en-GB", {
-                                            day: "numeric",
-                                            month: "long",
-                                            year: "numeric",
-                                        })}
-                                </td>
-                                <CheckUserRole userRole={tasksData.userRole}>
-                                    <td className="py-3 px-4">
-                                        <button
-                                            onClick={() => handleEdit(task._id)}
-                                            className="p-2 rounded-md"
-                                            title="Edit"
-                                        >
-                                            <Pencil size={16} />
-                                        </button>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <button
-                                            onClick={() => openDeleteModel(task._id, task.name)}
-                                            className="p-2 rounded-md"
-                                            title="Delete"
-                                        >
-                                            <Trash2 size={16} color="red" />
-                                        </button>
-                                    </td>
-                                </CheckUserRole>
-
-                                <td
-                                    onClick={() => handleTaskClick(task)}
-                                    className="text-zinc-400 hover:text-zinc-900 grid place-items-center cursor-pointer   "
-                                >
-                                    <MoreHoriz />
-                                </td>
+            {tasksData.data.length > 0 ? (
+                <div className="mt-6 overflow-x-auto">
+                    <table className="min-w-full border-collapse text-sm md:text-base">
+                        <thead>
+                            <tr className="border-[var(--color-primary)]">
+                                {TableHeaders.map((heading) => (
+                                    <th key={heading} className="py-3 px-4 font-semibold text-left">
+                                        {heading}
+                                    </th>
+                                ))}
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            {tasksData.data.map((task) => (
+                                <tr
+                                    key={task._id}
+                                    className="hover:bg-[var(--color-primary)] transition "
+                                    title={`Assigned By ${task.assigner?.firstName} ${task.assigner?.lastName}`}
+                                >
+                                    <td className="py-3 px-4 font-medium">{task.taskId}</td>
+                                    <td className="py-3 px-4 truncate max-w-[180px]">{task.name}</td>
+                                    <td className="py-3 px-4 flex items-center gap-2">
+                                        <span
+                                            className={`${getPriorityColor(task.priority)} w-3 h-3 rounded-sm`}
+                                        ></span>
+                                        <select
+                                            name="priority"
+                                            value={task.priority}
+                                            onChange={(e) => handleOptionChange("priority", task._id, e.target.value)}
+                                            className="w-full bg-gray-50 px-3 py-2"
+                                        >
+                                            <option value="urgent">Urgent</option>
+                                            <option value="required">Required</option>
+                                            <option value="completed">Completed</option>
+                                        </select>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                        <select
+                                            name="status"
+                                            value={task.status}
+                                            onChange={(e) => handleOptionChange("status", task._id, e.target.value)}
+                                            className="w-full bg-gray-50 px-3 py-2"
+                                        >
+                                            <option value="not-started">Not started</option>
+                                            <option value="in-progress">In progress</option>
+                                            <option value="completed">Completed</option>
+                                        </select>
+                                    </td>
+                                    <td className="py-3 px-4">{task.assignee?.email}</td>
+                                    <td className="py-3 px-4">
+                                        {task.dueDate &&
+                                            new Date(task.dueDate).toLocaleDateString("en-GB", {
+                                                day: "numeric",
+                                                month: "long",
+                                                year: "numeric",
+                                            })}
+                                    </td>
+                                    <CheckUserRole userRole={tasksData.userRole}>
+                                        <td className="py-3 px-4">
+                                            <button
+                                                onClick={() => handleEdit(task._id)}
+                                                className="p-2 rounded-md"
+                                                title="Edit"
+                                            >
+                                                <Pencil size={16} />
+                                            </button>
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            <button
+                                                onClick={() => openDeleteModel(task._id, task.name)}
+                                                className="p-2 rounded-md"
+                                                title="Delete"
+                                            >
+                                                <Trash2 size={16} color="red" />
+                                            </button>
+                                        </td>
+                                    </CheckUserRole>
 
+                                    <td
+                                        onClick={() => handleTaskClick(task._id)}
+                                        className="text-zinc-400 hover:text-zinc-900 grid place-items-center cursor-pointer   "
+                                    >
+                                        <MoreHoriz />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
+                <div className="w-full h-60 flex flex-col gap-2 items-center justify-center">
+                    <p className="">No tasks found!</p>
+                    <p className="text-xl font-semibold">Assign the first Task for this project</p>
+                    <CheckUserRole userRole={tasksData.userRole}>
+                        <button
+                            onClick={() => setShowDialog("add")}
+                            className="px-4 py-2 rounded-md text-sm font-medium bg-button text-white"
+                        >
+                            New Task
+                        </button>
+                    </CheckUserRole>
+                </div>
+            )}
             {/* Pagination */}
-            <div className="flex justify-end items-center gap-2 mt-4 pr-20">
-                <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 rounded-md border bg-white text-black disabled:opacity-50"
-                >
-                    Prev
-                </button>
+            {tasksData.data.length > 0 && (
+                <div className="flex justify-end items-center gap-2 mt-4 pr-20">
+                    <button
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 rounded-md border bg-white text-black disabled:opacity-50"
+                    >
+                        Prev
+                    </button>
 
-                {paginationButtons}
+                    {paginationButtons}
 
-                <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 rounded-md border bg-white text-black disabled:opacity-50"
-                >
-                    Next
-                </button>
-            </div>
+                    <button
+                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1 rounded-md border bg-white text-black disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
             {members.length > 0 && (
                 <div className="mt-6 rounded-lg bg-white">
                     <div className="px-4 py-3">
@@ -404,7 +451,6 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
                     </div>
                 </div>
             )}
-
             {/* Add/Edit Task Dialog */}
             {showDialog === "add" && <AddTask onClose={closeDialogueBox} member={members} projectId={projectId} />}
             {showDialog === "edit" && (
