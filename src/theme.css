@@ -46,3 +46,36 @@
 .null-value-text {
   @apply text-sm text-center;
 }
+
+.input-field {
+  width: 100%;
+  border: 1px solid gray;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.input-field:focus {
+  outline: none;
+  border: 1px solid var(--color-text);
+}
+
+.input-grad-btn-0 {
+  @apply text-white bg-gradient-to-tr from-black to-zinc-600 hover:from-zinc-800 hover:to-zinc-500 hover:scale-95;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.input-grad-btn-cancel {
+  @apply text-white bg-gradient-to-tr from-red-500 to-red-700 hover:from-red-800 hover:to-red-500 hover:scale-95;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.input-grad-btn {
+  @apply text-white bg-gradient-to-tr from-black to-zinc-600 hover:from-zinc-800 hover:to-zinc-500 hover:scale-95;
+  width: 80px;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
