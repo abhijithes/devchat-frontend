@@ -9,12 +9,13 @@ export const generalHeader = {
   },
 };
 
-export const postComment = async (postId, commentText) => {
+export const postComment = async (postId, commentText, ) => {
   try {
     const response = await axios.post(
       endpoints.addComment(postId),
       {
         commentContent: commentText,
+        
       },
       generalHeader
     );
