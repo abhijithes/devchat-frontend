@@ -39,8 +39,14 @@ export const getPriorityColor = (priority: Task["priority"]) => {
 };
 
 // Fetch tasks
-const fetchTasks = async (projectId: string, page: number, limit: number): Promise<ProjectTaskResponse> => {
-    const res = await api.get(endpoints.getTasks(projectId, page, limit));
+const fetchTasks = async (
+    projectId: string,
+    page: number,
+    limit: number,
+    query: string,
+    sortField: string
+): Promise<ProjectTaskResponse> => {
+    const res = await api.get(endpoints.getTasks(projectId, page, limit, query, sortField));
     return res.data;
 };
 const patchUpdate = async ({ projectId, id, field, value }) => {
@@ -58,6 +64,9 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
     const queryClient = useQueryClient();
     const { showSnackBar } = useSnackBar();
     const { showLoader, hideLoader } = useLoader();
+    const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [sort, setSort] = useState("latest");
     const [newTask, setNewTask] = useState<Task>({
         _id: "",
         taskId: "",
@@ -83,17 +92,26 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
     const [detailedView, setDetailedView] = useState(false);
     const [activeTask, setActiveTask] = useState<string>("");
 
+    //debounce search input
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 500);
+
+        return () => clearTimeout(handler);
+    }, [search]);
+
     // React Query
     const {
         data: tasksData,
         isLoading,
         isError,
     } = useQuery<ProjectTaskResponse, Error>({
-        queryKey: ["tasks", projectId, currentPage, limit],
-        queryFn: () => fetchTasks(projectId, currentPage, limit),
+        queryKey: ["tasks", projectId, currentPage, limit, debouncedSearch, sort],
+        queryFn: () => fetchTasks(projectId, currentPage, limit, debouncedSearch, sort),
+        placeholderData: (prev) => prev,
         staleTime: 1000 * 60,
     });
-
     const tasks = tasksData?.data || [];
     const members = tasksData?.members || [];
     const totalPages = tasksData?.totalPages || 1;
@@ -267,6 +285,25 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
                     <p className="text-[var(--color-secondary)] font-medium pt-2">
                         {tasksData.data.length === 0 ? "No Tasks Available" : "All tasks for this project"}
                     </p>
+                </div>
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 mt-4">
+                    <input
+                        type="text"
+                        placeholder="Search tasks..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="border border-gray-300 rounded-md px-3 py-2 w-full md:w-1/3"
+                    />
+
+                    <select
+                        value={sort}
+                        onChange={(e) => setSort(e.target.value)}
+                        className="border border-gray-300 rounded-md px-3 py-2"
+                    >
+                        <option value="latest">Latest</option>
+                        <option value="oldest">Oldest</option>
+                        <option value="my-task">my-tasks</option>
+                    </select>
                 </div>
                 <div className="flex items-center gap-4 mt-3 md:mt-0">
                     <p className="text-sm font-semibold">
