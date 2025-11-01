@@ -210,15 +210,18 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
               key={_index}
             >
               <div className="w-full  h-full p-3 flex gap-3 hover:bg-zinc-100">
-                <UserIcon user={data.creator} />
+                <UserIcon user={data?.creator} />
                 <div className="w-full">
                   <div className="flex gap-2 items-center justify-between">
-                    <p className="text-zinc-700">{data.creator.firstName}</p>
+                    <p className="text-zinc-700">{data?.creator?.firstName}</p>
                     <div className="flex items-center">
                       <p className="text-xs mr-3">
-                        {datePipe(data.createdAt, data.creator._id === user.id)}
+                        {datePipe(
+                          data.createdAt,
+                          data.creator?._id === user.id
+                        )}
                       </p>
-                      {data.creator._id === user.id && (
+                      {data.creator?._id === user.id && (
                         <div className="flex">
                           <div
                             onClick={() => {
