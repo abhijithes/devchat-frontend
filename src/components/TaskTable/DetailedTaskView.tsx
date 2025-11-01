@@ -16,6 +16,7 @@ import { Delete, EditDocument } from "@mui/icons-material";
 import Spinner from "../loaders/Spinner";
 import { datePipe } from "../../utils/date";
 import { getUserPublicInfo } from "../../utils/token";
+import TicketDetailsSkeleton from "./TicketSkeleton";
 interface DetailedTaskViewProps {
   id: string;
 }
@@ -105,6 +106,10 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
       );
     }
   };
+
+  if (isLoading) {
+    return <TicketDetailsSkeleton />;
+  }
 
   return (
     <div className="pb-8">
@@ -210,7 +215,7 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
               key={_index}
             >
               <div className="w-full  h-full p-3 flex gap-3 hover:bg-zinc-100">
-                <UserIcon user={data?.creator} />
+                {data?.creator && <UserIcon user={data?.creator} />}
                 <div className="w-full">
                   <div className="flex gap-2 items-center justify-between">
                     <p className="text-zinc-700">{data?.creator?.firstName}</p>
