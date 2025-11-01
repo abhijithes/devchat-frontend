@@ -249,7 +249,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-40 p-4 ">
-      <div className="bg-white w-full max-w-4xl border border-black shadow-xl mt-5 relative p-6 animate-slideIn max-h-[95vh] overflow-y-auto">
+      <div className="bg-white w-full max-w-4xl  rounded-xl shadow-xl mt-5 relative p-6 animate-slideIn max-h-[95vh] overflow-y-auto">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -278,7 +278,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
               <input
                 type="text"
                 placeholder="Project name"
-                className="w-full mt-1 border border-gray-300 px-3 py-2 bg-gray-200"
+                className="w-full mt-1 border border-gray-300 px-3 py-2 bg-gray-200 outline-zinc-300"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 disabled={uploading}
@@ -288,7 +288,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
               <input
                 type="number"
                 placeholder="Expected time in days"
-                className="w-full mt-1 border border-gray-300 px-3 py-2 bg-gray-200"
+                className="w-full mt-1 border border-gray-300 px-3 py-2 bg-gray-200 outline-zinc-300"
                 value={expectedDays}
                 min={0}
                 onChange={(e) =>
@@ -304,7 +304,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
             <label className="block text-black">Project description</label>
             <textarea
               placeholder="Enter project description..."
-              className="w-full h-32 md:h-[90%] mt-1 border border-gray-300 px-3 py-2 bg-gray-200 resize-none"
+              className="w-full h-32 md:h-[90%] mt-1 border border-gray-300 px-3 py-2 bg-gray-200 outline-zinc-300 resize-none"
               value={projectDescription}
               onChange={(e) => setProjectDescription(e.target.value)}
               disabled={uploading}
@@ -438,7 +438,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
               <input
                 type="text"
                 placeholder="Search person / group"
-                className="w-full p-3 bg-gray-200 border border-gray-300 rounded-t-lg text-gray-700"
+                className="w-full p-3 bg-gray-200 outline-zinc-300 border border-gray-300 rounded-t-lg text-gray-700"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 disabled={uploading}

@@ -17,6 +17,8 @@ import SnackBarContextProvider from "./components/snack-bar/snack-bar-context";
 import ViewTickets from "./pages/ViewTaskTable/ViewTaskTable";
 import { SocketBaseProvider } from "./contexts/SocketBaseContext";
 import AppLayout from "./layouts/AppLayout";
+import NoProjectSelected from "./pages/NoProjects";
+import UserSettingsPage from "./pages/user-settings/UserSettingsPage";
 
 const App: React.FC = () => {
   return (
@@ -24,12 +26,13 @@ const App: React.FC = () => {
       <SnackBarContextProvider>
         <SocketBaseProvider>
           <Routes>
+            <Route path="/" element={<Start />} />
             <Route element={<AppLayout />}>
               <Route path="/login" element={<Login />} />
               {/* Task Layout :- All routes under Task Manager */}
               <Route element={<TaskLayout />}>
+                <Route path="/select-project" element={<NoProjectSelected />} />
                 <Route path="/project/:id" element={<Viewproject />} />
-                <Route path="/" element={<Start />} />
                 {/* <Route path="/addProject" element={<AddProject />} /> */}
                 <Route path="/profile" element={<UserProfile />} />
                 <Route
@@ -40,6 +43,7 @@ const App: React.FC = () => {
                   path="/project/:projectId/viewtickets"
                   element={<ViewTickets />}
                 />
+                <Route path="/settings" element={<UserSettingsPage />} />
               </Route>
               {/* Chat Layout :- All routes under Chat Section */}
               <Route element={<ChatLayout />}>

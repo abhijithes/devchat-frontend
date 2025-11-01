@@ -135,7 +135,10 @@ const NavBar = () => {
               </button>
             </li>
             <li>
-              <Link to="#" className="text-gray-600 hover:text-zinc-900">
+              <Link
+                to="/settings"
+                className="text-gray-600 hover:text-zinc-900"
+              >
                 <Settings />
               </Link>
             </li>
