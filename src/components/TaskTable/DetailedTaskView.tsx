@@ -4,11 +4,18 @@ import api from "../../utils/axios";
 import UserIcon from "../userIcon/usericon";
 import type { DetailedTaskViewType } from "./TaskTypes";
 import { getPriorityColor } from "./TaskTable";
-import { Edit, X } from "lucide-react";
-import React, { useState } from "react";
-import { postComment } from "./services/task-detail-service";
+import { X } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  deleteComment,
+  editComment,
+  postComment,
+} from "./services/task-detail-service";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
 import { Delete, EditDocument } from "@mui/icons-material";
+import Spinner from "../loaders/Spinner";
+import { datePipe } from "../../utils/date";
+import { getUserPublicInfo } from "../../utils/token";
 interface DetailedTaskViewProps {
   id: string;
 }
@@ -20,8 +27,13 @@ const gettaskDetails = async (id) => {
 
 export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
   const [isCommentShow, setIsCommentShown] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [selectedComment, setSelectedComment] = useState<any>();
+  const sectionRef = useRef<HTMLDivElement>(null);
+
   const { showSnackBar } = useSnackBar();
   const queryClient = useQueryClient();
+  const user = getUserPublicInfo();
 
   const { data, isLoading, isError, error } = useQuery<
     DetailedTaskViewType,
@@ -32,12 +44,65 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
     enabled: !!id,
   });
 
+  useEffect(() => {
+    if (isCommentShow && sectionRef.current) {
+      sectionRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [isCommentShow]);
+
   const handleAddComment = async (comment: string) => {
+    setLoading(true);
     const res = await postComment(id, comment);
     if (res.status == 201) {
       showSnackBar("New comment added successfully", "success", 2000);
       queryClient.invalidateQueries({ queryKey: ["taskDetails", id] });
+      setLoading(false);
       setIsCommentShown(false);
+    } else {
+      showSnackBar(
+        res.data?.message || "Failed to update comment",
+        "error",
+        2000
+      );
+    }
+  };
+
+  const handleEdit = async (commentId, updatedComment) => {
+    setLoading(true);
+    const res = await editComment(id, commentId, updatedComment);
+    setLoading(false);
+
+    if (res.status === 200) {
+      queryClient.invalidateQueries({ queryKey: ["taskDetails", id] });
+      setSelectedComment(null);
+      setIsCommentShown(false);
+      showSnackBar("Comment updated successfully", "success", 2000);
+    } else {
+      showSnackBar(
+        res.data?.message || "Failed to update comment",
+        "error",
+        2000
+      );
+    }
+  };
+
+  const handleDelete = async (commentId) => {
+    setLoading(true);
+    const res = await deleteComment(id, commentId);
+    setLoading(false);
+
+    if (res.status === 200) {
+      queryClient.invalidateQueries({ queryKey: ["taskDetails", id] });
+      showSnackBar("Comment deleted successfully", "success", 2000);
+    } else {
+      showSnackBar(
+        res.data?.message || "Failed to delete comment",
+        "error",
+        2000
+      );
     }
   };
 
@@ -103,7 +168,23 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
       </div>
       <br />
       <div>
-        {isCommentShow && <CommentForm onSubmit={handleAddComment} />}
+        {loading && (
+          <div className="w-full h-16 grid place-items-center">
+            <Spinner />
+          </div>
+        )}
+        <div ref={sectionRef} id="scroll_in"></div>
+        {isCommentShow && (
+          <CommentForm
+            onSubmit={
+              selectedComment
+                ? (comment) => handleEdit(selectedComment._id, comment)
+                : (comment) => handleAddComment(comment)
+            }
+            pre_comment={selectedComment?.comment ?? null}
+            isUpdate={!!selectedComment}
+          />
+        )}
         <div className="w-full flex items-center justify-between">
           <h1 className="sub-heading">Comments</h1>
           <button
@@ -112,7 +193,11 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
               isCommentShow ? "input-grad-btn-cancel" : " input-grad-btn"
             }`}
           >
-            {isCommentShow ? <X /> : "New"}
+            {isCommentShow ? (
+              <X onClick={() => setSelectedComment(null)} />
+            ) : (
+              "New"
+            )}
           </button>
         </div>
         <div className="mt-8">
@@ -129,15 +214,31 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
                 <div className="w-full">
                   <div className="flex gap-2 items-center justify-between">
                     <p className="text-zinc-700">{data.creator.firstName}</p>
-                    <div>
-                      <EditDocument
-                        fontSize="small"
-                        className="text-zinc-400 hover:text-black"
-                      />
-                      <Delete
-                        fontSize="small"
-                        className="text-zinc-400 hover:text-black"
-                      />
+                    <div className="flex items-center">
+                      <p className="text-xs mr-3">
+                        {datePipe(data.createdAt, data.creator._id === user.id)}
+                      </p>
+                      {data.creator._id === user.id && (
+                        <div className="flex">
+                          <div
+                            onClick={() => {
+                              setSelectedComment(data);
+                              setIsCommentShown(true);
+                            }}
+                          >
+                            <EditDocument
+                              fontSize="small"
+                              className="text-zinc-400 hover:text-black"
+                            />
+                          </div>
+                          <div onClick={() => handleDelete(data._id)}>
+                            <Delete
+                              fontSize="small"
+                              className="text-zinc-400 hover:text-black"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <p className="whitespace-pre-wrap">{data.comment}</p>
@@ -153,20 +254,29 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
 
 export default DetailedTaskView;
 
-export const CommentForm: React.FC<{ onSubmit: (comment: string) => void }> = ({
-  onSubmit,
-}) => {
-  const [comment, setComment] = useState("");
+export const CommentForm: React.FC<{
+  onSubmit: (comment: string) => void;
+  pre_comment?: string;
+  isUpdate?: boolean;
+}> = ({ onSubmit, pre_comment, isUpdate }) => {
+  const [comment, setComment] = useState(pre_comment || "");
+
   return (
-    <div className="w-full min-h-16  mb-5 p-3 flex gap-3 items-start rounded-xl border border-zinc-400 overflow-auto">
+    <div className="w-full min-h-20  mb-5 p-3 flex gap-3 items-start rounded-xl border border-zinc-400 overflow-auto">
       <textarea
+        value={comment}
         onChange={(e) => setComment(e.target.value)}
         placeholder="Type a comment..."
-        className="w-full h-14 p-2 border-none outline-none"
+        className="w-full min-h-14 p-2 border-none outline-none"
       />
 
-      <button onClick={() => onSubmit(comment)} className="input-grad-btn">
-        Post
+      <button
+        onClick={() => {
+          onSubmit(comment);
+        }}
+        className="input-grad-btn"
+      >
+        {isUpdate ? "Update" : "Post"}
       </button>
     </div>
   );
