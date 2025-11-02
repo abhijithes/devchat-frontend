@@ -1,4 +1,4 @@
-const isProduction = true;
+const isProduction = false;
 
 export const dev_api_url = "http://localhost:5001/api";
 export const producttion_api_url =
