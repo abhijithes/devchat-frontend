@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { endpoints } from "../constant/constant";
 import { sendOtp, verifyOtp } from "../services/auth-service";
 import Spinner from "../components/loaders/Spinner";
+import { useSnackBar } from "../components/snack-bar/snack-bar-context";
 
 const AuthForm: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +26,8 @@ const AuthForm: React.FC = () => {
   const [verified, setVerified] = useState(false);
   const [verificationLoading, setVerificationLoading] =
     useState<boolean>(false);
+
+  const { showSnackBar } = useSnackBar();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -95,6 +98,11 @@ const AuthForm: React.FC = () => {
       setSuccess("An opt sent to your email");
       setOtpVisible(true);
       setVerificationLoading(false);
+      showSnackBar(
+        "Currently on Beta mode Please check Email is spam ",
+        "info",
+        4000
+      );
       return;
     }
 
