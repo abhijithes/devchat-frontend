@@ -286,27 +286,25 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
                         {tasksData.data.length === 0 ? "No Tasks Available" : "All tasks for this project"}
                     </p>
                 </div>
-                {tasksData.data.length > 0 && (
-                    <div className="flex flex-col md:flex-row self-end justify-end items-center gap-4 mt-4 md:p-6 flex-1">
-                        <input
-                            type="text"
-                            placeholder="Search tasks..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="border border-gray-300 rounded-md px-3 py-2 w-full md:w-1/2"
-                        />
+                <div className="flex flex-col md:flex-row self-end justify-end items-center gap-4 mt-4 md:p-6 flex-1">
+                    <input
+                        type="text"
+                        placeholder="Search tasks..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="border border-gray-300 rounded-md px-3 py-2 w-full md:w-1/2"
+                    />
 
-                        <select
-                            value={sort}
-                            onChange={(e) => setSort(e.target.value)}
-                            className="border border-gray-300 rounded-md px-3 py-2"
-                        >
-                            <option value="latest">Latest</option>
-                            <option value="oldest">Oldest</option>
-                            <option value="my-task">my-tasks</option>
-                        </select>
-                    </div>
-                )}
+                    <select
+                        value={sort}
+                        onChange={(e) => setSort(e.target.value)}
+                        className="border border-gray-300 rounded-md px-3 py-2"
+                    >
+                        <option value="latest">Latest</option>
+                        <option value="oldest">Oldest</option>
+                        <option value="my-task">my-tasks</option>
+                    </select>
+                </div>
                 <div className="flex items-center gap-4 mt-3 md:mt-0">
                     <p className="text-sm font-semibold">
                         Total Tasks:{" "}
