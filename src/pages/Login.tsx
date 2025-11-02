@@ -8,6 +8,7 @@ const AuthForm: React.FC = () => {
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
+  const [otp, setOtp] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -149,7 +150,21 @@ const AuthForm: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
+            <button>Verify</button>
           </div>
+          {!isLogin && (
+            <div className="col-span-2 mb-3">
+              <input
+                id="Otp"
+                className="w-full bg-transparent px-3 py-3 rounded-md border border-zinc-300  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+                type="text"
+                placeholder="Otp"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                required
+              />
+            </div>
+          )}
 
           <div className="mb-4">
             <label

@@ -16,6 +16,11 @@ export const endpoints = {
   register: `${current_url}/users/register`,
   login: `${current_url}/users/login`,
   searchUser: `${current_url}/users/searchUser`,
+
+  // otp service api
+  optSend: `${current_url}/users/otp`,
+  otpVerify: `${current_url}/users/verifyotp`,
+
   getUserById: (id) => `${current_url}/users/${id}`,
   getUserWithProjects: (id) => `${current_url}/users/${id}?include=projects`,
   fetchPublicProfile: (id) =>
