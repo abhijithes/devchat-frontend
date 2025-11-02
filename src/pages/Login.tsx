@@ -286,7 +286,7 @@ const AuthForm: React.FC = () => {
           <button
             className="w-full bg-violet-500 text-white font-bold py-3 rounded-md  shadow-lg transition-all duration-300 ease-in-out col-span-2 disabled:bg-violet-300 disabled:cursor-not-allowed"
             type="submit"
-            disabled={!verified}
+            disabled={!isLogin && !verified}
           >
             {loading ? "Processing..." : isLogin ? "Login" : "Create Account"}
           </button>
