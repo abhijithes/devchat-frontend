@@ -11,6 +11,7 @@ import UserIcon from "../userIcon/usericon";
 import { CheckBox, Delete } from "@mui/icons-material";
 import DeleteConfirmation from "../Conformation/DeleteConformation";
 import { deleteBulkNotifications } from "./notification-service";
+import { useNavigate } from "react-router-dom";
 
 interface NotificationBoxProps {
   style?: string;
@@ -47,6 +48,7 @@ const NotificationBox = ({
   const { notifications, isLoading } = useSocket();
   const { showSnackBar } = useSnackBar();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
   const [activeOptions, setActiveOptions] = useState(0);
@@ -232,8 +234,11 @@ const NotificationBox = ({
 
                 return (
                   <li
+                    onClick={() =>
+                      navigate(notification.navigationPath ?? null)
+                    }
                     key={notification._id}
-                    className={`bg-gradient-to-tr  p-4  rounded-xl   border border-zinc-100 hover:border-zinc-300 hover:bg-white transition-all ${
+                    className={`bg-gradient-to-tr  p-4  rounded-xl   border border-zinc-100 hover:border-zinc-300 hover:bg-white transition-all active:scale-90 cursor-pointer ${
                       notification.read
                         ? "from-zinc-200 to-white "
                         : " from-sky-100 to-white "
