@@ -4,6 +4,7 @@ export const getToken = (): string | null => {
 
 export const removeToken = (): void => {
   localStorage.removeItem("token");
+  localStorage.removeItem("DEV_CHATX_USER_URD");
 };
 
 export const getUserPublicInfo = (): any | null => {

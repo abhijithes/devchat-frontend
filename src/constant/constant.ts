@@ -16,6 +16,11 @@ export const endpoints = {
   register: `${current_url}/users/register`,
   login: `${current_url}/users/login`,
   searchUser: `${current_url}/users/searchUser`,
+
+  // otp service api
+  optSend: `${current_url}/users/otp`,
+  otpVerify: `${current_url}/users/verifyotp`,
+
   getUserById: (id) => `${current_url}/users/${id}`,
   getUserWithProjects: (id) => `${current_url}/users/${id}?include=projects`,
   fetchPublicProfile: (id) =>
@@ -29,7 +34,8 @@ export const endpoints = {
 
   upload: `${current_url}/upload`,
   addDoc: (id) => `${current_url}/projects/uploudDocument/${id}`,
-  deleteDoc: (projectid, docId) => `${current_url}/projects/${projectid}/deleteDoc/${docId}`,
+  deleteDoc: (projectid, docId) =>
+    `${current_url}/projects/${projectid}/deleteDoc/${docId}`,
 
   createProject: `${current_url}/projects/createProject`,
   getAllProjectNames: `${current_url}/projects/projectNames`,
@@ -38,14 +44,18 @@ export const endpoints = {
   // New Task routes
   createTask: (projectId) =>
     `${current_url}/tickets/projects/${projectId}/tasks`,
-  getTasks: (projectId, page, limit) =>
-    `${current_url}/tickets/projects/${projectId}/tasks?page=${page}&&limit=${limit}`,
-  updateTask: (projectId, taskId) =>
-    `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
-  deleteTask: (projectId, taskId) =>
-    `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
-  getTaskPreview: (projectId) =>
-    `${current_url}/tickets/projects/${projectId}/tasks/preview`,
+  getTasks: (projectId, page, limit, query, sortfield) => `${current_url}/tickets/projects/${projectId}/tasks/search?page=${page}&limit=${limit}&searchQuery=${query}&sortField=${sortfield}`,
+  updateTask: (projectId, taskId) => `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
+  deleteTask: (projectId, taskId) => `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
+  getTaskPreview: (projectId) => `${current_url}/tickets/projects/${projectId}/tasks/preview`,
+
+  getTaskData: (id) => `${current_url}/tickets/projects/task/${id}`,
+  UpdateTaskData: (id) => `${current_url}/tickets/task/${id}/edit-doc-desc`,
+  addComment: (id) => `${current_url}/tickets/task/${id}/comments`,
+  editComment: (taskId, commentId) =>
+    `${current_url}/tickets/task/${taskId}/comments/${commentId}`,
+  deleteComment: (taskId, commentId) =>
+    `${current_url}/tickets/task/${taskId}/comments/${commentId}`,
 
   //notification
   getNotifications: `${current_url}/notifications`,

@@ -21,7 +21,7 @@ interface Props {
 
 const SnackBar = ({ message, type = "info", user }: Props) => {
   const baseClasses =
-    "fixed text-base flex  items-center justify-start gap-2 px-4 py-2 rounded  border border-zinc-300 shadow-2xl z-50 snack-show transition-all duration-300";
+    "fixed text-base flex  items-center justify-start gap-2 px-4 py-2 rounded  border border-zinc-300 shadow-2xl z-[9999] snack-show transition-all duration-300";
 
   const typeClasses =
     type === "success"

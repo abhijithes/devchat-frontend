@@ -1,18 +1,33 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { endpoints } from "../constant/constant";
+import { sendOtp, verifyOtp } from "../services/auth-service";
+import Spinner from "../components/loaders/Spinner";
+import { useSnackBar } from "../components/snack-bar/snack-bar-context";
 
 const AuthForm: React.FC = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState<boolean>(true);
+
+  // data
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
+  const [otp, setOtp] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
+
+  // operational states
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
+
+  const [otpVisible, setOtpVisible] = useState(false);
+  const [verified, setVerified] = useState(false);
+  const [verificationLoading, setVerificationLoading] =
+    useState<boolean>(false);
+
+  const { showSnackBar } = useSnackBar();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -58,11 +73,67 @@ const AuthForm: React.FC = () => {
         navigate("/");
       } else {
         setSuccess("Account created successfully!");
+        setIsLogin(true);
       }
     } catch (err: any) {
       setError(err.message || "Failed to connect to the server");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const hanldeSendOptp = async () => {
+    setVerificationLoading(true);
+    if (!email) {
+      setError("Please provide an valid email");
+      setSuccess("");
+      return;
+    } else {
+      setError("");
+    }
+
+    const response = await sendOtp(email);
+
+    if (response.status == 200) {
+      setSuccess("An opt sent to your email");
+      setOtpVisible(true);
+      setVerificationLoading(false);
+      showSnackBar(
+        "Currently on Beta mode Please check Email is spam ",
+        "info",
+        4000
+      );
+      return;
+    }
+
+    setError(
+      response.response.data.message ?? "Having issue with email verification"
+    );
+    setEmail("");
+    setVerificationLoading(false);
+  };
+
+  const handleVerifyOtp = async () => {
+    setVerificationLoading(true);
+
+    if (!otp) {
+      setError("Please provide an valid email");
+      setSuccess("");
+      return;
+    }
+    setError("");
+    setSuccess("");
+    const response = await verifyOtp(email, otp);
+    if (response.status == 200) {
+      setSuccess("Your otp verified successfully");
+      setError("");
+      setOtpVisible(false);
+      setVerified(true);
+      setVerificationLoading(false);
+    } else {
+      setOtp("");
+      setError("Having some trouble with your email check later");
+      setVerificationLoading(false);
     }
   };
 
@@ -140,16 +211,47 @@ const AuthForm: React.FC = () => {
             >
               Email
             </label>
-            <input
-              id="Email"
-              className="w-full bg-transparent px-3 py-3 rounded-md border border-zinc-300  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <div className="flex gap-3">
+              <input
+                id="Email"
+                className="w-full bg-transparent px-3 py-3 rounded-md border border-zinc-300  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              {!isLogin && email && !verified && !otpVisible && (
+                <button
+                  onClick={hanldeSendOptp}
+                  className="px-5 text-xs   text-white bg-gradient-to-tr from-violet-500 to-violet-300 hover:to-violet-700 rounded cursor-pointer"
+                >
+                  {!verificationLoading ? "Send Otp" : <Spinner />}
+                </button>
+              )}
+            </div>
           </div>
+          {!isLogin && otpVisible && (
+            <div className="col-span-2 mb-3 flex gap-3">
+              <input
+                id="Otp"
+                className="w-full bg-transparent px-3 py-3 rounded-md border border-zinc-300  font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+                type="text"
+                placeholder="please enter your otp"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                required
+              />
+              {!isLogin && (
+                <button
+                  onClick={handleVerifyOtp}
+                  className="px-5 text-xs text-white bg-gradient-to-tr from-violet-500 to-violet-300 hover:to-violet-700 rounded cursor-pointer"
+                >
+                  {!verificationLoading ? "Verify otp" : <Spinner />}
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="mb-4">
             <label
@@ -190,9 +292,9 @@ const AuthForm: React.FC = () => {
           )}
 
           <button
-            className="w-full bg-violet-500 text-white font-bold py-3 rounded-md hover:bg-violet-700 shadow-lg transition-all duration-300 ease-in-out col-span-2"
+            className="w-full bg-violet-500 text-white font-bold py-3 rounded-md  shadow-lg transition-all duration-300 ease-in-out col-span-2 disabled:bg-violet-300 disabled:cursor-not-allowed"
             type="submit"
-            disabled={loading}
+            disabled={!isLogin && !verified}
           >
             {loading ? "Processing..." : isLogin ? "Login" : "Create Account"}
           </button>
