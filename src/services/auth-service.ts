@@ -6,9 +6,8 @@ export const sendOtp = async (email: string) => {
   try {
     const res = await axios.post(endpoints.optSend, { email });
     return res;
-  } catch (error: any) {
-    console.error("Send OTP Error:", error.response?.data || error.message);
-    throw error.response?.data || { message: "Failed to send OTP" };
+  } catch (error) {
+    return error.response.data.message;
   }
 };
 
@@ -18,9 +17,8 @@ export const verifyOtp = async (email: string, otp: string) => {
       email,
       otp,
     });
-    return res.data;
-  } catch (error: any) {
-    console.error("Verify OTP Error:", error.response?.data || error.message);
-    throw error.response?.data || { message: "Failed to verify OTP" };
+    return res;
+  } catch (error) {
+    return error.response.data.message;
   }
 };
