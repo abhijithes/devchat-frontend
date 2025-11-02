@@ -284,7 +284,7 @@ const AuthForm: React.FC = () => {
           )}
 
           <button
-            className="w-full bg-violet-500 text-white font-bold py-3 rounded-md hover:bg-violet-700 shadow-lg transition-all duration-300 ease-in-out col-span-2"
+            className="w-full bg-violet-500 text-white font-bold py-3 rounded-md  shadow-lg transition-all duration-300 ease-in-out col-span-2"
             type="submit"
             disabled={!verified}
           >
