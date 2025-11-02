@@ -286,7 +286,7 @@ const AuthForm: React.FC = () => {
           <button
             className="w-full bg-violet-500 text-white font-bold py-3 rounded-md hover:bg-violet-700 shadow-lg transition-all duration-300 ease-in-out col-span-2"
             type="submit"
-            disabled={loading}
+            disabled={!verified}
           >
             {loading ? "Processing..." : isLogin ? "Login" : "Create Account"}
           </button>
@@ -294,7 +294,6 @@ const AuthForm: React.FC = () => {
           <p className="text-center text-sm text-gray-600 mt-5 col-span-2">
             {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
             <button
-              disabled={verified && !error}
               type="button"
               onClick={() => setIsLogin(!isLogin)}
               className="text-violet-600 font-semibold hover:underline hover:text-violet-800 transition-colors duration-200"
