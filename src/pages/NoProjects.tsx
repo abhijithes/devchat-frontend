@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { PlusCircle, FolderOpen } from "lucide-react";
+import BrowseProjects from "../components/list-projects/ListProjects";
+import { useState } from "react";
 
 type Props = {
   className?: string;
@@ -18,6 +20,8 @@ export default function NoProjectSelected({
   onBrowse,
   showIllustration = true,
 }: Props) {
+  const [showProject, setShowProjects] = useState(false);
+
   return (
     <div
       className={`flex-1 flex items-center justify-center p-6 sm:p-10  ${className}`}
@@ -105,7 +109,7 @@ export default function NoProjectSelected({
           </button>
 
           <button
-            onClick={onBrowse}
+            onClick={() => setShowProjects(!showProject)}
             className="inline-flex items-center gap-2 rounded-xl px-4 py-2 border border-zinc-200 bg-white text-sm font-medium hover:bg-zinc-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-200"
             aria-label="Browse projects"
           >
@@ -113,6 +117,7 @@ export default function NoProjectSelected({
             Browse projects
           </button>
         </div>
+        {showProject && <BrowseProjects />}
       </motion.div>
     </div>
   );

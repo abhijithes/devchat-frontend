@@ -65,7 +65,7 @@ const AuthForm: React.FC = () => {
 
       if (!response.ok) throw new Error(data.message || "Something went wrong");
 
-      if (isLogin) {
+      if (isLogin && response.ok) {
         setSuccess("Login successful!");
         localStorage.setItem("token", data.token);
         localStorage.setItem(
