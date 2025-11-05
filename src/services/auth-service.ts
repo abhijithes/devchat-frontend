@@ -7,7 +7,7 @@ export const sendOtp = async (email: string) => {
     const res = await axios.post(endpoints.optSend, { email });
     return res;
   } catch (error) {
-    return error.response.data.message;
+    throw new Error(error.response.data.message);
   }
 };
 
@@ -19,6 +19,6 @@ export const verifyOtp = async (email: string, otp: string) => {
     });
     return res;
   } catch (error) {
-    return error.response.data.message;
+    throw new Error(error.response.data.message);
   }
 };

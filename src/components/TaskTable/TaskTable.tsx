@@ -174,27 +174,35 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
         // Optimistic update
         onMutate: async ({ projectId, id, field, value }) => {
             await queryClient.cancelQueries({
-                queryKey: ["tasks", projectId, currentPage, limit],
+                queryKey: ["tasks", projectId, currentPage, limit, debouncedSearch, sort],
             });
             const previousTasks = queryClient.getQueryData<ProjectTaskResponse>([
                 "tasks",
                 projectId,
                 currentPage,
                 limit,
+                debouncedSearch,
+                sort,
             ]);
-            queryClient.setQueryData<ProjectTaskResponse>(["tasks", projectId, currentPage, limit], (old) => {
-                if (!old) return old;
-                return {
-                    ...old,
-                    data: old.data.map((task) => (task._id === id ? { ...task, [field]: value } : task)),
-                };
-            });
+            queryClient.setQueryData<ProjectTaskResponse>(
+                ["tasks", projectId, currentPage, limit, debouncedSearch, sort],
+                (old) => {
+                    if (!old) return old;
+                    return {
+                        ...old,
+                        data: old.data.map((task) => (task._id === id ? { ...task, [field]: value } : task)),
+                    };
+                }
+            );
             return { previousTasks };
         },
 
         onError: (error, variables, context) => {
             if (context?.previousTasks) {
-                queryClient.setQueryData(["tasks", variables.projectId, currentPage, limit], context.previousTasks);
+                queryClient.setQueryData(
+                    ["tasks", variables.projectId, currentPage, limit, debouncedSearch, sort],
+                    context.previousTasks
+                );
             }
             showSnackBar(`Failed to update: ${error.message}`, "error", 3000);
         },
@@ -205,7 +213,7 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
 
         onSettled: (_data, _error, variables) => {
             queryClient.invalidateQueries({
-                queryKey: ["tasks", variables.projectId, currentPage, limit],
+                queryKey: ["tasks", variables.projectId, currentPage, limit, debouncedSearch, sort],
             });
         },
     });
