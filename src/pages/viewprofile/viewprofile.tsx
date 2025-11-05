@@ -84,7 +84,7 @@ export default function ViewProfile() {
             </div>
         );
     }
-
+   console.log("User socials:", user?.socials);
     return (
         <div className="min-h-screen  w-full  flex flex-col items-center pb-5 px-6  overflow-y-auto">
             {loadProfilePic && <ProfileFullView src={user.profilePicture} onClose={() => setLoadProfilePic(false)} />}
@@ -132,18 +132,19 @@ export default function ViewProfile() {
 
                     {/* Social Media */}
                     <div>
+                    
                         <h2 className="text-lg font-semibold text-gray-900 mb-3">Social medias</h2>
                         {user?.socials && user?.socials?.length > 0 ? (
                             <div className="flex flex-wrap gap-4 text-blue-600 font-medium">
                                 {user?.socials.map((link, idx) => (
                                     <a
                                         key={idx}
-                                        href={link.url}
+                                        href={link.link}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="hover:underline"
                                     >
-                                        {link.name}
+                                        {link.field}
                                     </a>
                                 ))}
                             </div>

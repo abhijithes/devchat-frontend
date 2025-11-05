@@ -20,6 +20,8 @@ interface UserType {
   about?: string;
   createdAt: string;
   updatedAt: string;
+  location?: string;
+  socials?: Array<{ field: string; link: string }>;
   pinnedProjects: [
     {
       project: {
@@ -113,6 +115,8 @@ export default function Profile() {
     lastName: false,
     email: false,
     about: false,
+    location: false,
+    socials: false,
   });
   const queryClient = useQueryClient();
   const { showSnackBar } = useSnackBar();
@@ -153,6 +157,8 @@ export default function Profile() {
         lastName: false,
         email: false,
         about: false,
+        location: false,
+        socials: false,
       });
       setUserPublicInfo({
         firstName: data.firstName,
@@ -193,15 +199,30 @@ export default function Profile() {
     }
   };
 
-  const handleEdit = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    // Update the cached data directly
-    queryClient.setQueryData(["user", id], (oldData: UserType | undefined) =>
-      oldData ? { ...oldData, [name]: value } : oldData
-    );
-  };
+const handleEdit = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+) => {
+  const { name, value } = e.target;
+
+  queryClient.setQueryData(["user", id], (oldData: UserType | undefined) => {
+    if (!oldData) return oldData;
+
+    const match = name.match(/^socials\[(\d+)\]\.(\w+)$/);
+
+    // Check if the name belongs to socials array
+    if (match) {
+      const index = parseInt(match[1]);
+      const key = match[2];
+      const updatedSocials = [...(oldData.socials || [])];
+      updatedSocials[index] = { ...updatedSocials[index], [key]: value };
+      return { ...oldData, socials: updatedSocials };
+    }
+
+    //  Otherwise handle top-level fields normally
+    return { ...oldData, [name]: value };
+  });
+};
+
 
   const handleSubmit = () => {
     if (user) {
@@ -217,12 +238,36 @@ export default function Profile() {
       lastName: false,
       email: false,
       about: false,
+      location: false,
+      socials: false,
     });
   };
 
   // Check if there are unsaved changes by comparing with server data
   const hasChanges = user || queryClient.getQueryData(["user", id]) !== user;
 
+
+  //  socio link edit section 
+
+const handleAddSocial = () => {
+  queryClient.setQueryData(["user", id], (oldData: UserType | undefined) => {
+    if (!oldData) return oldData;
+    return {
+      ...oldData,
+      socials: [...(oldData.socials || []), { field: "", link: "" }],
+    };
+  });
+};
+
+const handleRemoveSocial = (index: number) => {
+  queryClient.setQueryData(["user", id], (oldData: UserType | undefined) => {
+    if (!oldData) return oldData;
+    return {
+      ...oldData,
+      socials: oldData.socials.filter((_, i) => i !== index),
+    };
+  });
+};
   // Set preview when user data loads
   useEffect(() => {
     if (user?.profilePicture) {
@@ -466,6 +511,118 @@ export default function Profile() {
                 />
               </div>
             </div>
+            {/* location */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-zinc-200 transition-colors duration-200">
+              <label className="text-lg font-semibold text-gray-700 min-w-[120px]">
+                Location
+              </label>
+              <div className="flex-1 flex items-center gap-3">
+                <input
+                  type="text"
+                  value={user.location || ""}
+                  onChange={handleEdit}
+                  
+                  name="location"
+                  className={`flex-1 bg-transparent text-lg outline-none transition-all duration-200 ${
+                    editableFields.location
+                      ? "border-b-2 border-blue-500 pb-1"
+                      : "border-b border-transparent"
+                  }`}
+                  disabled={
+                    !editableFields.location || updateProfileMutation.isPending
+                  }
+                />
+                <button
+                  onClick={() =>
+                    setEditableFields((prev) => ({
+                      ...prev,
+                      location: !editableFields.location,
+                    }))
+                  }
+                  disabled={updateProfileMutation.isPending}
+                  className="p-2 text-gray-400 hover:text-blue-500 hover:bg-white rounded-lg transition-colors duration-200"
+                >
+                  <Edit className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            {/* Social Links */}
+<div className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl border border-zinc-200 transition-colors duration-200">
+  <label className="text-lg font-semibold text-gray-700 min-w-[120px] sm:mt-2">
+    Social Links
+  </label>
+
+  <div className="flex-1 flex flex-col gap-3">
+    {user.socials && user.socials.length > 0 ? (
+      user.socials.map((social, index) => (
+        <div
+          key={index}
+          className="flex items-center gap-3 border-b border-gray-200 pb-2"
+        >
+          <input
+            type="text"
+            name={`socials[${index}].field`}
+            value={social.field}
+            onChange={handleEdit}
+            placeholder="Platform (e.g., LinkedIn)"
+            className={`flex-1 bg-transparent text-lg outline-none transition-all duration-200 ${
+              editableFields.socials
+                ? "border-b-2 border-blue-500 pb-1"
+                : "border-b border-transparent"
+            }`}
+            disabled={!editableFields.socials || updateProfileMutation.isPending}
+          />
+          <input
+            type="text"
+            name={`socials[${index}].link`}
+            value={social.link}
+            onChange={handleEdit}
+            placeholder="Profile link"
+            className={`flex-[2] bg-transparent text-lg outline-none transition-all duration-200 ${
+              editableFields.socials
+                ? "border-b-2 border-blue-500 pb-1"
+                : "border-b border-transparent"
+            }`}
+            disabled={!editableFields.socials || updateProfileMutation.isPending}
+          />
+          <button
+            onClick={() => handleRemoveSocial(index)}
+            disabled={!editableFields.socials || updateProfileMutation.isPending}
+            className="p-2 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition-colors duration-200"
+          >
+            ✕
+          </button>
+        </div>
+      ))
+    ) : (
+      <p className="text-gray-500">No social links added yet.</p>
+    )}
+
+    {editableFields.socials && (
+      <button
+        onClick={handleAddSocial}
+        disabled={updateProfileMutation.isPending}
+        className="self-start mt-2 px-3 py-2 bg-blue-50 text-gray-700 font-medium rounded-lg hover:bg-blue-100 transition-all duration-200"
+      >
+        + Add Social Link
+      </button>
+    )}
+
+    <button
+      onClick={() =>
+        setEditableFields((prev) => ({
+          ...prev,
+          socials: !editableFields.socials,
+        }))
+      }
+      disabled={updateProfileMutation.isPending}
+      className="mt-2 p-2 text-gray-400 hover:text-blue-500 hover:bg-white rounded-lg transition-colors duration-200 self-start"
+    >
+      <Edit className="w-5 h-5" />
+    </button>
+  </div>
+</div>
+
 
             {/* About */}
             <div className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl border border-zinc-200 transition-colors duration-200">
