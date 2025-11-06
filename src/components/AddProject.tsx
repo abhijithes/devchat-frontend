@@ -5,6 +5,7 @@ import { endpoints } from "../constant/constant";
 import axios from "axios";
 import { useLoader } from "../contexts/GlobalLoaderContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getToken } from "../utils/token";
 
 interface User {
   _id: string;
@@ -94,7 +95,10 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose }) => {
       files.forEach((file) => formData.append("files", file));
 
       const response = await axios.post(endpoints.upload, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${getToken()}`,
+        },
       });
 
       return response.data.files.map(
