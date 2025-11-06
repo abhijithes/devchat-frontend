@@ -12,6 +12,7 @@ import { CheckBox, Delete } from "@mui/icons-material";
 import DeleteConfirmation from "../Conformation/DeleteConformation";
 import { deleteBulkNotifications } from "./notification-service";
 import { useNavigate } from "react-router-dom";
+import DvcCheckBox from "../buttons/CheckBox";
 
 interface NotificationBoxProps {
   style?: string;
@@ -51,6 +52,7 @@ const NotificationBox = ({
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
+  const [checked, setChecked] = useState(false);
   const [activeOptions, setActiveOptions] = useState(0);
   const [openConformation, setOpenConformation] = useState(false);
   const [selectedNotifications, setSelectedNotification] = useState<string[]>(
@@ -126,6 +128,7 @@ const NotificationBox = ({
 
   const handleChangeOptions = (_options: NotificationOption, index: number) => {
     setActiveOptions(index);
+    setSelectedNotification([]);
   };
 
   const handleSelectComment = (id: string, currentState: boolean) => {
@@ -207,15 +210,20 @@ const NotificationBox = ({
             >
               <Delete fontSize="small" className="text-red-500" />
             </button>
-            <button
-              onClick={selectAllNotitifications}
-              className="px-4 p-1 text-sm  rounded-full bg-zinc-200 hover:bg-zinc-400 flex gap-2 items-center  cursor-pointer transition-all"
-            >
-              All
-              <CheckBox fontSize="small" />
-            </button>
           </div>
         ) : null}
+        {activeOptions === 2 && (
+          <div className="p-2">
+            <DvcCheckBox
+              checked={checked}
+              onChange={(_value, checked) => {
+                checked
+                  ? selectAllNotitifications()
+                  : setSelectedNotification([]);
+              }}
+            />
+          </div>
+        )}
       </div>
       <div className="h-[83%]  overflow-auto">
         {notifications.length === 0 ? (
@@ -234,11 +242,8 @@ const NotificationBox = ({
 
                 return (
                   <li
-                    onClick={() =>
-                      navigate(notification.navigationPath ?? null)
-                    }
                     key={notification._id}
-                    className={`bg-gradient-to-tr  p-4  rounded-xl   border border-zinc-100 hover:border-zinc-300 hover:bg-white transition-all active:scale-90 cursor-pointer ${
+                    className={`bg-gradient-to-tr  p-4  rounded-xl   border border-zinc-100 hover:border-zinc-300 hover:bg-white   ${
                       notification.read
                         ? "from-zinc-200 to-white "
                         : " from-sky-100 to-white "
@@ -272,7 +277,17 @@ const NotificationBox = ({
                       />
                       <p className="text-xs">{notification.senderId.email}</p>
                     </div>
-                    <p> {notification.message}</p>
+                    <p
+                      onClick={() => {
+                        notification.navigationPath &&
+                          navigate(notification.navigationPath);
+                      }}
+                      className={`inline ${
+                        notification.navigationPath ? "hover:border-b" : ""
+                      }  border-zinc-400  cursor-pointer`}
+                    >
+                      {notification.message}
+                    </p>
                     <div className="mt-4 flex items-center justify-between">
                       <span className="text-xs text-gray-400">
                         {new Date(notification.timeStamp).toLocaleString()}
