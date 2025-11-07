@@ -1,4 +1,4 @@
-const isProduction = true;
+const isProduction = false;
 
 export const dev_api_url = "http://localhost:5001/api";
 export const producttion_api_url =
@@ -40,6 +40,9 @@ export const endpoints = {
   createProject: `${current_url}/projects/createProject`,
   getAllProjectNames: `${current_url}/projects/projectNames`,
   getProjectById: (id) => `${current_url}/projects/${id}`,
+  updateProject: (id) => `${current_url}/projects/updateProject/${id}`,
+  updateProjectStatus: (id) => `${current_url}/projects/updateStatus/${id}`,
+  deleteProject: (id) => `${current_url}/projects/${id}`,
 
   // New Task routes
   createTask: (projectId) =>
