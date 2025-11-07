@@ -286,7 +286,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose, initialData }) => {
                     <X size={20} />
                 </button>
 
-                <h2 className="text-2xl font-poppins mb-6">Add Project</h2>
+                <h2 className="text-2xl font-poppins mb-6">{initialData ? "Update Project" : "Add Project"}</h2>
 
                 {/* Error Messages */}
                 {(fileUploadMutation.isError || createProjectMutation.isError) && (
@@ -502,7 +502,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose, initialData }) => {
                         }
                     }}
                     disabled={uploading}
-                    className={`bg-black text-white px-10 py-3 rounded-md w-full transition-all ${
+                    className={`bg-black text-white px-10 py-3 rounded-md w-full transition-all mt-10 ${
                         uploading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-800"
                     }`}
                 >
