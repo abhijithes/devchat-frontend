@@ -311,11 +311,11 @@ export const Viewproject = () => {
                 </div>
 
                 {/* Description */}
-                <div className="description">
-                    <p className="hidden md:block sm:text-xl font-semibold">
+                <div className="description my-5">
+                    <p className="block md:hidden text-xs sm:text-sm  md:text-xl font-semibold">
                         Expected time: {project.expectedDays} Days
                     </p>
-                    <p className="text-base pt-3 opacity-60 mt-5 whitespace-pre-wrap">{project.description}</p>
+                    <p className="text-base sm:pt-3 opacity-60 md:mt-5 whitespace-pre-wrap">{project.description}</p>
                 </div>
 
                 {/* Project Documents */}
