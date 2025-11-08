@@ -161,8 +161,8 @@ const NotificationBox = ({
     <div
       onClick={(e) => e.stopPropagation()}
       ref={ref}
-      className={`w-96 h-[95vh] bg-linear-to-b from-zinc-100 to-white  shadow-xl border border-zinc-300 rounded-3xl    fixed top-0 ${
-        opened ? "-right-3" : "-right-full"
+      className={`w-full md:w-96  h-screen md:h-[95vh] bg-linear-to-b from-zinc-100 to-white  shadow-xl border border-zinc-300 md:rounded-3xl    fixed top-0 ${
+        opened ? "right-0 md:-right-3" : "-right-full"
       }  z-99999  overflow-hidden transition-all duration-300 delay-200  ${style}   `}
     >
       {openConformation && (

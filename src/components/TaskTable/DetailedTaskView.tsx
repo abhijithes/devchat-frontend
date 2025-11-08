@@ -295,6 +295,7 @@ export const CommentForm: React.FC<{
         <button
           onClick={() => {
             onSubmit(comment);
+            setComment("");
           }}
           className="input-grad-btn"
         >

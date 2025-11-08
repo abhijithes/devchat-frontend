@@ -3,14 +3,34 @@ import { Link, Outlet } from "react-router-dom";
 import AddProject from "../components/AddProject";
 import SidebarButtons from "../components/SidebarButtons";
 import { Plus } from "lucide-react";
+import { Close, Workspaces, X } from "@mui/icons-material";
 
 const TaskLayout: React.FC = () => {
   const [showAddProject, setShowAddProject] = useState(false);
+  const [shownProjects, setShownProject] = useState(false);
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen ">
       {/* Sidebar */}
-      <aside className="  w-full md:w-64 shrink-0 bg-primary    p-4 md:h-screen  overflow-y-auto md:pb-20 ">
+      <div
+        onClick={() => setShownProject((prev) => !prev)}
+        className={`w-10 h-14 ${
+          shownProjects ? "bg-green-500" : "bg-zinc-800"
+        }  rounded-r-2xl flex items-center justify-center md:hidden fixed  left-0  z-50 active:scale-90 transition-all`}
+      >
+        {shownProjects ? (
+          <Close htmlColor="white" />
+        ) : (
+          <Workspaces htmlColor="white" />
+        )}
+      </div>
+      <aside
+        className={`
+         ${
+           shownProjects ? "block" : "hidden"
+         }  md:block  w-full md:w-64 h-max max-h-screen md:h-screen shrink-0 bg-primary p-4  overflow-y-auto pt-10 md:pt-0    md:pb-20 
+        `}
+      >
         <Link
           to={"/"}
           className="md:text-2xl font-semibold my-4 block hover:scale-x-95 transition-all"

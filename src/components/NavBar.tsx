@@ -42,7 +42,7 @@ const NavBar = () => {
   const toggleMenu = () => setIsOpen(!isOpen);
 
   useEffect(() => {
-    setIsLoggedIn(getToken() ? true : false);
+    setIsLoggedIn(!!getToken());
     setUserInfo(
       getUserPublicInfo() || {
         email: "",
@@ -63,14 +63,12 @@ const NavBar = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [notificationBoxRef]);
 
   const triggerWelcomeToast = () => {
     if (!sessionStorage.getItem("DEV_CHATX_OPENED_NOS")) {
-      sessionStorage.setItem("DEV_CHATX_OPENED_NOS", true.toString());
+      sessionStorage.setItem("DEV_CHATX_OPENED_NOS", "true");
       showSnackBar("Welcome to DevChats.io", "success", 3000);
     }
   };
@@ -84,14 +82,15 @@ const NavBar = () => {
   };
 
   return (
-    <nav className=" backdrop-blur-xs bg-linear-to-tl from-black/5 to-white/10   border-zinc-200 rounded fixed md:top-5 md:right-8 w-full md:w-max z-[45]">
+    <nav className="backdrop-blur-xs bg-linear-to-tl from-black/5 to-white/10 border-zinc-200 rounded sticky top-0 md:fixed md:top-5 md:right-8 w-full md:w-max z-[45]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex gap-5 justify-between items-center h-14">
           {/* Logo */}
           <Link to={"/"} className="text-xl font-bold text-zinc-900">
             DevChats.io
           </Link>
-          {/* navigation */}
+
+          {/* navigation arrows */}
           {pathname.split("/").filter((p) => p).length > 1 && (
             <div className="flex items-center gap-4">
               <KeyboardArrowLeft
@@ -104,8 +103,9 @@ const NavBar = () => {
               />
             </div>
           )}
+
           {/* Desktop Menu */}
-          <ul className="hidden md:flex space-x-6  items-center">
+          <ul className="hidden md:flex space-x-6 items-center">
             <li>
               <Link
                 to="#"
@@ -117,11 +117,11 @@ const NavBar = () => {
             </li>
 
             <li onClick={() => setOpenNotification((pre) => !pre)}>
-              <button className="text-gray-600 hover:text-zinc-900 relative ">
+              <button className="text-gray-600 hover:text-zinc-900 relative">
                 {notifications.some((item) => !item.read) ? (
                   <NotificationsActive
                     htmlColor="green"
-                    className="notification-active "
+                    className="notification-active"
                   />
                 ) : (
                   <Notifications />
@@ -134,6 +134,7 @@ const NavBar = () => {
                 />
               </button>
             </li>
+
             <li>
               <Link
                 to="/settings"
@@ -142,6 +143,7 @@ const NavBar = () => {
                 <Settings />
               </Link>
             </li>
+
             {isLoggedIn ? (
               <li className="relative group">
                 <Link
@@ -150,7 +152,7 @@ const NavBar = () => {
                 >
                   <div
                     title="profile page"
-                    className="w-10 h-10 rounded-full border border-zinc-300 bg-white hover:bg-gray-100 text-center text-black grid place-items-center group "
+                    className="w-10 h-10 rounded-full border border-zinc-300 bg-white hover:bg-gray-100 text-center text-black grid place-items-center group"
                   >
                     {userInfo.profilePicture ? (
                       <img
@@ -163,7 +165,7 @@ const NavBar = () => {
                     )}
                   </div>
                 </Link>
-                <div className="hidden group-hover:block absolute right-0  w-48 bg-white border border-gray-200 rounded shadow-lg z-40">
+                <div className="hidden group-hover:block absolute right-0 w-48 bg-white border border-gray-200 rounded shadow-lg z-40">
                   <ul>
                     <li>
                       <Link
@@ -174,7 +176,7 @@ const NavBar = () => {
                       </Link>
                     </li>
                     <li
-                      onClick={() => handleLogout()}
+                      onClick={handleLogout}
                       className="block px-4 py-2 text-red-500 hover:bg-gray-100"
                     >
                       Logout
@@ -207,49 +209,96 @@ const NavBar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* ✅ Mobile Menu with full functionality */}
       {isOpen && (
-        <ul className="md:hidden bg-white px-2 pt-2 pb-3 space-y-1 shadow">
+        <ul className="md:hidden bg-white px-2 pt-2 pb-3 space-y-2 shadow">
           <li>
             <Link
               to="#"
               title="Go to developer chats"
-              className="text-gray-600 hover:text-zinc-900"
+              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
             >
-              Dev chats
+              Dev Chats
             </Link>
           </li>
 
-          <li>
-            <Link to="#" className="text-gray-600 hover:text-zinc-900">
-              Notifications <Notifications />
-            </Link>
+          {/* Notifications */}
+          <li className="relative">
+            <button
+              onClick={() => setOpenNotification((p) => !p)}
+              className="flex items-center gap-2 w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
+            >
+              {notifications.some((item) => !item.read) ? (
+                <NotificationsActive htmlColor="green" />
+              ) : (
+                <Notifications />
+              )}
+              Notifications
+            </button>
+            {openNotifiaction && (
+              <div ref={notificationBoxRef}>
+                <NotificationBox
+                  opened={openNotifiaction}
+                  closeNotificationBox={() => setOpenNotification(false)}
+                  style="bg-white border "
+                />
+              </div>
+            )}
           </li>
-          <li>
-            <Link to="#" className="text-gray-600 hover:text-zinc-900">
-              Settings <Settings />
-            </Link>
-          </li>
+
+          {/* Settings */}
           <li>
             <Link
-              to="#"
-              className="text-gray-600 hover:text-zinc-900 flex gap-2"
+              to="/settings"
+              className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
             >
-              Account
-              <div
-                title="profile page"
-                className="w-10 h-10 rounded-full border border-zinc-300 bg-white hover:bg-gray-100 text-center text-black grid place-items-center "
-              >
-                M
-              </div>
+              <Settings /> Settings
             </Link>
           </li>
-          <li
-            onClick={() => handleLogout()}
-            className="block px-4 py-2 text-red-500 hover:bg-gray-100"
-          >
-            Logout
-          </li>
+
+          {/* Profile & Auth */}
+          {isLoggedIn ? (
+            <>
+              <li>
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
+                >
+                  <div
+                    title="profile"
+                    className="w-10 h-10 rounded-full border border-zinc-300 bg-white grid place-items-center"
+                  >
+                    {userInfo.profilePicture ? (
+                      <img
+                        src={userInfo.profilePicture}
+                        alt={userInfo.firstName}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      userInfo.firstName.charAt(0).toUpperCase() || "L"
+                    )}
+                  </div>
+                  {userInfo.firstName || "My Account"}
+                </Link>
+              </li>
+
+              <li
+                onClick={handleLogout}
+                className="px-4 py-2 text-red-500 hover:bg-gray-100 rounded cursor-pointer"
+              >
+                Logout
+              </li>
+            </>
+          ) : (
+            <li>
+              <Link
+                to="/login"
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
+              >
+                Login
+              </Link>
+            </li>
+          )}
         </ul>
       )}
     </nav>
