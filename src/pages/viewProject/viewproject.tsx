@@ -254,13 +254,13 @@ export const Viewproject = () => {
     if (!project) return <div className="flex justify-center items-center h-64">Project not found</div>;
 
     return (
-        <div className="font-family w-full h-full p-4 md:p-6 lg:p-8 overflow-auto">
+        <div className="font-family w-full h-full sm:p-4 md:p-6 lg:p-8 overflow-auto">
             {/* Header */}
             <div className="top-section">
-                <div className="head flex flex-col md:flex-row justify-between gap-4 md:gap-0 sticky top-0 bg-white z-10">
+                <div className="head flex justify-between items-start gap-4 md:gap-0 sticky top-0 bg-white z-10">
                     <div className="flex flex-col">
-                        <h1 className="text-2xl md:text-3xl font-semibold capitalize">{project.name}</h1>
-                        <p className="pt-3 opacity-80 text-base font-medium">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold capitalize">{project.name}</h1>
+                        <p className="md:pt-3 opacity-80 text-xs md:text-base font-medium">
                             {new Date(project.createdAt || "").toLocaleDateString("en-US", {
                                 weekday: "long",
                                 year: "numeric",
@@ -270,12 +270,13 @@ export const Viewproject = () => {
                         </p>
                     </div>
                     <div className="flex items-center gap-6 relative">
-                        <p className="text-lg sm:text-xl font-semibold">Expected time: {project.expectedDays} Days</p>
+                        <p className="hidden md:block sm:text-xl font-semibold">
+                            Expected time: {project.expectedDays} Days
+                        </p>
                         <CheckUserRole userRole={project.userRole}>
                             <>
                                 <EllipsisVertical
-                                    className="cursor-pointer "
-                                    size={24}
+                                    className="cursor-pointer"
                                     onClick={() =>
                                         setShowoptions((prev) => (prev === "projectOptions" ? "" : "projectOptions"))
                                     }
@@ -311,6 +312,9 @@ export const Viewproject = () => {
 
                 {/* Description */}
                 <div className="description">
+                    <p className="hidden md:block sm:text-xl font-semibold">
+                        Expected time: {project.expectedDays} Days
+                    </p>
                     <p className="text-base pt-3 opacity-60 mt-5 whitespace-pre-wrap">{project.description}</p>
                 </div>
 
