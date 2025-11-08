@@ -64,6 +64,7 @@ export const Viewproject = () => {
     const [showDialogue, setShowDialogue] = useState<"" | "delete" | "update" | "adduser">("");
     const [showoptions, setShowoptions] = useState<"" | "projectOptions" | "userOPtions">("");
     const [AddUserType, setAddUserType] = useState<"member" | "manager">("member");
+    const [isExpanded, setIsExpanded] = useState(false);
     const navigate = useNavigate();
     const { showSnackBar } = useSnackBar();
 
@@ -270,7 +271,7 @@ export const Viewproject = () => {
                         </p>
                     </div>
                     <div className="flex items-center gap-6 relative">
-                        <p className="hidden md:block sm:text-xl font-semibold">
+                        <p className="hidden lg:block sm:text-xl font-semibold">
                             Expected time: {project.expectedDays} Days
                         </p>
                         <CheckUserRole userRole={project.userRole}>
@@ -281,41 +282,60 @@ export const Viewproject = () => {
                                         setShowoptions((prev) => (prev === "projectOptions" ? "" : "projectOptions"))
                                     }
                                 />
-                                {showoptions === "projectOptions" && (
-                                    <div className="absolute right-3 top-15  w-48 bg-white border border-gray-200 rounded shadow-lg z-40">
-                                        <button
-                                            className="px-4 text-left w-full py-2 text-gray-800 hover:bg-gray-200"
-                                            onClick={() => setShowDialogue("update")}
-                                        >
-                                            Update Project
-                                        </button>
-                                        <button
-                                            className="px-4 text-left w-full py-2 text-gray-800 hover:bg-gray-200"
-                                            onClick={() => {
-                                                projectStatusUpdate.mutate();
-                                            }}
-                                        >
-                                            {project.status ? "deactivate Project" : "Activate Project"}
-                                        </button>
-                                        <button
-                                            className="px-4 text-left w-full py-2 text-red-800 hover:bg-gray-200"
-                                            onClick={openDeleteModel}
-                                        >
-                                            Delete Project
-                                        </button>
-                                    </div>
-                                )}
+                                <div
+                                    className={`absolute right-3 top-5 md:top-8 w-48 bg-white border border-gray-200 rounded shadow-lg z-40 transform transition-all duration-200 ease-out
+    ${
+        showoptions === "projectOptions"
+            ? "opacity-100 scale-100 visible"
+            : "opacity-0 scale-10 invisible translate-y-[-50%] translate-x-[50%]"
+    }`}
+                                >
+                                    <button
+                                        className="px-4 text-left w-full py-2 text-gray-800 hover:bg-gray-200"
+                                        onClick={() => setShowDialogue("update")}
+                                    >
+                                        Update Project
+                                    </button>
+                                    <button
+                                        className="px-4 text-left w-full py-2 text-gray-800 hover:bg-gray-200"
+                                        onClick={() => {
+                                            projectStatusUpdate.mutate();
+                                        }}
+                                    >
+                                        {project.status ? "Deactivate Project" : "Activate Project"}
+                                    </button>
+                                    <button
+                                        className="px-4 text-left w-full py-2 text-red-800 hover:bg-gray-200"
+                                        onClick={openDeleteModel}
+                                    >
+                                        Delete Project
+                                    </button>
+                                </div>
                             </>
                         </CheckUserRole>
                     </div>
                 </div>
 
                 {/* Description */}
-                <div className="description my-5">
-                    <p className="block md:hidden text-xs sm:text-sm  md:text-xl font-semibold">
+                <div className="description my-5 flex flex-col">
+                    <p className="block lg:hidden text-sm md:text-xl font-semibold self-end">
                         Expected time: {project.expectedDays} Days
                     </p>
-                    <p className="text-base sm:pt-3 opacity-60 md:mt-5 whitespace-pre-wrap">{project.description}</p>
+                    <p
+                        className={`text-base sm:pt-3 mt-2 opacity-60 whitespace-pre-wrap text-justify transition-all duration-300 ease-in-out ${
+                            isExpanded ? "" : "line-clamp-5 md:line-clamp-none"
+                        }`}
+                    >
+                        {project.description}
+                    </p>
+                    {project.description.length > 300 && (
+                        <button
+                            onClick={() => setIsExpanded((prev) => !prev)}
+                            className="text-blue-600 hover:underline text-sm font-medium block md:hidden self-start"
+                        >
+                            {isExpanded ? "Read Less" : "Read More"}
+                        </button>
+                    )}
                 </div>
 
                 {/* Project Documents */}
@@ -429,7 +449,12 @@ export const Viewproject = () => {
                             <span className="text-xs">No groups found</span>
                             <CheckUserRole userRole={project.userRole}>
                                 <p className="centered cursor-pointer">
-                                    <span className="text-sm">Add more</span>
+                                    <button
+                                        className="text-sm"
+                                        onClick={() => showSnackBar("This part is under Construction", "info", 3000)}
+                                    >
+                                        Add more
+                                    </button>
                                 </p>
                             </CheckUserRole>
                         </div>
