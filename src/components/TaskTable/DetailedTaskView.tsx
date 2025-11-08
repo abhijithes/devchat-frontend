@@ -274,8 +274,8 @@ export const CommentForm: React.FC<{
 
   return (
     <div
-      className={`w-full min-h-80 bg-white  p-3 flex flex-col gap-3 items-start rounded-t-3xl shadow-top shadow-black  border border-zinc-200 absolute ${
-        isVisible ? "bottom-0" : "-bottom-full"
+      className={`w-full min-h-[55vh]  md:min-h-80 bg-white  p-3 flex flex-col gap-3 items-start rounded-t-3xl shadow-top shadow-black  border border-zinc-200 absolute ${
+        isVisible ? " bottom-0" : "-bottom-full"
       }   left-0 z-999  overflow-auto transition-all duration-400`}
     >
       <h1 className="font-medium text-lg mx-3 ">
