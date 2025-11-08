@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import type { ProjectTaskResponse, Task } from "./TaskTypes";
 import api from "../../utils/axios";
 import { endpoints } from "../../constant/constant";
@@ -274,218 +274,360 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
     if (isError) return <p>Failed to load tasks</p>;
 
     return (
-        <div className="w-full rounded-2xl">
-            {/* ASide detailed view component  */}
+        <div className="w-full rounded-2xl space-y-6 lg:space-y-8">
+            {/* Sidebar detailed view component */}
             <DvcSideBar active={detailedView} onClose={() => setDetailedView(false)}>
                 <DetailedTaskView id={activeTask} />
             </DvcSideBar>
-            IntrinsicAttributes
-            {/* Project Info */}
-            <div className="w-full min-h-32 space-y-2">
-                <h1 className="text-2xl font-medium">{tasksData?.project.name}</h1>
-                <h1 className="text-sm">@ {new Date(tasksData?.project.createdAt || "").toLocaleString()}</h1>
-                <h1>
-                    By <span className="font-medium">{tasksData?.project.createdBy.email}</span>
-                </h1>
-            </div>
-            {/* Header & New Task */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-                <div>
-                    <h1 className="text-2xl font-bold">Project Tasks</h1>
-                    <p className="text-[var(--color-secondary)] font-medium pt-2">
-                        {tasksData.data.length === 0 ? "No Tasks Available" : "All tasks for this project"}
-                    </p>
-                </div>
-                <div className="flex flex-col md:flex-row self-end justify-end items-center gap-4 mt-4 md:p-6 flex-1">
-                    <input
-                        type="text"
-                        placeholder="Search tasks..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="border border-gray-300 rounded-md px-3 py-2 w-full md:w-1/2"
-                    />
 
+            {/* Project Info */}
+            <section className="w-full space-y-3 lg:space-y-4">
+                <h1 className="text-2xl lg:text-3xl font-semibold text-gray-900">{tasksData?.project.name}</h1>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 text-sm text-gray-600">
+                    <span>@ {new Date(tasksData?.project.createdAt || "").toLocaleString()}</span>
+                    <span className="hidden sm:inline">•</span>
+                    <span>
+                        By <span className="font-medium text-gray-900">{tasksData?.project.createdBy.email}</span>
+                    </span>
+                </div>
+            </section>
+
+            {/* Header & Controls */}
+            <section className="flex flex-col gap-4 lg:gap-6">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="space-y-2">
+                        <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Project Tasks</h1>
+                        <p className="text-gray-500 font-medium">
+                            {tasksData.data.length === 0 ? "No Tasks Available" : "All tasks for this project"}
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <p className="text-sm font-semibold text-gray-700">
+                            Total Tasks:{" "}
+                            <span className="font-bold text-[var(--color-accent)]">{tasksData?.totalTasks || 0}</span>
+                        </p>
+                        <CheckUserRole userRole={tasksData.userRole}>
+                            <button
+                                onClick={() => setShowDialog("add")}
+                                className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--color-button)] text-white hover:bg-[var(--color-button)]/90 transition-colors shadow-sm"
+                            >
+                                New Task
+                            </button>
+                        </CheckUserRole>
+                    </div>
+                </div>
+
+                {/* Search and Filter */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1">
+                        <input
+                            type="text"
+                            placeholder="Search tasks..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/20 focus:border-[var(--color-accent)] transition-colors"
+                        />
+                    </div>
                     <select
                         value={sort}
                         onChange={(e) => setSort(e.target.value)}
-                        className="border border-gray-300 rounded-md px-3 py-2"
+                        className="border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/20 focus:border-[var(--color-accent)] transition-colors"
                     >
                         <option value="latest">Latest</option>
                         <option value="oldest">Oldest</option>
-                        <option value="my-task">my-tasks</option>
+                        <option value="my-task">My Tasks</option>
                     </select>
                 </div>
-                <div className="flex items-center gap-4 mt-3 md:mt-0">
-                    <p className="text-sm font-semibold">
-                        Total Tasks:{" "}
-                        <span className="font-bold text-[var(--color-accent)]">{tasksData?.totalTasks || 0}</span>
-                    </p>
-                    <CheckUserRole userRole={tasksData.userRole}>
-                        <button
-                            onClick={() => setShowDialog("add")}
-                            className="px-4 py-2 rounded-md text-sm font-medium bg-button text-white"
-                        >
-                            New Task
-                        </button>
-                    </CheckUserRole>
-                </div>
-            </div>
-            {/* Task Table */}
+            </section>
+
+            {/* Task Table - Responsive Design */}
             {tasksData.data.length > 0 ? (
-                <div className="mt-6 overflow-x-auto">
-                    <table className="min-w-full border-collapse text-sm md:text-base">
-                        <thead>
-                            <tr className="border-[var(--color-primary)]">
-                                {TableHeaders.map((heading) => (
-                                    <th key={heading} className="py-3 px-4 font-semibold text-left">
-                                        {heading}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {tasksData.data.map((task) => (
-                                <tr
-                                    key={task._id}
-                                    className="hover:bg-[var(--color-primary)] transition "
-                                    title={`Assigned By ${task.assigner?.firstName} ${task.assigner?.lastName}`}
-                                >
-                                    <td className="py-3 px-4 font-medium">{task.taskId}</td>
-                                    <td className="py-3 px-4 truncate max-w-[180px]">{task.name}</td>
-                                    <td className="py-3 px-4 flex items-center gap-2">
-                                        <span
-                                            className={`${getPriorityColor(task.priority)} w-3 h-3 rounded-sm`}
-                                        ></span>
-                                        <select
-                                            name="priority"
-                                            value={task.priority}
-                                            onChange={(e) => handleOptionChange("priority", task._id, e.target.value)}
-                                            className="w-full bg-gray-50 px-3 py-2"
+                <section className="mt-6">
+                    {/* Desktop Table */}
+                    <div className="hidden lg:block overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+                        <table className="w-full border-collapse">
+                            <thead className="bg-gray-50/80 backdrop-blur-sm">
+                                <tr>
+                                    {TableHeaders.map((heading) => (
+                                        <th
+                                            key={heading}
+                                            className="py-4 px-6 font-semibold text-left text-gray-900 text-sm"
                                         >
-                                            <option value="urgent">Urgent</option>
-                                            <option value="required">Required</option>
-                                            <option value="completed">Completed</option>
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
+                                            {heading}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {tasksData.data.map((task) => (
+                                    <tr
+                                        key={task._id}
+                                        className="hover:bg-gray-50/80 transition-colors group"
+                                        title={`Assigned By ${task.assigner?.firstName} ${task.assigner?.lastName}`}
+                                    >
+                                        <td className="py-4 px-6 font-medium text-gray-900">{task.taskId}</td>
+                                        <td className="py-4 px-6 max-w-[200px]">
+                                            <span className="truncate block" title={task.name}>
+                                                {task.name}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <div className="flex items-center gap-3">
+                                                <span
+                                                    className={`${getPriorityColor(
+                                                        task.priority
+                                                    )} w-2 h-2 rounded-full`}
+                                                ></span>
+                                                <select
+                                                    name="priority"
+                                                    value={task.priority}
+                                                    onChange={(e) =>
+                                                        handleOptionChange("priority", task._id, e.target.value)
+                                                    }
+                                                    className="bg-transparent border-0 p-0 text-sm font-medium focus:ring-0 focus:outline-none cursor-pointer"
+                                                >
+                                                    <option value="urgent">Urgent</option>
+                                                    <option value="required">Required</option>
+                                                    <option value="completed">Completed</option>
+                                                </select>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <select
+                                                name="status"
+                                                value={task.status}
+                                                onChange={(e) => handleOptionChange("status", task._id, e.target.value)}
+                                                className="bg-transparent border-0 p-0 text-sm font-medium focus:ring-0 focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="not-started">Not started</option>
+                                                <option value="in-progress">In progress</option>
+                                                <option value="completed">Completed</option>
+                                            </select>
+                                        </td>
+                                        <td className="py-4 px-6 text-gray-600">{task.assignee?.email}</td>
+                                        <td className="py-4 px-6 text-gray-600">
+                                            {task.dueDate &&
+                                                new Date(task.dueDate).toLocaleDateString("en-GB", {
+                                                    day: "numeric",
+                                                    month: "short",
+                                                    year: "numeric",
+                                                })}
+                                        </td>
+
+                                        <CheckUserRole userRole={tasksData.userRole}>
+                                            <td className="py-4 px-6">
+                                                <button
+                                                    onClick={() => handleEdit(task._id)}
+                                                    className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                                                    title="Edit"
+                                                >
+                                                    <Pencil size={16} />
+                                                </button>
+                                            </td>
+                                            <td className="py-4 px-6">
+                                                <button
+                                                    onClick={() => openDeleteModel(task._id, task.name)}
+                                                    className="p-2 rounded-lg text-red-600 hover:text-red-900 hover:bg-red-50 transition-colors"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </td>
+                                        </CheckUserRole>
+
+                                        <td className="py-4 px-6">
+                                            <button
+                                                onClick={() => handleTaskClick(task._id)}
+                                                className="text-gray-400 hover:text-gray-700 transition-colors p-1 rounded hover:bg-gray-100"
+                                                title="View details"
+                                            >
+                                                <MoreHorizontal size={20} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Mobile Cards */}
+                    <div className="lg:hidden space-y-3">
+                        {tasksData.data.map((task) => (
+                            <div
+                                key={task._id}
+                                className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm space-y-3"
+                            >
+                                <div className="flex justify-between items-start">
+                                    <div className="space-y-1">
+                                        <h3 className="font-semibold text-gray-900">{task.taskId}</h3>
+                                        <p className="text-gray-700 text-sm">{task.name}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleTaskClick(task._id)}
+                                        className="text-gray-400 hover:text-gray-700 transition-colors"
+                                    >
+                                        <MoreHorizontal size={20} />
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                    <div>
+                                        <label className="text-gray-500 text-xs">Priority</label>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span
+                                                className={`${getPriorityColor(task.priority)} w-2 h-2 rounded-full`}
+                                            ></span>
+                                            <select
+                                                name="priority"
+                                                value={task.priority}
+                                                onChange={(e) =>
+                                                    handleOptionChange("priority", task._id, e.target.value)
+                                                }
+                                                className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+                                            >
+                                                <option value="urgent">Urgent</option>
+                                                <option value="required">Required</option>
+                                                <option value="completed">Completed</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-gray-500 text-xs">Status</label>
                                         <select
                                             name="status"
                                             value={task.status}
                                             onChange={(e) => handleOptionChange("status", task._id, e.target.value)}
-                                            className="w-full bg-gray-50 px-3 py-2"
+                                            className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm mt-1"
                                         >
                                             <option value="not-started">Not started</option>
                                             <option value="in-progress">In progress</option>
                                             <option value="completed">Completed</option>
                                         </select>
-                                    </td>
-                                    <td className="py-3 px-4">{task.assignee?.email}</td>
-                                    <td className="py-3 px-4">
+                                    </div>
+                                </div>
+
+                                <div className="text-sm space-y-1">
+                                    <p className="text-gray-600">
+                                        <span className="text-gray-500">Assigned to: </span>
+                                        {task.assignee?.email}
+                                    </p>
+                                    <p className="text-gray-600">
+                                        <span className="text-gray-500">Due: </span>
                                         {task.dueDate &&
                                             new Date(task.dueDate).toLocaleDateString("en-GB", {
                                                 day: "numeric",
-                                                month: "long",
+                                                month: "short",
                                                 year: "numeric",
                                             })}
-                                    </td>
-                                    <CheckUserRole userRole={tasksData.userRole}>
-                                        <td className="py-3 px-4">
-                                            <button
-                                                onClick={() => handleEdit(task._id)}
-                                                className="p-2 rounded-md"
-                                                title="Edit"
-                                            >
-                                                <Pencil size={16} />
-                                            </button>
-                                        </td>
-                                        <td className="py-3 px-4">
-                                            <button
-                                                onClick={() => openDeleteModel(task._id, task.name)}
-                                                className="p-2 rounded-md"
-                                                title="Delete"
-                                            >
-                                                <Trash2 size={16} color="red" />
-                                            </button>
-                                        </td>
-                                    </CheckUserRole>
+                                    </p>
+                                </div>
 
-                                    <td
-                                        onClick={() => handleTaskClick(task._id)}
-                                        className="text-zinc-400 hover:text-zinc-900 grid place-items-center cursor-pointer   "
-                                    >
-                                        <MoreHoriz />
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                <CheckUserRole userRole={tasksData.userRole}>
+                                    <div className="flex gap-2 pt-2">
+                                        <button
+                                            onClick={() => handleEdit(task._id)}
+                                            className="flex-1 py-2 px-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => openDeleteModel(task._id, task.name)}
+                                            className="flex-1 py-2 px-3 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                </CheckUserRole>
+                            </div>
+                        ))}
+                    </div>
+                </section>
             ) : (
-                <div className="w-full h-60 flex flex-col gap-2 items-center justify-center">
-                    <p className="">No tasks found!</p>
-                    <p className="text-xl font-semibold">Assign the first Task for this project</p>
+                /* Empty State */
+                <div className="w-full py-16 lg:py-24 flex flex-col gap-4 items-center justify-center text-center bg-gray-50/50 rounded-2xl">
+                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                            />
+                        </svg>
+                    </div>
+                    <div className="space-y-2">
+                        <p className="text-gray-900 font-semibold">No tasks found!</p>
+                        <p className="text-gray-600">Assign the first task for this project</p>
+                    </div>
                     <CheckUserRole userRole={tasksData.userRole}>
                         <button
                             onClick={() => setShowDialog("add")}
-                            className="px-4 py-2 rounded-md text-sm font-medium bg-button text-white"
+                            className="px-6 py-2.5 rounded-lg text-sm font-medium bg-[var(--color-button)] text-white hover:bg-[var(--color-button)]/90 transition-colors shadow-sm"
                         >
                             New Task
                         </button>
                     </CheckUserRole>
                 </div>
             )}
+
             {/* Pagination */}
             {tasksData.data.length > 0 && (
-                <div className="flex justify-end items-center gap-2 mt-4 pr-20">
-                    <button
-                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="px-3 py-1 rounded-md border bg-white text-black disabled:opacity-50"
-                    >
-                        Prev
-                    </button>
+                <section className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-gray-200">
+                    <p className="text-sm text-gray-600">
+                        Showing page {currentPage} of {totalPages}
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                        >
+                            Previous
+                        </button>
 
-                    {paginationButtons}
+                        <div className="flex items-center gap-1">{paginationButtons}</div>
 
-                    <button
-                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                        className="px-3 py-1 rounded-md border bg-white text-black disabled:opacity-50"
-                    >
-                        Next
-                    </button>
-                </div>
-            )}
-            {members.length > 0 && (
-                <div className="mt-6 rounded-lg bg-white">
-                    <div className="px-4 py-3">
-                        <h2 className="text-lg font-semibold text-gray-800">Project Team</h2>
+                        <button
+                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                        >
+                            Next
+                        </button>
                     </div>
-                    <div className="p-4">
+                </section>
+            )}
+
+            {/* Project Team */}
+            {members.length > 0 && (
+                <section className="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-200">
+                        <h2 className="text-lg font-semibold text-gray-900">Project Team</h2>
+                    </div>
+                    <div className="p-6">
                         <div className="flex flex-wrap gap-3">
                             {members.map((member) => (
-                                <Link to={`/viewprofile/${member._id}`} key={member._id}>
-                                    <div
-                                        key={member._id}
-                                        className="flex items-center space-x-3 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100"
-                                    >
+                                <Link to={`/viewprofile/${member._id}`} key={member._id} className="block">
+                                    <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 border border-gray-200 hover:bg-gray-100 transition-colors min-w-0">
                                         <div className="flex-shrink-0">
                                             {member.profilePicture ? (
                                                 <img
                                                     src={member.profilePicture}
                                                     alt={`${member.firstName} ${member.lastName}`}
-                                                    className="w-8 h-8 rounded-full object-cover border border-gray-300"
+                                                    className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
                                                 />
                                             ) : (
-                                                <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center">
-                                                    <span className="text-blue-600 text-sm font-medium">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 border-2 border-white shadow-sm flex items-center justify-center">
+                                                    <span className="text-blue-600 text-sm font-semibold">
                                                         {member.firstName?.[0]}
                                                         {member.lastName?.[0]}
                                                     </span>
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="min-w-0">
+                                        <div className="min-w-0 flex-1">
                                             <p className="text-sm font-medium text-gray-900 truncate">
                                                 {member.firstName} {member.lastName}
                                             </p>
@@ -496,9 +638,10 @@ const TaskTable: React.FC<TaskTableProps> = ({ projectId, page = 1, limit = 10 }
                             ))}
                         </div>
                     </div>
-                </div>
+                </section>
             )}
-            {/* Add/Edit Task Dialog */}
+
+            {/* Dialogs */}
             {showDialog === "add" && <AddTask onClose={closeDialogueBox} member={members} projectId={projectId} />}
             {showDialog === "edit" && (
                 <EditTask onClose={closeDialogueBox} member={members} projectId={projectId} initialData={newTask} />
