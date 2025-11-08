@@ -17,6 +17,7 @@ import Spinner from "../loaders/Spinner";
 import { datePipe } from "../../utils/date";
 import { getUserPublicInfo } from "../../utils/token";
 import TicketDetailsSkeleton from "./TicketSkeleton";
+import ProgressBar from "../ui/ProgessBar";
 interface DetailedTaskViewProps {
   id: string;
 }
@@ -135,6 +136,32 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
             year: "numeric",
           })}
       </p>
+      <br />
+      <div className="space-y-4">
+        <h1 className="sub-heading">Task progress </h1>
+        <p className="text-sm text-zinc-500">
+          Shows the current task progress given by project assignee
+        </p>
+        {data?.ticket?.assignee._id == user?.id && (
+          <div>
+            <label htmlFor="progress-input">Progress percentage</label>
+
+            <div className="flex ">
+              <div className="w-20 mt-2">
+                <input
+                  max={100}
+                  min={0}
+                  type="number"
+                  id="progress-input"
+                  className="w-10 input-field    "
+                />
+              </div>
+              <button className="input-grad-btn ">Push</button>
+            </div>
+          </div>
+        )}
+        <ProgressBar value={40} />
+      </div>
       <br />
       {data?.ticket.assignee && (
         <div className="mt-5">
