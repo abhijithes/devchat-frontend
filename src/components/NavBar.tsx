@@ -84,7 +84,7 @@ const NavBar = () => {
   };
 
   return (
-    <nav className=" backdrop-blur-xs bg-gradient-to-tl from-black/5 to-white/10   border-zinc-200 rounded fixed top-5 right-8 w-full md:w-max z-[45]">
+    <nav className=" backdrop-blur-xs bg-linear-to-tl from-black/5 to-white/10   border-zinc-200 rounded fixed md:top-5 md:right-8 w-full md:w-max z-[45]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex gap-5 justify-between items-center h-14">
           {/* Logo */}
