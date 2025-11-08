@@ -3,7 +3,7 @@ import { Link, Outlet } from "react-router-dom";
 import AddProject from "../components/AddProject";
 import SidebarButtons from "../components/SidebarButtons";
 import { Plus } from "lucide-react";
-import { Close, DocumentScanner, Workspaces, X } from "@mui/icons-material";
+import { Close, DocumentScanner} from "@mui/icons-material";
 
 const TaskLayout: React.FC = () => {
   const [showAddProject, setShowAddProject] = useState(false);
@@ -17,7 +17,6 @@ const TaskLayout: React.FC = () => {
         block: "start", // aligns element to the top of the viewport
         inline: "nearest", // (for horizontal scroll containers)
       });
-      console.log("Scrolled to:", asideRef.current);
     }
   };
 
