@@ -12,7 +12,6 @@ import { Link } from "react-router-dom";
 import CheckUserRole from "../check-user-role/CheckUserRole";
 import { useLoader } from "../../contexts/GlobalLoaderContext";
 import DvcSideBar from "../dvc-side-bar/DvcSideBar";
-import { MoreHoriz } from "@mui/icons-material";
 import DetailedTaskView from "./DetailedTaskView";
 
 interface TaskTableProps {
