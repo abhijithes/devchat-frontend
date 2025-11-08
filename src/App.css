@@ -1,5 +1,5 @@
 /* HTML: <div class="loader"></div> */
-/* From Uiverse.io by anand_4957 */ 
+/* From Uiverse.io by anand_4957 */
 .loader {
   position: absolute;
   top: 50%;
@@ -367,5 +367,22 @@
   }
   100% {
     transform: rotate(0deg);
+  }
+}
+
+.animate-infinite {
+  animation: pulse_inf 2s 1s infinite ease-in-out;
+}
+
+@keyframes pulse_inf {
+  0%,
+  100% {
+    transform: translateX(-5px);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  50% {
+    transform: translateX(-8px);
   }
 }

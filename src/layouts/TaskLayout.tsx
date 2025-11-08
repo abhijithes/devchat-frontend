@@ -1,30 +1,52 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import AddProject from "../components/AddProject";
 import SidebarButtons from "../components/SidebarButtons";
 import { Plus } from "lucide-react";
-import { Close, Workspaces, X } from "@mui/icons-material";
+import { Close, DocumentScanner, Workspaces, X } from "@mui/icons-material";
 
 const TaskLayout: React.FC = () => {
   const [showAddProject, setShowAddProject] = useState(false);
   const [shownProjects, setShownProject] = useState(false);
+  const asideRef = useRef<HTMLDivElement>(null);
+
+  const scrollToAside = () => {
+    if (asideRef.current) {
+      asideRef.current.scrollIntoView({
+        behavior: "smooth", // makes scrolling smooth
+        block: "start", // aligns element to the top of the viewport
+        inline: "nearest", // (for horizontal scroll containers)
+      });
+      console.log("Scrolled to:", asideRef.current);
+    }
+  };
+
+  useEffect(() => {
+    if (shownProjects) {
+      const timeout = setTimeout(() => scrollToAside(), 100);
+      return () => clearTimeout(timeout);
+    }
+  }, [shownProjects]);
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen ">
       {/* Sidebar */}
       <div
         onClick={() => setShownProject((prev) => !prev)}
-        className={`w-10 h-14 ${
-          shownProjects ? "bg-green-500" : "bg-zinc-800"
-        }  rounded-r-2xl flex items-center justify-center md:hidden fixed  left-0  z-50 active:scale-90 transition-all`}
+        className={`w-16 h-16 ${
+          shownProjects ? "bg-green-500" : "bg-zinc-800 "
+        }  rounded-2xl flex items-center justify-center md:hidden fixed  bottom-3 right-3  z-50 active:scale-90 transition-all `}
       >
         {shownProjects ? (
           <Close htmlColor="white" />
         ) : (
-          <Workspaces htmlColor="white" />
+          <div className="w-full h-full centered ">
+            <DocumentScanner htmlColor="white" />
+          </div>
         )}
       </div>
       <aside
+        ref={asideRef}
         className={`
          ${
            shownProjects ? "block" : "hidden"
