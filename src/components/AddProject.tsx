@@ -275,7 +275,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose, initialData }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-40 p-4 ">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-40 p-4 mt-20 md:mt-0 overflow-auto">
             <div className="bg-white w-full max-w-4xl  rounded-xl shadow-xl mt-5 relative p-6 animate-slideIn max-h-[95vh] overflow-y-auto">
                 {/* Close button */}
                 <button
@@ -296,7 +296,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose, initialData }) => {
                 )}
 
                 {/* Project Fields */}
-                <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex flex-col md:flex-row md:gap-6">
                     {/* Left side */}
                     <div className="w-full md:w-1/2">
                         <div className="mb-4">
@@ -502,7 +502,7 @@ const AddProject: React.FC<AddProjectProps> = ({ onClose, initialData }) => {
                         }
                     }}
                     disabled={uploading}
-                    className={`bg-black text-white px-10 py-3 rounded-md w-full transition-all mt-10 ${
+                    className={`bg-black text-white px-10 py-3 rounded-md w-full transition-all md:mt-10 ${
                         uploading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-800"
                     }`}
                 >

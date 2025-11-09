@@ -3,7 +3,7 @@ import { Link, Outlet } from "react-router-dom";
 import AddProject from "../components/AddProject";
 import SidebarButtons from "../components/SidebarButtons";
 import { Plus } from "lucide-react";
-import { Close, DocumentScanner} from "@mui/icons-material";
+import { Close, DocumentScanner } from "@mui/icons-material";
 
 const TaskLayout: React.FC = () => {
   const [showAddProject, setShowAddProject] = useState(false);

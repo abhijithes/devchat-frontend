@@ -11,11 +11,7 @@ const ViewTickets: React.FC = () => {
       <div className="p-6 text-red-500 font-semibold">Invalid project ID</div>
     );
 
-  return (
-    <div className="p-6">
-      <TaskTable projectId={projectId} />
-    </div>
-  );
+  return <TaskTable projectId={projectId} />;
 };
 
 export default ViewTickets;

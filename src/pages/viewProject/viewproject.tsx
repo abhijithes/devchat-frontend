@@ -466,7 +466,7 @@ export const Viewproject = () => {
                         onClose={() => {
                             setShowDialogue("");
                         }}
-                        className="w-[40vw]"
+                        className="lg:w-[40vw]"
                     >
                         <AddUser
                             projectid={id}
