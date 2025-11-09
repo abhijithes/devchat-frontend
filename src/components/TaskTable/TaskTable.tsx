@@ -377,7 +377,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
             <CheckUserRole userRole={tasksData.userRole}>
               <button
                 onClick={() => setShowDialog("add")}
-                className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--color-button)] text-white hover:bg-[var(--color-button)]/90 transition-colors shadow-sm"
+                className=" input-grad-btn text-sm "
               >
                 New Task
               </button>
