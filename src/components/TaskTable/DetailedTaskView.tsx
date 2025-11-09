@@ -125,22 +125,6 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
     mutationFn: () => postProgressStatus(id, progress),
   });
 
-  const handleSubmitProgessPercentage = async () => {
-    setLoading(true);
-    const res = await postProgressStatus(id, progress);
-    setLoading(false);
-    if (res.status === 200) {
-      queryClient.invalidateQueries({ queryKey: ["taskDetails", id] });
-      showSnackBar("Progress updated successfully", "success", 2000);
-    } else {
-      showSnackBar(
-        res.data?.message || "Failed to update progress",
-        "error",
-        2000
-      );
-    }
-  };
-
   if (isLoading) {
     return <TicketDetailsSkeleton />;
   }
