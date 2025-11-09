@@ -4,18 +4,15 @@ import { useParams } from "react-router-dom";
 import TaskTable from "../../components/TaskTable/TaskTable";
 
 const ViewTickets: React.FC = () => {
-  const { projectId } = useParams<{ projectId: string }>();
+    const { projectId } = useParams<{ projectId: string }>();
 
-  if (!projectId)
+    if (!projectId) return <div className="p-6 text-red-500 font-semibold">Invalid project ID</div>;
+
     return (
-      <div className="p-6 text-red-500 font-semibold">Invalid project ID</div>
+        <div className="md:p-6">
+            <TaskTable projectId={projectId} />
+        </div>
     );
-
-  return (
-    <div className="p-6">
-      <TaskTable projectId={projectId} />
-    </div>
-  );
 };
 
 export default ViewTickets;
