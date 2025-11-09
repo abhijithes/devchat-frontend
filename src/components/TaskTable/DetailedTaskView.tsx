@@ -12,7 +12,7 @@ import {
   postComment,
 } from "./services/task-detail-service";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
-import { Delete, EditDocument } from "@mui/icons-material";
+import { Delete, EditDocument, Task } from "@mui/icons-material";
 import Spinner from "../loaders/Spinner";
 import { datePipe } from "../../utils/date";
 import { getUserPublicInfo } from "../../utils/token";
@@ -31,6 +31,7 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
   const [isCommentShow, setIsCommentShown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedComment, setSelectedComment] = useState<any>();
+  const [progress, setProgress] = useState(0);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   const { showSnackBar } = useSnackBar();
@@ -105,6 +106,11 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
     }
   };
 
+  const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Math.max(0, Math.min(100, Number(e.target.value)));
+    setProgress(value);
+  };
+
   if (isLoading) {
     return <TicketDetailsSkeleton />;
   }
@@ -142,25 +148,34 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
         <p className="text-sm text-zinc-500">
           Shows the current task progress given by project assignee
         </p>
+        {progress || data?.ticket?.status != "not-started" ? (
+          <ProgressBar
+            value={data?.ticket?.status === "completed" ? 100 : progress}
+          />
+        ) : (
+          <p className="text-red-600">Not started</p>
+        )}
         {data?.ticket?.assignee._id == user?.id && (
           <div>
             <label htmlFor="progress-input">Progress percentage</label>
 
-            <div className="flex ">
-              <div className="w-20 mt-2">
+            <div className="mt-3 flex gap-3 items-center ">
+              <div className="w-20  ">
                 <input
+                  onChange={handleProgressChange}
                   max={100}
                   min={0}
                   type="number"
                   id="progress-input"
-                  className="w-10 input-field    "
+                  className="w-10 input-field  "
                 />
               </div>
-              <button className="input-grad-btn ">Push</button>
+              <button className="input-grad-btn" title="Saves progress">
+                Push
+              </button>
             </div>
           </div>
         )}
-        <ProgressBar value={40} />
       </div>
       <br />
       {data?.ticket.assignee && (
@@ -242,7 +257,11 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
               key={_index}
             >
               <div className="w-full  h-full p-3 flex gap-3 hover:bg-zinc-100">
-                {data?.creator && <UserIcon user={data?.creator} />}
+                {data?.creator && (
+                  <div className="w-10 h-10">
+                    <UserIcon user={data?.creator} />
+                  </div>
+                )}
                 <div className="w-full">
                   <div className="flex gap-2 items-center justify-between">
                     <p className="text-zinc-700">{data?.creator?.firstName}</p>

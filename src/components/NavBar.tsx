@@ -7,7 +7,7 @@ import {
 } from "@mui/icons-material";
 import { MenuIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getToken, getUserPublicInfo, removeToken } from "../utils/token";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSnackBar } from "./snack-bar/snack-bar-context";
@@ -36,7 +36,6 @@ const NavBar = () => {
 
   const navigation = useNavigate();
   const queryClient = useQueryClient();
-  const { pathname } = useLocation();
   const { showSnackBar } = useSnackBar();
 
   const toggleMenu = () => setIsOpen(!isOpen);
@@ -91,18 +90,16 @@ const NavBar = () => {
           </Link>
 
           {/* navigation arrows */}
-          {pathname.split("/").filter((p) => p).length > 1 && (
-            <div className="flex items-center gap-4">
-              <KeyboardArrowLeft
-                onClick={() => navigation(-1)}
-                className="h-6 w-6 text-gray-600 cursor-pointer"
-              />
-              <KeyboardArrowRight
-                onClick={() => navigation(1)}
-                className="h-6 w-6 text-gray-600 cursor-pointer"
-              />
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            <KeyboardArrowLeft
+              onClick={() => navigation(-1)}
+              className="h-6 w-6 text-gray-600 cursor-pointer"
+            />
+            <KeyboardArrowRight
+              onClick={() => navigation(1)}
+              className="h-6 w-6 text-gray-600 cursor-pointer"
+            />
+          </div>
 
           {/* Desktop Menu */}
           <ul className="hidden md:flex space-x-6 items-center">

@@ -412,7 +412,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
       {tasksData.data.length > 0 ? (
         <section className=" mt-6">
           {/* Desktop Table */}
-          <div className="hidden lg:block  rounded-xl border border-gray-200 shadow-sm">
+          <div className="hidden lg:block  rounded-xl border border-gray-200 ">
             <table className="w-full  border-collapse">
               <thead className="bg-gray-50/80 backdrop-blur-sm">
                 <tr>
@@ -534,7 +534,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
             {tasksData.data.map((task) => (
               <div
                 key={task._id}
-                className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm space-y-3"
+                className="bg-white border border-gray-200 rounded-xl p-4  space-y-3"
               >
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
@@ -659,7 +659,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
           <CheckUserRole userRole={tasksData.userRole}>
             <button
               onClick={() => setShowDialog("add")}
-              className="px-6 py-2.5 rounded-lg text-sm font-medium bg-[var(--color-button)] text-white hover:bg-[var(--color-button)]/90 transition-colors shadow-sm"
+              className="px-6 py-2.5 rounded-lg text-sm font-medium bg-[var(--color-button)] text-white hover:bg-[var(--color-button)]/90 transition-colors "
             >
               New Task
             </button>
@@ -699,7 +699,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
 
       {/* Project Team */}
       {members.length > 0 && (
-        <section className="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
+        <section className="rounded-2xl bg-white border border-gray-200  overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">
               Project Team
@@ -719,10 +719,10 @@ const TaskTable: React.FC<TaskTableProps> = ({
                         <img
                           src={member.profilePicture}
                           alt={`${member.firstName} ${member.lastName}`}
-                          className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                          className="w-10 h-10 rounded-full object-cover border-2 border-white "
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 border-2 border-white shadow-sm flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 border-2 border-white  flex items-center justify-center">
                           <span className="text-blue-600 text-sm font-semibold">
                             {member.firstName?.[0]}
                             {member.lastName?.[0]}

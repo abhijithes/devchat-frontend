@@ -10,7 +10,7 @@ import { io, type Socket } from "socket.io-client";
 import { endpoints, socket_url } from "../constant/constant";
 import { useSnackBar } from "../components/snack-bar/snack-bar-context";
 import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   NotifationSoundOne,
   NotificationSounds,
@@ -52,6 +52,7 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [read, setRead] = useState(false);
   const { showSnackBar } = useSnackBar();
+  const queryClient = useQueryClient();
 
   const audioRef = useRef(new Audio(NotifationSoundOne));
 
@@ -152,6 +153,8 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
           },
           data.navigationPath
         );
+        if (data.data.message.includes("task"))
+          queryClient.invalidateQueries({ queryKey: ["taskDetails"] });
       }
     );
 
