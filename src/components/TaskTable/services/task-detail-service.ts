@@ -56,6 +56,7 @@ export const deleteComment = async (taskId, commentId) => {
 };
 
 export const postProgressStatus = async (taskId, progressPercentage) => {
+  
   try {
     const response = await axios.patch(
       endpoints.setTaskProgressStatus(taskId),

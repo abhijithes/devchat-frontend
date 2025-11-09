@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { endpoints } from "../../constant/constant";
 import api from "../../utils/axios";
 import UserIcon from "../userIcon/usericon";
@@ -120,6 +120,11 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
     setProgress(value);
   };
 
+  const { isPending, mutate } = useMutation({
+    mutationKey: ["setProgress", id],
+    mutationFn: () => postProgressStatus(id, progress),
+  });
+
   const handleSubmitProgessPercentage = async () => {
     setLoading(true);
     const res = await postProgressStatus(id, progress);
@@ -197,12 +202,12 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
                 />
               </div>
               <button
-                onClick={handleSubmitProgessPercentage}
-                className="input-grad-btn disabled:opacity-40 disabled:!cursor-not-allowed"
+                onClick={() => mutate()}
+                className="input-grad-btn grid place-items-center-safe disabled:opacity-40 disabled:!cursor-not-allowed"
                 title="Saves progress"
                 disabled={!progress}
               >
-                Push
+                {isPending ? <Spinner /> : "Push"}
               </button>
             </div>
           </div>
