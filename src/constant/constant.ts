@@ -55,6 +55,8 @@ export const endpoints = {
     `${current_url}/tickets/projects/${projectId}/tasks/${taskId}`,
   getTaskPreview: (projectId) =>
     `${current_url}/tickets/projects/${projectId}/tasks/preview`,
+  setTaskProgressStatus: (taskId) =>
+    `${current_url}/tickets/task/${taskId}/progressPercentage`,
 
   getTaskData: (id) => `${current_url}/tickets/projects/task/${id}`,
   UpdateTaskData: (id) => `${current_url}/tickets/task/${id}/edit-doc-desc`,

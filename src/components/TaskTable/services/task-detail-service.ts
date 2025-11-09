@@ -9,13 +9,12 @@ export const generalHeader = {
   },
 };
 
-export const postComment = async (postId, commentText, ) => {
+export const postComment = async (postId, commentText) => {
   try {
     const response = await axios.post(
       endpoints.addComment(postId),
       {
         commentContent: commentText,
-        
       },
       generalHeader
     );
@@ -48,6 +47,21 @@ export const deleteComment = async (taskId, commentId) => {
   try {
     const response = await axios.delete(
       endpoints.deleteComment(taskId, commentId),
+      generalHeader
+    );
+    return response;
+  } catch (error) {
+    return error.response || { status: 500, data: { message: "Server error" } };
+  }
+};
+
+export const postProgressStatus = async (taskId, progressPercentage) => {
+  try {
+    const response = await axios.patch(
+      endpoints.setTaskProgressStatus(taskId),
+      {
+        progressPercentage: progressPercentage,
+      },
       generalHeader
     );
     return response;
