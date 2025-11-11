@@ -296,7 +296,7 @@ export default function Profile() {
 
     return (
         <div>
-            <div className="w-full  mx-auto ">
+            <div className="w-full mx-auto ">
                 {/* Profile Header */}
                 <div className="bg-gradient-to-l from-zinc-50 to-white rounded-t-2xl border border-b-0 border-gray-100 p-3 md:p-8">
                     <div className="flex flex-col md:flex-row items-center gap-8">
@@ -401,7 +401,7 @@ export default function Profile() {
                         </div>
                     </div>
 
-                    <div className="space-y-3 md:space-y-6">
+                    <div className="space-y-3 md:space-y-6 max-w-full">
                         {/* First Name */}
                         <div className="flex flex-col sm:flex-row sm:items-center md:gap-4 p-4 rounded-xl border border-zinc-200 transition-colors duration-200 max-w-full">
                             <label className="text-base md:text-lg font-semibold text-gray-700 sm:min-w-[120px]">
