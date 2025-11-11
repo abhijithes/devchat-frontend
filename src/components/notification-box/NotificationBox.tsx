@@ -8,7 +8,7 @@ import { useState } from "react";
 import "./styles.css";
 import Spinner from "../loaders/Spinner";
 import UserIcon from "../userIcon/usericon";
-import { CheckBox, Delete } from "@mui/icons-material";
+import { Delete } from "@mui/icons-material";
 import DeleteConfirmation from "../Conformation/DeleteConformation";
 import { deleteBulkNotifications } from "./notification-service";
 import { useNavigate } from "react-router-dom";
