@@ -229,11 +229,10 @@ const NotificationBox = ({ style, ref, opened, closeNotificationBox }: Notificat
                                     >
                                         <div className="flex items-center justify-end">
                                             {state.text === "select" && (
-                                                <input
-                                                    type="checkbox"
+                                                <DvcCheckBox
                                                     checked={selectedNotifications.includes(notification._id)}
-                                                    onChange={(e) =>
-                                                        handleSelectComment(notification._id, e.target.checked)
+                                                    onChange={(_value, checked) =>
+                                                        handleSelectComment(notification._id, checked)
                                                     }
                                                 />
                                             )}

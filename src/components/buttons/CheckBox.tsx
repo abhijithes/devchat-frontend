@@ -40,7 +40,7 @@ const DvcCheckBox: React.FC<DvcCheckBoxProps> = ({
         className={`relative w-5 h-5 flex items-center justify-center rounded-md border-2 transition-all duration-200 
         ${
           status
-            ? "bg-green-600 border-green-600"
+            ? "bg-linear-to-tr from-cyan-300 to-blue-700 border-blue-600"
             : "border-gray-400 hover:border-zinc-700"
         }
         `}
