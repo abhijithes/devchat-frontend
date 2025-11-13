@@ -353,7 +353,7 @@ export default function Profile() {
 
                 {/* view in public mode */}
                 <div className="p-5 px-8 border border-zinc-100 space-y-3 group ">
-                    {/* <h1 className="text-lg font-semibold">View your public profile</h1> */}
+                    {/* <h1 className="text-lg font-semibold">View your public profile</h1>   */}
                     <Link
                         className=" w-max flex gap-2 items-center  text-cliped-gradient-blue  "
                         to={`/viewprofile/${user._id}/?isViewMode=true`}
