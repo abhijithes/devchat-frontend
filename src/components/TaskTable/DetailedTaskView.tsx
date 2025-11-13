@@ -151,7 +151,9 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
             <div className="flex items-top gap-3 mt-4">
                 <textarea
                     ref={descriptionRef}
-                    className="flex-1 resize-none mt-2 text-zinc-500 h-auto w-[90%] py-2 px-3 focus:border border-zinc-300 rounded-md outline-none"
+                    className={`flex-1 mt-2 text-zinc-500 h-auto w-[90%] py-2 px-3 focus:border border-zinc-300 rounded-md outline-none ${
+                        focusDescription ? "" : "resize-none"
+                    }`}
                     value={description || data?.ticket.taskDescription}
                     onChange={(e) => setDescription(e.target.value)}
                     disabled={!focusDescription}
@@ -256,18 +258,19 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
             )}
             <br />
             <h1 className="sub-heading ">Documents and files attached</h1>
-            <div className="w-full min-h-40 bg-zinc-50 mt-5 rounded-2xl grid place-items-center">
+            <div className="w-full min-h-40 bg-zinc-50 mt-5 rounded-2xl grid place-items-center p-3">
                 {data?.ticket?.documents ? (
                     <ProjectDocuments
                         documents={data.ticket.documents}
                         id={data.ticket._id}
                         refetch={() => queryClient.invalidateQueries({ queryKey: ["taskDetails", id] })}
                         type="ticket"
+                        className="grid-cols-1 md:grid-cols-2"
                     />
                 ) : (
                     <span className="null-value-text">No docs found!</span>
                 )}
-                <div className="flex w-full justify-start">
+                <div className="mt-2 flex w-full justify-start">
                     <UploadButton onUploadComplete={handleAddDocument} type="ticket" ticketId={data?.ticket?._id} />
                 </div>
             </div>

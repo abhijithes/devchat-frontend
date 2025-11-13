@@ -111,7 +111,7 @@ const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", 
 
     return (
         <div className={className}>
-            <div className={`  grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4`}>
+            <div className={`grid gap-4 ${className}`}>
                 {documents.map((doc) => (
                     <div
                         key={doc.fileName}
@@ -146,7 +146,7 @@ const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", 
                                 </div>
                             </div>
                             <button
-                                className=" text-xs text-black hover:text-red-500 cursor-pointer invisible group-hover:visible transition-opacity"
+                                className=" text-xs text-black hover:text-red-500 cursor-pointer md:invisible group-hover:visible transition-opacity"
                                 onClick={() => handedeletemodalopen(doc._id)}
                             >
                                 Delete
