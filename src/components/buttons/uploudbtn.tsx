@@ -7,6 +7,8 @@ import { useSnackBar } from "../snack-bar/snack-bar-context";
 
 interface UploadButtonProps {
     onUploadComplete: (file: UploadedFile | UploadedFile[]) => void;
+    type?: "project" | "ticket" | "";
+    ticketId?: string;
 }
 
 interface UploadedFile {
@@ -22,7 +24,7 @@ interface CloudinaryResponse {
     originalName?: string;
 }
 
-const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
+const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete, type = "project", ticketId }) => {
     const { id } = useParams<{ id: string }>();
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<(string | null)[]>([]);
@@ -71,15 +73,23 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
                 originalName: file.originalName,
                 fileUrl: file.url,
             }));
+            console.log("Uploading to database:", uploadedDocuments);
 
-            const response = await fetch(endpoints.addDoc(id), {
-                method: "PATCH",
-                body: JSON.stringify(uploadedDocuments),
-                headers: {
-                    "content-type": "application/json",
-                    authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-                },
-            });
+            const response = await fetch(
+                type === "project"
+                    ? endpoints.addDoc(id)
+                    : type === "ticket"
+                    ? endpoints.AddTaskDocument(ticketId)
+                    : "",
+                {
+                    method: "PATCH",
+                    body: JSON.stringify(uploadedDocuments),
+                    headers: {
+                        "content-type": "application/json",
+                        authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                    },
+                }
+            );
 
             if (!response.ok) {
                 throw new Error("Failed to upload file to database");
@@ -91,7 +101,7 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
         },
         onSuccess: () => {
             // Invalidate relevant queries if needed
-            queryClient.invalidateQueries({ queryKey: ["documents"] });
+            queryClient.invalidateQueries({ queryKey: ["project", id] });
         },
     });
 
@@ -100,6 +110,7 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadComplete }) => {
         mutationFn: async (files: File[]) => {
             // First upload to Cloudinary
             const cloudinaryResponse = await uploadToCloudinaryMutation.mutateAsync(files);
+            console.log("Cloudinary response:", cloudinaryResponse);
 
             // Then upload to database
             await uploadToDatabaseMutation.mutateAsync(cloudinaryResponse);

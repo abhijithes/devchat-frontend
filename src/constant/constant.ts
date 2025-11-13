@@ -59,7 +59,10 @@ export const endpoints = {
     `${current_url}/tickets/task/${taskId}/progressPercentage`,
 
   getTaskData: (id) => `${current_url}/tickets/projects/task/${id}`,
-  UpdateTaskData: (id) => `${current_url}/tickets/task/${id}/edit-doc-desc`,
+  UpdateTaskDescriptions: (id) => `${current_url}/tickets/task/${id}/editDescription`,
+  AddTaskDocument: (id) => `${current_url}/tickets/task/${id}/adddocument`,
+  deleteTicketDoc: (ticketId, docId) => `${current_url}/tickets/task/${ticketId}/deletedocument/${docId}`,
+
   addComment: (id) => `${current_url}/tickets/task/${id}/comments`,
   editComment: (taskId, commentId) =>
     `${current_url}/tickets/task/${taskId}/comments/${commentId}`,

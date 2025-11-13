@@ -343,7 +343,7 @@ export const Viewproject = () => {
                 <ProjectDocuments
                     documents={project.documents}
                     className="w-full my-6"
-                    ProjectId={project._id}
+                    id={project._id}
                     refetch={refetch}
                     maxColumns={4}
                 />

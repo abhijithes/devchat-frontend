@@ -14,11 +14,12 @@ interface DocumentProps {
     documents?: Document[];
     className?: string;
     maxColumns?: number;
-    ProjectId?: String;
+    id?: String;
     refetch: () => void;
+    type?: "project" | "ticket";
 }
 
-const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", ProjectId, refetch }) => {
+const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", id, refetch, type = "project" }) => {
     const [deleteConformationOpen, setDeleteConformationOpen] = useState(false);
     const [deleteFileID, setDeleteFileId] = useState<String | null>();
     const [isDeleting, setIsDeleting] = useState(false);
@@ -39,10 +40,15 @@ const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", 
             if (!deleteFileID) return;
             setIsDeleting(true);
 
-            const res = await fetch(endpoints.deleteDoc(ProjectId, deleteFileID), {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            });
+            const res = await fetch(
+                type === "project"
+                    ? endpoints.deleteDoc(id, deleteFileID)
+                    : endpoints.deleteTicketDoc(id, deleteFileID),
+                {
+                    method: "DELETE",
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                }
+            );
             if (!res.ok) throw new Error("Failed to delete document");
             refetch();
             handleClose();
