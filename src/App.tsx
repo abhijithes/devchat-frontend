@@ -19,6 +19,7 @@ import { SocketBaseProvider } from "./contexts/SocketBaseContext";
 import AppLayout from "./layouts/AppLayout";
 import NoProjectSelected from "./pages/NoProjects";
 import UserSettingsPage from "./pages/user-settings/UserSettingsPage";
+import ChatWindow from "./pages/chats-window/ChatWindow";
 
 const App: React.FC = () => {
   return (
@@ -47,7 +48,7 @@ const App: React.FC = () => {
               </Route>
               {/* Chat Layout :- All routes under Chat Section */}
               <Route element={<ChatLayout />}>
-                <Route path="/chat" element={<Start />} />
+                <Route path="/chat" element={<ChatWindow />} />
               </Route>
             </Route>
           </Routes>

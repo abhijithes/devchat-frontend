@@ -22,7 +22,7 @@ const ChatLayout: React.FC = () => {
       </aside>
 
       {/* Chat Content */}
-      <main className="h-screen flex-1 bg-white p-6 pt-3 pb-3 overflow-y-auto">
+      <main className="h-screen flex-1 bg-white p-6 pt-24 pb-3 overflow-y-auto">
         <Outlet />
       </main>
 
