@@ -125,6 +125,10 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
 
     const handleDiscriptionEdit = () => {
         const newDescription = descriptionRef.current?.value || "";
+        if (newDescription === "") {
+            showSnackBar("Description Cannot be empty!", "info", 3000);
+            return;
+        }
         editDescription.mutate(newDescription);
     };
 
@@ -154,7 +158,8 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
                     className={`flex-1 mt-2 text-zinc-500 h-auto w-[90%] py-2 px-3 focus:border border-zinc-300 rounded-md outline-none ${
                         focusDescription ? "" : "resize-none"
                     }`}
-                    value={description || data?.ticket.taskDescription}
+                    defaultValue={data?.ticket.taskDescription}
+                    value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     disabled={!focusDescription}
                 ></textarea>
