@@ -4,7 +4,7 @@ import api from "../../utils/axios";
 import UserIcon from "../userIcon/usericon";
 import type { DetailedTaskViewType } from "./TaskTypes";
 import { getPriorityColor } from "./TaskTable";
-import { EditIcon, Pencil, X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { deleteComment, editComment, postComment, postProgressStatus } from "./services/task-detail-service";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
