@@ -1,5 +1,11 @@
 import { X } from "lucide-react";
-import { useEffect, useRef, useCallback, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useCallback,
+  type ReactNode,
+  useState,
+} from "react";
 
 interface DvcComponentProps {
   title?: string;
@@ -16,6 +22,8 @@ const DvcSideBar = ({
   title,
 }: DvcComponentProps) => {
   const asideViewRef = useRef<HTMLDivElement>(null);
+  const resizeRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleClickOutside = useCallback(
     (event: MouseEvent) => {
@@ -32,7 +40,7 @@ const DvcSideBar = ({
   useEffect(() => {
     if (!active) return;
 
-    // 🧠 Delay adding the listener to skip the click that triggered the sidebar
+    //  Delay adding the listener to skip the click that triggered the sidebar
     const timer = setTimeout(() => {
       document.addEventListener("mousedown", handleClickOutside);
     }, 150);
@@ -54,13 +62,40 @@ const DvcSideBar = ({
       });
     };
   }, []);
+
+  resizeRef.current?.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  });
+
+  //! mouse move for resizing sidebar
+  useEffect(() => {
+    const hanldeMouseMove = (e: MouseEvent) => {
+      const newWidth = window.innerWidth - e.clientX;
+      asideViewRef.current.style.width = `${newWidth}px`;
+    };
+
+    if (isDragging) document.addEventListener("mousemove", hanldeMouseMove);
+
+    document.addEventListener("mouseup", () => {
+      setIsDragging(false);
+      document.removeEventListener("mousemove", hanldeMouseMove);
+    });
+  }, [isDragging]);
+
+  console.log(isDragging);
+
   return (
     <div
       ref={asideViewRef}
-      className={`w-full md:w-[40vw] h-screen bg-white shadow-2xl py-8 fixed top-0 
+      className={`w-full md:min-w-[40vw] md:w-[40vw] h-screen bg-white shadow-2xl py-8 fixed top-0 
         ${active ? "right-0" : "-right-full"} 
-        z-[999] transition-all duration-600`}
+        z-[999] ${isDragging ? "" : "transition-all duration-600"} `}
     >
+      <div
+        ref={resizeRef}
+        className="w-[2px] h-full absolute left-0 border-l border-dotted border-zinc-300 hover:border-zinc-500 cursor-e-resize  "
+      ></div>
       <div className="flex items-center justify-between border-b border-zinc-200 px-8 pb-3">
         <h1 className="text-lg md:text-2xl font-semibold">
           {title || "Dev chats"}
