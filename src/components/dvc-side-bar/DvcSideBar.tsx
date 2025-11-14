@@ -88,13 +88,13 @@ const DvcSideBar = ({
   return (
     <div
       ref={asideViewRef}
-      className={`w-full md:min-w-[40vw] md:w-[40vw] h-screen bg-white shadow-2xl py-8 fixed top-0 
+      className={`w-full md:min-w-[25vw] md:w-[40vw] h-screen bg-white shadow-2xl py-8 fixed top-0 
         ${active ? "right-0" : "-right-full"} 
         z-[999] ${isDragging ? "" : "transition-all duration-600"} `}
     >
       <div
         ref={resizeRef}
-        className="w-[2px] h-full absolute left-0 border-l border-dotted border-zinc-300 hover:border-zinc-500 cursor-e-resize  "
+        className="w-[2px] h-full absolute left-0 border-l-2 border-dotted border-zinc-300 hover:border-zinc-500 cursor-e-resize  "
       ></div>
       <div className="flex items-center justify-between border-b border-zinc-200 px-8 pb-3">
         <h1 className="text-lg md:text-2xl font-semibold">
