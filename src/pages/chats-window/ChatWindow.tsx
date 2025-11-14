@@ -1,19 +1,13 @@
 import messages, { type Message } from "../../constant/messages";
+import MessageBox from "../../components/chats/MessageBox";
 
 const ChatWindow = () => {
   return (
-    <section className="w-full h-full p-5   overflow-auto flex flex-col ">
-      <h1 className="sub-heading">Devchats</h1>
-      <div>
+    <section className="w-full h-full     overflow-auto flex flex-col ">
+      <h1 className="sub-heading mb-5">Devchats</h1>
+      <div className="w-full h-full pr-5  overflow-auto flex flex-col pb-10">
         {messages.map((msg: Message) => (
-          <div key={msg._id} className="mb-4">
-            <div className="bg-gray-200 p-4 rounded-lg max-w-lg">
-              <p className="text-gray-800">{msg.content}</p>
-            </div>
-            <span className="text-sm text-gray-500">
-              {new Date(msg.createdAt).toLocaleString()}
-            </span>
-          </div>
+          <MessageBox key={msg._id} {...msg} />
         ))}
       </div>
     </section>

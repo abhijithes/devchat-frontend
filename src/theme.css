@@ -91,3 +91,7 @@
 .shadow-top {
   box-shadow: 0px -5px 20px rgba(0, 0, 0, 0.16);
 }
+
+.icon-hover {
+  @apply p-2 rounded-full hover:bg-zinc-200 transition-transform cursor-pointer;
+}
