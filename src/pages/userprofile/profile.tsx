@@ -542,11 +542,7 @@ export default function Profile() {
                                                 value={social.field}
                                                 onChange={handleEdit}
                                                 placeholder="Platform (e.g., LinkedIn)"
-                                                className={`max-w-full bg-transparent text-lg outline-none transition-all duration-200 ${
-                                                    editableFields.socials
-                                                        ? "border-b-2 border-blue-500 pb-1"
-                                                        : "border-b border-transparent"
-                                                }`}
+                                                className={`w-full bg-transparent text-lg outline-none transition-all duration-200 font-medium`}
                                                 disabled={!editableFields.socials || updateProfileMutation.isPending}
                                             />
                                             <input
@@ -562,13 +558,15 @@ export default function Profile() {
                                                 }`}
                                                 disabled={!editableFields.socials || updateProfileMutation.isPending}
                                             />
-                                            <button
-                                                onClick={() => handleRemoveSocial(index)}
-                                                disabled={!editableFields.socials || updateProfileMutation.isPending}
-                                                className="absolute top-0 right-2 p-2 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition-colors duration-200"
-                                            >
-                                                <X />
-                                            </button>
+                                            {editableFields.socials && (
+                                                <button
+                                                    onClick={() => handleRemoveSocial(index)}
+                                                    disabled={updateProfileMutation.isPending}
+                                                    className="absolute top-0 right-2 p-2 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition-colors duration-200"
+                                                >
+                                                    <X />
+                                                </button>
+                                            )}
                                         </div>
                                     ))
                                 ) : (

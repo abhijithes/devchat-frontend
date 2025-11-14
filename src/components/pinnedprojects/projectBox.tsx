@@ -18,7 +18,9 @@ export const ProjectBox = ({
     };
     return (
         <div
-            className="project-box m-2 p-3 py-4 bg-white border border-zinc-200 hover:border-zinc-400 rounded-sm "
+            className={`project-box m-2 p-3 py-4 bg-white border border-zinc-200 hover:border-zinc-400 rounded-sm ${
+                isDragging ? "z-99" : ""
+            }`}
             ref={setNodeRef}
             style={style}
         >

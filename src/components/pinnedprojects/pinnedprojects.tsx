@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { SearchProjects } from "../SearchProjects/SearchProjects";
 import { ProjectBox } from "./projectBox";
 import { arrayMove, rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
-import { closestCorners, DndContext, type DragEndEvent } from "@dnd-kit/core";
+import { closestCorners, DndContext, type DragEndEvent, useSensor, useSensors, TouchSensor } from "@dnd-kit/core";
 import { endpoints } from "../../constant/constant";
 import axios from "axios";
 import { ArrowUpDown } from "lucide-react";
