@@ -2,7 +2,15 @@ import { useEffect, useState } from "react";
 import { SearchProjects } from "../SearchProjects/SearchProjects";
 import { ProjectBox } from "./projectBox";
 import { arrayMove, rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
-import { closestCorners, DndContext, type DragEndEvent, useSensor, useSensors, TouchSensor } from "@dnd-kit/core";
+import {
+    closestCorners,
+    DndContext,
+    type DragEndEvent,
+    useSensor,
+    useSensors,
+    TouchSensor,
+    MouseSensor,
+} from "@dnd-kit/core";
 import { endpoints } from "../../constant/constant";
 import axios from "axios";
 import { ArrowUpDown } from "lucide-react";
@@ -90,6 +98,17 @@ export const Pinnedprojects = ({ user, handleChange }: { user: UserProjectsType;
         // await handleChange();
         return res.data;
     };
+
+    const sensors = useSensors(
+        useSensor(MouseSensor),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 100,
+                tolerance: 5,
+            },
+        })
+    );
+
     const refetch = () => {
         handleChange();
     };
@@ -111,7 +130,7 @@ export const Pinnedprojects = ({ user, handleChange }: { user: UserProjectsType;
                 {(pins.length ?? 0) === 0 ? (
                     <p>No Pinned Projects</p>
                 ) : (
-                    <DndContext onDragEnd={handleDrahend} collisionDetection={closestCorners}>
+                    <DndContext sensors={sensors} onDragEnd={handleDrahend} collisionDetection={closestCorners}>
                         <div className="w-full h-full grid grid-cols-1 md:grid-cols-2 gap-2">
                             <SortableContext
                                 items={pins.map((p) => String(p.project._id))}
