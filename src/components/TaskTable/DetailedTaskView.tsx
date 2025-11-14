@@ -4,7 +4,7 @@ import api from "../../utils/axios";
 import UserIcon from "../userIcon/usericon";
 import type { DetailedTaskViewType } from "./TaskTypes";
 import { getPriorityColor } from "./TaskTable";
-import { EditIcon, Pencil, X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { deleteComment, editComment, postComment, postProgressStatus } from "./services/task-detail-service";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
@@ -46,8 +46,9 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
     });
 
     useEffect(() => {
-        if (data?.ticket?.progressPercentage) {
-            setProgress(data.ticket.progressPercentage);
+        if (data?.ticket) {
+            setProgress(data.ticket.progressPercentage || 0);
+            setDescription(data.ticket.taskDescription);
         } else {
             setProgress(0);
         }
@@ -125,6 +126,10 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
 
     const handleDiscriptionEdit = () => {
         const newDescription = descriptionRef.current?.value || "";
+        if (newDescription === "") {
+            showSnackBar("Description Cannot be empty!", "info", 3000);
+            return;
+        }
         editDescription.mutate(newDescription);
     };
 
@@ -154,7 +159,7 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
                     className={`flex-1 mt-2 text-zinc-500 h-auto w-[90%] py-2 px-3 focus:border border-zinc-300 rounded-md outline-none ${
                         focusDescription ? "" : "resize-none"
                     }`}
-                    value={description || data?.ticket.taskDescription}
+                    value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     disabled={!focusDescription}
                 ></textarea>
@@ -370,7 +375,7 @@ export const CommentForm: React.FC<{
 
     return (
         <div
-            className={`w-full min-h-[55vh]  md:min-h-80 bg-white  p-3 flex flex-col gap-3 items-start rounded-t-3xl shadow-top shadow-black  border border-zinc-200 absolute ${
+            className={` w-full min-h-[55vh]  md:min-h-80 bg-white  p-3 flex flex-col gap-3 items-start rounded-t-3xl shadow-top shadow-black  border border-zinc-200 absolute ${
                 isVisible ? " bottom-0" : "-bottom-full"
             }   left-0 z-999  overflow-auto transition-all duration-400`}
         >
