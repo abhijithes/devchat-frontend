@@ -95,7 +95,7 @@ export const Pinnedprojects = ({ user, handleChange }: { user: UserProjectsType;
     };
 
     return (
-        <div className="pinned-projects w-full p-3 mx-auto  border border-zinc-100 mt-3  rounded ">
+        <div className="pinned-projects w-full p-3 mx-auto  border border-zinc-100 mt-3 rounded ">
             <div className="flex justify-between items-end px-2 ">
                 <h4 className="text-lg md:text-2xl">Projects</h4>
                 <button

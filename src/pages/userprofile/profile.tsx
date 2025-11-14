@@ -9,7 +9,7 @@ import { useSnackBar } from "../../components/snack-bar/snack-bar-context";
 import { Pinnedprojects } from "../../components/pinnedprojects/pinnedprojects";
 import { setUserPublicInfo } from "../../utils/token";
 import { Link } from "react-router-dom";
-import { ChevronsRight } from "lucide-react";
+import { ChevronsRight, X } from "lucide-react";
 
 interface UserType {
     _id: string;
@@ -296,7 +296,7 @@ export default function Profile() {
 
     return (
         <div>
-            <div className="w-full mx-auto ">
+            <div className="w-full">
                 {/* Profile Header */}
                 <div className="bg-gradient-to-l from-zinc-50 to-white rounded-t-2xl border border-b-0 border-gray-100 p-3 md:p-8">
                     <div className="flex flex-col md:flex-row items-center gap-8">
@@ -355,7 +355,7 @@ export default function Profile() {
                 <div className="p-5 px-8 border border-zinc-100 space-y-3 group ">
                     {/* <h1 className="text-lg font-semibold">View your public profile</h1>   */}
                     <Link
-                        className=" w-max flex gap-2 items-center  text-cliped-gradient-blue  "
+                        className="w-max flex gap-2 items-center  text-cliped-gradient-blue  "
                         to={`/viewprofile/${user._id}/?isViewMode=true`}
                     >
                         <ChevronsRight size={17} className="text-blue-500 group-hover:translate-x-1 transition-all" />
@@ -407,14 +407,14 @@ export default function Profile() {
                             <label className="text-base md:text-lg font-semibold text-gray-700 sm:min-w-[120px]">
                                 First Name
                             </label>
-                            <div className="flex-1 flex items-center gap-3">
+                            <div className="flex-1 max-w-full flex items-center gap-3">
                                 <input
                                     type="text"
                                     maxLength={30}
                                     value={user.firstName}
                                     name="firstName"
                                     onChange={handleEdit}
-                                    className={`flex-1 bg-transparent text-lg outline-none transition-all duration-200 ${
+                                    className={`flex-1 min-w-0 bg-transparent text-lg outline-none transition-all duration-20 ${
                                         editableFields.firstName
                                             ? "border-b-2 border-blue-500 pb-1"
                                             : "border-b border-transparent"
@@ -448,7 +448,7 @@ export default function Profile() {
                                     value={user.lastName}
                                     onChange={handleEdit}
                                     name="lastName"
-                                    className={`flex-1 bg-transparent text-lg outline-none transition-all duration-200 ${
+                                    className={`flex-1 min-w-0 bg-transparent text-lg outline-none transition-all duration-200 ${
                                         editableFields.lastName
                                             ? "border-b-2 border-blue-500 pb-1"
                                             : "border-b border-transparent"
@@ -482,7 +482,7 @@ export default function Profile() {
                                     onChange={handleEdit}
                                     readOnly
                                     name="email"
-                                    className={`flex-1 bg-transparent text-lg outline-none transition-all duration-200 ${
+                                    className={`flex-1 min-w-0 bg-transparent text-lg outline-none transition-all duration-200 ${
                                         editableFields.email
                                             ? "border-b-2 border-blue-500 pb-1"
                                             : "border-b border-transparent"
@@ -502,7 +502,7 @@ export default function Profile() {
                                     value={user.location || ""}
                                     onChange={handleEdit}
                                     name="location"
-                                    className={`flex-1 bg-transparent text-lg outline-none transition-all duration-200 ${
+                                    className={`flex-1 min-w-0 bg-transparent text-lg outline-none transition-all duration-200 ${
                                         editableFields.location
                                             ? "border-b-2 border-blue-500 pb-1"
                                             : "border-b border-transparent"
@@ -529,12 +529,12 @@ export default function Profile() {
                                 Social Links
                             </label>
 
-                            <div className="flex-1 flex flex-col gap-3">
+                            <div className="flex-1 flex flex-col gap-3 mt-2">
                                 {user.socials && user.socials.length > 0 ? (
                                     user.socials.map((social, index) => (
                                         <div
                                             key={index}
-                                            className="flex flex-col md:flex-row items-center gap-3 border-b border-gray-200 pb-2"
+                                            className="flex flex-col items-center gap-3 border-b border-gray-200 pb-2 relative"
                                         >
                                             <input
                                                 type="text"
@@ -555,7 +555,7 @@ export default function Profile() {
                                                 value={social.link}
                                                 onChange={handleEdit}
                                                 placeholder="Profile link"
-                                                className={`max-w-full flex-[2] bg-transparent text-lg outline-none transition-all duration-200 ${
+                                                className={`w-full m-x-2 bg-transparent text-base md:text-lg outline-none transition-all duration-200 ${
                                                     editableFields.socials
                                                         ? "border-b-2 border-blue-500 pb-1"
                                                         : "border-b border-transparent"
@@ -565,9 +565,9 @@ export default function Profile() {
                                             <button
                                                 onClick={() => handleRemoveSocial(index)}
                                                 disabled={!editableFields.socials || updateProfileMutation.isPending}
-                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition-colors duration-200"
+                                                className="absolute top-0 right-2 p-2 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition-colors duration-200"
                                             >
-                                                ✕
+                                                <X />
                                             </button>
                                         </div>
                                     ))

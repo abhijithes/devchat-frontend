@@ -18,7 +18,7 @@ export const ProjectBox = ({
     };
     return (
         <div
-            className="project-box m-2  p-3 py-4 bg-white border border-zinc-200 hover:border-zinc-400 rounded-sm "
+            className="project-box m-2 p-3 py-4 bg-white border border-zinc-200 hover:border-zinc-400 rounded-sm "
             ref={setNodeRef}
             style={style}
         >
@@ -36,7 +36,7 @@ export const ProjectBox = ({
                 </svg>
                 <span className="flex-left flex-1 gap-2 ml-1">
                     <p className="text-sm md:text-lg font-semibold text-accent max-w-[60%] truncate">{name}</p>
-                    <span className="w-auto  px-2 rounded-full text-xs text-blue-500 ">{role}</span>
+                    <span className="w-auto  px-2 rounded-full text-xs ms:text-base text-blue-500 ">{role}</span>
                 </span>
                 <svg
                     aria-hidden="true"
@@ -54,7 +54,7 @@ export const ProjectBox = ({
                     <path d="M10 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0-4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm-4 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm5-9a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM6 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path>
                 </svg>
             </div>
-            <p className=" text-gray-800 text-sm line-clamp-3 mt-2 truncate">{description}</p>
+            <p className=" text-gray-800 text-sm md:text-base line-clamp-3 mt-2 truncate">{description}</p>
         </div>
     );
 };
