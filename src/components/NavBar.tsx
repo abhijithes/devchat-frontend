@@ -105,7 +105,7 @@ const NavBar = () => {
           <ul className="hidden md:flex space-x-6 items-center">
             <li>
               <Link
-                to="#"
+                to="/chat"
                 title="Go to developer chats"
                 className="text-gray-600 hover:text-zinc-900"
               >
@@ -211,7 +211,7 @@ const NavBar = () => {
         <ul className="md:hidden bg-white px-2 pt-2 pb-3 space-y-2 shadow">
           <li>
             <Link
-              to="#"
+              to="/chat"
               title="Go to developer chats"
               className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
             >
