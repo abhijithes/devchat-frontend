@@ -46,8 +46,9 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
     });
 
     useEffect(() => {
-        if (data?.ticket?.progressPercentage) {
-            setProgress(data.ticket.progressPercentage);
+        if (data?.ticket) {
+            setProgress(data.ticket.progressPercentage || 0);
+            setDescription(data.ticket.taskDescription);
         } else {
             setProgress(0);
         }
@@ -158,7 +159,6 @@ export const DetailedTaskView: React.FC<DetailedTaskViewProps> = ({ id }) => {
                     className={`flex-1 mt-2 text-zinc-500 h-auto w-[90%] py-2 px-3 focus:border border-zinc-300 rounded-md outline-none ${
                         focusDescription ? "" : "resize-none"
                     }`}
-                    defaultValue={data?.ticket.taskDescription}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     disabled={!focusDescription}
