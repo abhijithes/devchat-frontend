@@ -14,11 +14,12 @@ interface DocumentProps {
     documents?: Document[];
     className?: string;
     maxColumns?: number;
-    ProjectId?: String;
+    id?: String;
     refetch: () => void;
+    type?: "project" | "ticket";
 }
 
-const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", ProjectId, refetch }) => {
+const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", id, refetch, type = "project" }) => {
     const [deleteConformationOpen, setDeleteConformationOpen] = useState(false);
     const [deleteFileID, setDeleteFileId] = useState<String | null>();
     const [isDeleting, setIsDeleting] = useState(false);
@@ -39,10 +40,15 @@ const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", 
             if (!deleteFileID) return;
             setIsDeleting(true);
 
-            const res = await fetch(endpoints.deleteDoc(ProjectId, deleteFileID), {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            });
+            const res = await fetch(
+                type === "project"
+                    ? endpoints.deleteDoc(id, deleteFileID)
+                    : endpoints.deleteTicketDoc(id, deleteFileID),
+                {
+                    method: "DELETE",
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                }
+            );
             if (!res.ok) throw new Error("Failed to delete document");
             refetch();
             handleClose();
@@ -105,7 +111,7 @@ const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", 
 
     return (
         <div className={className}>
-            <div className={`  grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4`}>
+            <div className={`grid gap-4 ${className}`}>
                 {documents.map((doc) => (
                     <div
                         key={doc.fileName}
@@ -140,7 +146,7 @@ const ProjectDocuments: React.FC<DocumentProps> = ({ documents, className = "", 
                                 </div>
                             </div>
                             <button
-                                className=" text-xs text-black hover:text-red-500 cursor-pointer invisible group-hover:visible transition-opacity"
+                                className=" text-xs text-black hover:text-red-500 cursor-pointer md:invisible group-hover:visible transition-opacity"
                                 onClick={() => handedeletemodalopen(doc._id)}
                             >
                                 Delete

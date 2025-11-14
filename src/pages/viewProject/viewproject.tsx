@@ -342,8 +342,8 @@ export const Viewproject = () => {
                 <h2 className="text-lg font-bold mt-10">Project Documents</h2>
                 <ProjectDocuments
                     documents={project.documents}
-                    className="w-full my-6"
-                    ProjectId={project._id}
+                    className="w-full my-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 "
+                    id={project._id}
                     refetch={refetch}
                     maxColumns={4}
                 />
