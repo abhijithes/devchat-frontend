@@ -16,14 +16,14 @@ export interface UserIconProps {
 const UserIcon: React.FC<UserIconProps> = ({ user, style }) => {
   const navigation = useNavigate();
   const colors: string[] = [
-    "bg-red-500",
-    "bg-blue-500",
-    "bg-green-500",
-    "bg-yellow-500",
-    "bg-purple-500",
-    "bg-pink-500",
-    "bg-indigo-500",
-    "bg-teal-500",
+    "bg-linear-to-r from-red-700  to-red-400",
+    "bg-linear-to-r from-blue-700  to-blue-400",
+    "bg-linear-to-r from-green-700  to-green-400",
+    "bg-linear-to-r from-yellow-700  to-yellow-400",
+    "bg-linear-to-r from-purple-700  to-purple-400",
+    "bg-linear-to-r from-pink-700  to-pink-400",
+    "bg-linear-to-r from-indigo-700  to-indigo-400",
+    "bg-linear-to-r from-teal-700  to-teal-400",
   ];
 
   const handleNavigateToProfile = () => {

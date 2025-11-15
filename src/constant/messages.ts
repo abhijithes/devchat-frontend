@@ -77,6 +77,20 @@ export const messages: Message[] = [
     createdAt: '2025-11-11T08:32:00.000Z',
     isRead: false,
   },
+  {
+    _id: 'msg-10',
+    senderId: 'user-10',
+    content: "I'll join the stand-up remotely — in a different timezone today.",
+    createdAt: '2025-11-11T08:32:00.000Z',
+    isRead: false,
+  },
+  {
+    _id: 'msg-10',
+    senderId: 'user-10',
+    content: "I'll join the stand-up remotely — in a different timezone today.",
+    createdAt: '2025-11-11T08:32:00.000Z',
+    isRead: false,
+  },
 ];
 
 export default messages;

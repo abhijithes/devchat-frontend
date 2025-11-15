@@ -6,16 +6,16 @@ const ChatLayout: React.FC = () => {
   return (
     <div className="w-full h-screen  flex items-center  overflow-hidden ">
       {/* Left Sidebar */}
-      <aside className="w-1/5 h-full  p-4">
+      <aside className="w-full md:w-64 h-full  p-4">
         {/* Left sidebar content */}
         <ul>
-          <li className="text-xl bg-zinc-200 px-5 py-3 mt-3 rounded hover:bg-zinc-300">
+          <li className="text-base bg-zinc-200 px-5 py-3 mt-3 rounded hover:bg-zinc-300">
             New chat
           </li>
-          <li className="text-xl bg-zinc-200 px-5 py-3 mt-3 rounded hover:bg-zinc-300">
+          <li className="text-base bg-zinc-200 px-5 py-3 mt-3 rounded hover:bg-zinc-300">
             Requests
           </li>
-          <li className="text-xl bg-zinc-200 px-5 py-3 mt-3 rounded hover:bg-zinc-300">
+          <li className="text-base bg-zinc-200 px-5 py-3 mt-3 rounded hover:bg-zinc-300">
             Chat settings
           </li>
         </ul>
