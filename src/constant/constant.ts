@@ -59,9 +59,11 @@ export const endpoints = {
     `${current_url}/tickets/task/${taskId}/progressPercentage`,
 
   getTaskData: (id) => `${current_url}/tickets/projects/task/${id}`,
-  UpdateTaskDescriptions: (id) => `${current_url}/tickets/task/${id}/editDescription`,
+  UpdateTaskDescriptions: (id) =>
+    `${current_url}/tickets/task/${id}/editDescription`,
   AddTaskDocument: (id) => `${current_url}/tickets/task/${id}/adddocument`,
-  deleteTicketDoc: (ticketId, docId) => `${current_url}/tickets/task/${ticketId}/deletedocument/${docId}`,
+  deleteTicketDoc: (ticketId, docId) =>
+    `${current_url}/tickets/task/${ticketId}/deletedocument/${docId}`,
 
   addComment: (id) => `${current_url}/tickets/task/${id}/comments`,
   editComment: (taskId, commentId) =>
@@ -74,4 +76,11 @@ export const endpoints = {
   updateNotification: (id: string) => `${current_url}/notifications/${id}`,
   deleteNotification: (id) => `${current_url}/notifications/${id}`,
   deleteNotificationBulk: `${current_url}/notifications/bulkdelete`,
+
+  // chat endpoints
+  createChat: `${current_url}/chat/create`,
+  getChatsList: `${current_url}/chat/chat-list`,
+  getChats: (roomId: string) => `${current_url}/message/get-messages/${roomId}`,
+
+  sendMessage: `${current_url}/message/create`,
 };

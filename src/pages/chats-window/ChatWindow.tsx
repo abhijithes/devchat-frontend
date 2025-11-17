@@ -1,18 +1,47 @@
-import messages, { type Message } from "../../constant/messages";
+import { type Message } from "../../constant/messages";
 import MessageBox from "../../components/chats/MessageBox";
 import { Send, Settings } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSocket } from "../../contexts/SocketBaseContext";
+import { useUsersInChat } from "../../contexts/chatListContext";
+import UserIcon from "../../components/userIcon/usericon";
+import { getChats, sendMessage } from "../../services/chat-service";
+import Spinner from "../../components/loaders/Spinner";
 
 const ChatWindow = () => {
+  const [messages, setMessages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
   const textareaRef = useRef(null);
   const messagesRef = useRef(null);
+  // const { socket } = useSocket();
+  const { activeChat } = useUsersInChat();
+
+  const handleSendMessage = () => {
+    const messageContent = textareaRef.current.value;
+    if (messageContent.trim() === "") return;
+    const message = {
+      roomId: activeChat?.roomId,
+      text: messageContent,
+    };
+
+    sendMessage(message);
+    // // socket.emit("sendMessage", message);
+    setMessages((prev) => [...prev, message]);
+    textareaRef.current.value = "";
+  };
 
   useEffect(() => {
-    if (messagesRef.current) {
-      // messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-      console.log(messagesRef.current.scrollHeight);
-    }
-  }, []);
+    const fectchMessages = async () => {
+      setLoading(true);
+      if (!activeChat) return;
+      getChats(activeChat.roomId).then((response) => {
+        setMessages(response?.data?.messages || []);
+        setLoading(false);
+      });
+    };
+    fectchMessages();
+  }, [activeChat]);
 
   const autoResize = () => {
     const ta = textareaRef.current;
@@ -21,14 +50,37 @@ const ChatWindow = () => {
   };
   return (
     <section className="w-full h-full     overflow-auto flex flex-col relative ">
-      <h1 className="sub-heading mb-5">Devchats</h1>
+      {/* User information */}
+      {activeChat ? (
+        <div className="mb-5 flex items-center gap-2">
+          <UserIcon user={activeChat.user} style="w-12 h-12" />
+          <h2 className="text-xl font-medium">{activeChat.user.firstName}</h2>
+          <p className="text-lg font-medium">{activeChat.user.lastName}</p>
+        </div>
+      ) : (
+        <h2 className="text-xl font-semibold">
+          Select a chat to start messaging
+        </h2>
+      )}
+      {/* User information ends */}
+
       <div
         ref={messagesRef}
         className="w-full h-full pr-5  overflow-auto flex flex-col pb-32"
       >
-        {messages.map((msg: Message) => (
-          <MessageBox key={msg._id} {...msg} />
-        ))}
+        {loading && (
+          <div className="w-full h-full absolute top-0 left-0 centered">
+            <Spinner />
+          </div>
+        )}
+
+        {!loading && messages.length === 0 ? (
+          <div className="w-full h-full centered text-gray-500">
+            No messages yet. Start the conversation!
+          </div>
+        ) : (
+          messages.map((msg: Message) => <MessageBox key={msg._id} {...msg} />)
+        )}
       </div>
       <div className="w-[98%] h-max bg-white/90 backdrop-blur-2xl shadow-xl border border-zinc-300 rounded-2xl flex gap-2 items-end p-5 absolute bottom-5 z-20 ">
         <textarea
@@ -42,7 +94,10 @@ const ChatWindow = () => {
         <button className="!w-max input-grad-btn-invert centered ">
           <Settings />
         </button>
-        <button className="!w-max input-grad-btn centered ">
+        <button
+          onClick={handleSendMessage}
+          className="!w-max input-grad-btn centered "
+        >
           <Send />
         </button>
       </div>
