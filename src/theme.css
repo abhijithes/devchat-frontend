@@ -60,20 +60,20 @@
 }
 
 .input-grad-btn-0 {
-  @apply text-white bg-gradient-to-tr from-black to-zinc-600 hover:from-zinc-800 hover:to-zinc-500 hover:scale-95;
+  @apply text-white bg-gradient-to-tr from-black to-zinc-600 hover:from-zinc-800 hover:to-zinc-900 hover:scale-[0.99];
   padding: 8px;
   border-radius: 8px;
   cursor: pointer;
 }
 .input-grad-btn-cancel {
-  @apply text-white bg-gradient-to-tr from-red-500 to-red-700 hover:from-red-800 hover:to-red-500 hover:scale-95;
+  @apply text-white bg-gradient-to-tr from-red-500 to-red-700 hover:from-red-800 hover:to-red-500 hover:scale-[0.99];
   padding: 8px;
   border-radius: 8px;
   cursor: pointer;
 }
 
 .input-grad-btn {
-  @apply text-white bg-gradient-to-tr from-black to-zinc-600 hover:from-zinc-800 hover:to-zinc-500 hover:scale-95;
+  @apply text-white bg-gradient-to-tr from-black to-zinc-600 hover:from-zinc-800 hover:to-zinc-900 hover:scale-[0.99];
   min-width: 80px;
   padding: 8px;
   border-radius: 8px;
@@ -81,7 +81,7 @@
 }
 
 .input-grad-btn-invert {
-  @apply text-black bg-white border border-zinc-400 hover:scale-95 hover:bg-zinc-100;
+  @apply text-black bg-white border border-zinc-400 hover:scale-[0.99] hover:bg-zinc-100;
   width: 80px;
   padding: 8px;
   border-radius: 8px;

@@ -11,9 +11,10 @@ export interface UserIconProps {
     profilePicture?: string;
   };
   style?: string;
+  onClick?: () => void;
 }
 
-const UserIcon: React.FC<UserIconProps> = ({ user, style }) => {
+const UserIcon: React.FC<UserIconProps> = ({ user, style, onClick }) => {
   const navigation = useNavigate();
   const colors: string[] = [
     "bg-linear-to-r from-red-700  to-red-400",
@@ -27,7 +28,7 @@ const UserIcon: React.FC<UserIconProps> = ({ user, style }) => {
   ];
 
   const handleNavigateToProfile = () => {
-    navigation(`/viewprofile/${user._id}`);
+    onClick ? onClick() : navigation(`/viewprofile/${user._id}`);
   };
 
   const color = useMemo(() => {
