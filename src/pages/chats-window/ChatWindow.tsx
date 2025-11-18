@@ -2,7 +2,6 @@ import { type Message } from "../../constant/messages";
 import MessageBox from "../../components/chats/MessageBox";
 import { Send, Settings } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useSocket } from "../../contexts/SocketBaseContext";
 import { useUsersInChat } from "../../contexts/chatListContext";
 import UserIcon from "../../components/userIcon/usericon";
 import { getChats, sendMessage } from "../../services/chat-service";
@@ -85,7 +84,7 @@ const ChatWindow = () => {
                     onInput={autoResize}
                     name="chat-input"
                     id="chat-input"
-                    className="w-full   outline-none min-h-8 max-h-[30vh] resize-none bg-transparent scrollbar-hide text-black "
+                    className="w-full outline-none min-h-8 max-h-[30vh] resize-none bg-transparent scrollbar-hide text-black "
                     placeholder="Add message..."
                 />
                 <button className="!w-max input-grad-btn-invert centered ">
