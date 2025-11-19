@@ -1,4 +1,4 @@
-const isProduction = true;
+const isProduction = false;
 
 export const dev_api_url = "http://localhost:5001/api";
 export const producttion_api_url =
@@ -82,5 +82,8 @@ export const endpoints = {
   getChatsList: `${current_url}/chat/chat-list`,
   getChats: (roomId: string) => `${current_url}/message/get-messages/${roomId}`,
 
+  //Message endpoints
   sendMessage: `${current_url}/message/create`,
+  updateMessage: (id) => `${current_url}/message/update/${id}`,
+  deleteMessage: (id) => `${current_url}/message/delete/${id}`
 };

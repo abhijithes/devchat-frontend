@@ -15,6 +15,7 @@ export interface Message {
     fileUrl?: string;
   };
   status: "sent" | "delivered" | "seen";
+  isEdited?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

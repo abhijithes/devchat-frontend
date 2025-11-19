@@ -41,9 +41,20 @@ const sendMessage = async (messageData: any) => {
   return response;
 };
 
+const UpdateMessage = async (messageData: any) => {
+  console.log("up");
+
+  const response = await axios.patch(
+    endpoints.updateMessage(messageData.id),
+    { text: messageData.text },
+    generalHeader
+  );
+  return response;
+};
+
 const getChats = async (roomId: string) => {
   const response = await axios.get(endpoints.getChats(roomId), generalHeader);
   return response;
 };
 
-export { getUserslist, openChats, getChatsList, sendMessage, getChats };
+export { getUserslist, openChats, getChatsList, sendMessage, getChats, UpdateMessage };
