@@ -80,6 +80,7 @@ const MessageBox: React.FC<MessageBoxProbs> = ({ message, align, onEditMessage }
                                 copyMessage={() => handleCopy(message?.text)}
                                 openDeletemodel={openDeleteModel}
                                 onEdit={() => onEditMessage(message)}
+                                showOperations={align === "right"}
                             />
                         )}
                     </button>

@@ -6,9 +6,10 @@ interface DropDownProbs {
     copyMessage?: () => void;
     openDeletemodel?: () => void;
     onEdit?: () => void;
+    showOperations?: boolean;
 }
 
-export const DropDown: React.FC<DropDownProbs> = ({ open, copyMessage, openDeletemodel, onEdit }) => {
+export const DropDown: React.FC<DropDownProbs> = ({ open, copyMessage, openDeletemodel, onEdit, showOperations }) => {
     const [shouldRender, setShouldRender] = useState(false);
 
     useEffect(() => {
@@ -24,15 +25,22 @@ export const DropDown: React.FC<DropDownProbs> = ({ open, copyMessage, openDelet
     `}
         >
             <ul className="text-sm text-left">
-                <li className="p-1 rounded-lg hover:bg-green-100">Message Info</li>
+                <li className={`p-1 rounded-lg hover:bg-green-100 ${showOperations ? "block" : "hidden"}`}>
+                    Message Info
+                </li>
                 <li className="p-1 rounded-lg hover:bg-green-100" onClick={() => copyMessage()}>
                     Copy
                 </li>
-                <li className="p-1 rounded-lg hover:bg-green-100" onClick={onEdit}>
+                <li
+                    className={`p-1 rounded-lg hover:bg-green-100 ${showOperations ? "block" : "hidden"}`}
+                    onClick={onEdit}
+                >
                     Edit
                 </li>
                 <li
-                    className="rounded-lg p-1 hover:bg-red-100 flex items-center justify-start gap-1 hover:text-red-500"
+                    className={`rounded-lg p-1 hover:bg-red-100 flex items-center justify-start gap-1 hover:text-red-500 ${
+                        showOperations ? "block" : "hidden"
+                    }`}
                     onClick={openDeletemodel}
                 >
                     <Trash2 size={16} /> Delete
