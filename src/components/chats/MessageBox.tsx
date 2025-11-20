@@ -10,6 +10,7 @@ import DeleteConfirmation from "../Conformation/DeleteConformation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../../utils/axios";
 import { endpoints } from "../../constant/constant";
+import { useSocket } from "../../contexts/SocketBaseContext";
 
 interface MessageBoxProbs {
     message: Message;
@@ -22,11 +23,12 @@ const DeleteMessage = async (id) => {
     return data;
 };
 
-const MessageBox: React.FC<MessageBoxProbs> = ({ message, align, onEditMessage }) => {
+const MessageBox: React.FC<MessageBoxProbs> = ({ message, align = "right", onEditMessage }) => {
     const { showSnackBar } = useSnackBar();
     const [openDropDown, setOpenDropDown] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
     const queryClient = useQueryClient();
+    const { socket } = useSocket();
 
     const handleCopy = (text) => {
         navigator.clipboard.writeText(text);
@@ -64,6 +66,8 @@ const MessageBox: React.FC<MessageBoxProbs> = ({ message, align, onEditMessage }
 
     const HandleDelete = () => {
         DeletemessageMutation.mutate(message._id);
+        console.log(message, " from here");
+        socket.emit("delete_message", message);
         closeDeleteModel();
     };
 

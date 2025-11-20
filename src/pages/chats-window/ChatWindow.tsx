@@ -7,15 +7,16 @@ import UserIcon from "../../components/userIcon/usericon";
 import { getChats, sendMessage, UpdateMessage } from "../../services/chat-service";
 import { LeftMessageSkeleton, RightMessageSkeleton } from "../../components/chats/MessageSkeletons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSocket } from "../../contexts/SocketBaseContext";
 
 const ChatWindow = () => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
     const [editMessage, setEditMessage] = useState(null);
     const { activeChat } = useUsersInChat();
-    const { id } = JSON.parse(localStorage.getItem("DEV_CHATX_USER_URD"));
+    const user = JSON.parse(localStorage.getItem("DEV_CHATX_USER_URD"));
     const queryClient = useQueryClient();
-
+    const { socket } = useSocket();
     const { data: messages = [], isLoading } = useQuery({
         queryKey: ["messages", activeChat?.roomId],
         queryFn: async ({ queryKey }) => {
@@ -39,7 +40,7 @@ const ChatWindow = () => {
                 {
                     ...newMessage,
                     _id: Math.random().toString(),
-                    senderId: { _id: id },
+                    senderId: user,
                     createdAt: new Date().toISOString(),
                 },
             ]);
@@ -85,10 +86,24 @@ const ChatWindow = () => {
                 text,
                 roomId: activeChat?.roomId,
             });
+            socket.emit("edit_message", {
+                id: editMessage._id,
+                text,
+                roomId: activeChat?.roomId,
+                senderId: user,
+            });
         } else {
             sendMessageMutation.mutate({
                 roomId: activeChat?.roomId,
                 text,
+                senderId: user,
+            });
+            socket.emit("send_message", {
+                text,
+                roomId: activeChat?.roomId,
+                _id: Math.random().toString(),
+                senderId: user,
+                createdAt: new Date().toISOString(),
             });
         }
 
@@ -101,6 +116,37 @@ const ChatWindow = () => {
         textareaRef.current.focus();
         autoResize();
     };
+
+    useEffect(() => {
+        if (!socket || !activeChat?.roomId) return;
+
+        // When someone sends new message
+        socket.on("receive_message", (message) => {
+            queryClient.setQueryData<Message[]>(["messages", message.roomId], (old = []) => [...old, message]);
+        });
+
+        // When someone edits a message
+        socket.on("message_updated", (updated) => {
+            console.log(updated.id, updated.text);
+            queryClient.setQueryData<Message[]>(["messages", updated.roomId], (old = []) =>
+                old.map((msg) => (msg._id === updated.id ? { ...msg, text: updated.text, isEdited: true } : msg))
+            );
+        });
+
+        // When someone Delete a message
+        socket.on("message_deleted", (deleted) => {
+            console.log(deleted, "from reciever");
+            queryClient.setQueryData<Message[]>(["messages", deleted.roomId], (old = []) =>
+                old.filter((msg) => msg._id !== deleted._id)
+            );
+        });
+
+        return () => {
+            socket.off("receive_message");
+            socket.off("message_updated");
+            socket.off("message_deleted");
+        };
+    }, [socket, activeChat?.roomId]);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -144,7 +190,7 @@ const ChatWindow = () => {
                         <div key={msg._id}>
                             <MessageBox
                                 message={msg}
-                                align={msg?.senderId?._id === id ? "right" : "left"}
+                                align={msg?.senderId?._id === user.id ? "right" : "left"}
                                 onEditMessage={handleStartEditMessage}
                             />
                         </div>
