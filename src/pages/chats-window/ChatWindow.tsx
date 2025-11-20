@@ -9,6 +9,7 @@ import { LeftMessageSkeleton, RightMessageSkeleton } from "../../components/chat
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSocket } from "../../contexts/SocketBaseContext";
 import { MessageSounds } from "../../constant/audio-files.ts";
+import TypingIndicator from "../../components/chat-window/TypingIndicator.tsx";
 
 const ChatWindow = () => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -21,7 +22,7 @@ const ChatWindow = () => {
     const receiveSoundRef = useRef(new Audio(MessageSounds[0]));
     const sendSoundRef = useRef(new Audio(MessageSounds[1]));
     const typingTimeoutRef = useRef(null);
-    const [typing, setTyping] = useState();
+    const [typing, setTyping] = useState([]);
     const { data: messages = [], isLoading } = useQuery({
         queryKey: ["messages", activeChat?.roomId],
         queryFn: async ({ queryKey }) => {
@@ -86,8 +87,12 @@ const ChatWindow = () => {
     const handleTyping = () => {
         socket.emit("typing", {
             roomId: activeChat?.roomId,
-            userId: user.id,
+            userId: user,
         });
+
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
 
         if (typingTimeoutRef.current) {
             clearTimeout(typingTimeoutRef.current);
@@ -177,11 +182,11 @@ const ChatWindow = () => {
         if (!socket) return;
 
         socket.on("typing", ({ user }) => {
-            setTyping(user);
+            setTyping((prev) => [...prev, user]);
         });
 
-        socket.on("stop_typing", ({ _user }) => {
-            setTyping(null);
+        socket.on("stop_typing", ({ userId }) => {
+            setTyping((prev) => prev.filter((prev) => prev.id !== userId));
         });
 
         return () => {
@@ -238,7 +243,7 @@ const ChatWindow = () => {
                         </div>
                     ))
                 )}
-
+                <TypingIndicator users={typing} show={true} />
                 <div ref={bottomRef}></div>
             </div>
 
