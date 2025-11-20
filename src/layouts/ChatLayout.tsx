@@ -3,7 +3,6 @@ import UserIcon from "../components/userIcon/usericon";
 import ChatSideBar from "../components/chats/ChatSideBar";
 import { useUsersInChat } from "../contexts/chatListContext";
 import { useEffect, useState } from "react";
-import { Dot } from "lucide-react";
 
 const ChatLayout: React.FC = () => {
   const navigate = useNavigate();
