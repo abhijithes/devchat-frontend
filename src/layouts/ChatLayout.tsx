@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 const ChatLayout: React.FC = () => {
   const navigate = useNavigate();
   const path = useParams();
-  const { usersInChat, setActiveChat } = useUsersInChat();
+  const { usersInChat, setActiveChat, onlineUsers } = useUsersInChat();
   const [roomId, setRoomId] = useState<string | undefined>(path.roomId);
 
   useEffect(() => {
@@ -32,16 +32,30 @@ const ChatLayout: React.FC = () => {
       </main>
 
       {/* Right Sidebar */}
-      <aside className="md:w-[7vw] h-full  p-4 pt-24 overflow-auto">
+      <aside className="p-3 md:w-[6vw] h-full   pt-24 flex items-center flex-col  overflow-auto">
         {/* Right sidebar content */}
         {usersInChat.map((chat, index) => (
-          <div key={index} className="w-max h-max   mb-4 flex justify-center">
+          <div
+            key={index}
+            className="w-max h-max mb-4 p-[0.10px] flex justify-center shadow-xl  rounded-full relative"
+          >
+            <div
+              className={` w-2 h-2 ${
+                onlineUsers?.includes(chat.user._id) ? "bg-green-500" : "hidden"
+              }  absolute bottom-0 left-0 z-5 rounded-full`}
+            />
             <UserIcon
               onClick={() => navigate(`/chat/${chat.roomId}`)}
               user={chat.user}
-              style={`w-14 h-14 ${
-                roomId == chat.roomId ? "ring-4 ring-violet-500" : ""
-              }    active:ring-2  active:ring-violet-500 active:scale-95  cursor-pointer`}
+              style={`w-14 h-14  ${
+                roomId == chat.roomId ? "ring-2 ring-violet-500" : ""
+              }
+              ${
+                onlineUsers?.includes(chat.user._id)
+                  ? "ring-green-400 ring-2"
+                  : ""
+              }
+              active:ring-2  active:ring-violet-500 active:scale-95  cursor-pointer`}
             />
           </div>
         ))}

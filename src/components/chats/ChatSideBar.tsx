@@ -57,7 +57,7 @@ const ChatSideBar = () => {
   };
 
   return (
-    <aside className="w-full md:w-64 h-full  p-4">
+    <aside className="w-max md:w-64 h-full  p-4">
       {/* Dialog boxes for aside function  : start */}
       <DialogueBox
         heading={"Search user"}
@@ -67,7 +67,7 @@ const ChatSideBar = () => {
         <ListMembers onSubmit={handleMakeChat} />
       </DialogueBox>
       {/* Left sidebar content */}
-      <h1 className="heading mt-5">DevChats.io</h1>
+      <h1 className="heading mt-5 hidden md:block">DevChats.io</h1>
 
       <ul className="flex flex-col gap-3 mt-5">
         {chatSideBarActions.map((item, index) => (
@@ -79,7 +79,7 @@ const ChatSideBar = () => {
             <div className="  bg-linear-to-r from-zinc-100 to-zinc-200 p-2 rounded-lg group-hover:from-violet-100 group-hover:to-violet-300 transition-all">
               {item.icon}
             </div>
-            <p className="group-hover:translate-x-1 group-hover:text-violet-700 transition-all ">
+            <p className="hidden md:block group-hover:translate-x-1 group-hover:text-violet-700 transition-all ">
               {item.name}
             </p>
           </li>
