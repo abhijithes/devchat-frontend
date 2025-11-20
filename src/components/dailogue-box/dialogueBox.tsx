@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 
 export default function DialogueBox({
     onClose,
-    opened,
+    opened = true,
     children,
     className,
     heading,
