@@ -20,6 +20,8 @@ const ChatWindow = () => {
     const { socket } = useSocket();
     const receiveSoundRef = useRef(new Audio(MessageSounds[0]));
     const sendSoundRef = useRef(new Audio(MessageSounds[1]));
+    const typingTimeoutRef = useRef(null);
+    const [typing, setTyping] = useState();
     const { data: messages = [], isLoading } = useQuery({
         queryKey: ["messages", activeChat?.roomId],
         queryFn: async ({ queryKey }) => {
@@ -80,6 +82,24 @@ const ChatWindow = () => {
             setEditMessage(null);
         },
     });
+
+    const handleTyping = () => {
+        socket.emit("typing", {
+            roomId: activeChat?.roomId,
+            userId: user.id,
+        });
+
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+
+        typingTimeoutRef.current = setTimeout(() => {
+            socket.emit("stop_typing", {
+                roomId: activeChat?.roomId,
+                userId: user.id,
+            });
+        }, 1000);
+    };
 
     const handleSendMessage = () => {
         const text = textareaRef.current?.value.trim();
@@ -153,6 +173,22 @@ const ChatWindow = () => {
             socket.off("message_deleted");
         };
     }, [socket, activeChat?.roomId]);
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on("typing", ({ user }) => {
+            setTyping(user);
+        });
+
+        socket.on("stop_typing", ({ _user }) => {
+            setTyping(null);
+        });
+
+        return () => {
+            socket.off("typing");
+            socket.off("stop_typing");
+        };
+    }, [socket]);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -210,7 +246,10 @@ const ChatWindow = () => {
             <div className="w-[98%] h-max bg-white/90 backdrop-blur-2xl shadow-xl border border-zinc-300 rounded-2xl flex gap-2 items-end p-5 absolute bottom-5 z-20">
                 <textarea
                     ref={textareaRef}
-                    onInput={autoResize}
+                    onInput={() => {
+                        autoResize();
+                        handleTyping();
+                    }}
                     className="w-full outline-none min-h-8 max-h-[30vh] resize-none bg-transparent scrollbar-hide text-black"
                     placeholder="Add message..."
                 />
