@@ -8,6 +8,7 @@ import { getChats, sendMessage, UpdateMessage } from "../../services/chat-servic
 import { LeftMessageSkeleton, RightMessageSkeleton } from "../../components/chats/MessageSkeletons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSocket } from "../../contexts/SocketBaseContext";
+import { MessageSounds } from "../../constant/audio-files.ts";
 
 const ChatWindow = () => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -17,6 +18,8 @@ const ChatWindow = () => {
     const user = JSON.parse(localStorage.getItem("DEV_CHATX_USER_URD"));
     const queryClient = useQueryClient();
     const { socket } = useSocket();
+    const receiveSoundRef = useRef(new Audio(MessageSounds[0]));
+    const sendSoundRef = useRef(new Audio(MessageSounds[1]));
     const { data: messages = [], isLoading } = useQuery({
         queryKey: ["messages", activeChat?.roomId],
         queryFn: async ({ queryKey }) => {
@@ -40,7 +43,13 @@ const ChatWindow = () => {
                 {
                     ...newMessage,
                     _id: Math.random().toString(),
-                    senderId: user,
+                    senderId: {
+                        _id: user.id,
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        profilePicture: user.profilePicture,
+                    },
                     createdAt: new Date().toISOString(),
                 },
             ]);
@@ -49,9 +58,6 @@ const ChatWindow = () => {
         },
         onError: (_err, newMessage, onMutateResult) => {
             queryClient.setQueryData(["messages", newMessage.roomId], onMutateResult);
-        },
-        onSettled: (_data, _error, newMessage) => {
-            queryClient.invalidateQueries({ queryKey: ["messages", newMessage.roomId] });
         },
     });
     const updateMutation = useMutation({
@@ -70,8 +76,7 @@ const ChatWindow = () => {
         onError: (_err, newMessage, onMutateResult) => {
             queryClient.setQueryData(["messages", newMessage.roomId], onMutateResult);
         },
-        onSettled: (_data, _error, newMessage) => {
-            queryClient.invalidateQueries({ queryKey: ["messages", newMessage.roomId] });
+        onSettled: () => {
             setEditMessage(null);
         },
     });
@@ -96,8 +101,8 @@ const ChatWindow = () => {
             sendMessageMutation.mutate({
                 roomId: activeChat?.roomId,
                 text,
-                senderId: user,
             });
+            sendSoundRef.current.play().catch((err) => console.error(err));
             socket.emit("send_message", {
                 text,
                 roomId: activeChat?.roomId,
@@ -123,6 +128,7 @@ const ChatWindow = () => {
         // When someone sends new message
         socket.on("receive_message", (message) => {
             queryClient.setQueryData<Message[]>(["messages", message.roomId], (old = []) => [...old, message]);
+            receiveSoundRef.current.play().catch((error) => console.log(error));
         });
 
         // When someone edits a message
