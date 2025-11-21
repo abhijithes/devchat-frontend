@@ -149,14 +149,20 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         const newRoom = activeChat?.roomId;
-        if (!newRoom) return;
-
         if (prevRoomRef.current && prevRoomRef.current !== newRoom) {
             socket.emit("leave_room", prevRoomRef.current);
         }
-        socket.emit("join_room", newRoom);
 
-        prevRoomRef.current = newRoom;
+        if (newRoom) {
+            socket.emit("join_room", newRoom);
+            prevRoomRef.current = newRoom;
+        }
+
+        return () => {
+            if (prevRoomRef.current) {
+                socket.emit("leave_room", prevRoomRef.current);
+            }
+        };
     }, [activeChat]);
 
     return (

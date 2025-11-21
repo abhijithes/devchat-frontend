@@ -22,6 +22,7 @@ const ChatWindow = () => {
     const receiveSoundRef = useRef(new Audio(MessageSounds[0]));
     const sendSoundRef = useRef(new Audio(MessageSounds[1]));
     const typingTimeoutRef = useRef(null);
+    const isTypingRef = useRef(false);
     const [typing, setTyping] = useState([]);
     const { data: messages = [], isLoading } = useQuery({
         queryKey: ["messages", activeChat?.roomId],
@@ -46,13 +47,7 @@ const ChatWindow = () => {
                 {
                     ...newMessage,
                     _id: Math.random().toString(),
-                    senderId: {
-                        _id: user.id,
-                        email: user.email,
-                        firstName: user.firstName,
-                        lastName: user.lastName,
-                        profilePicture: user.profilePicture,
-                    },
+                    senderId: { ...user, _id: user.id },
                     createdAt: new Date().toISOString(),
                 },
             ]);
@@ -85,20 +80,21 @@ const ChatWindow = () => {
     });
 
     const handleTyping = () => {
-        socket.emit("typing", {
-            roomId: activeChat?.roomId,
-            userId: user,
-        });
-
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
+        // Emit "typing" only if not already typing
+        if (!isTypingRef.current) {
+            isTypingRef.current = true;
+            socket.emit("typing", {
+                roomId: activeChat?.roomId,
+                userId: user,
+            });
         }
 
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-        }
+        // Reset the timeout on every keypress
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
 
         typingTimeoutRef.current = setTimeout(() => {
+            isTypingRef.current = false;
+
             socket.emit("stop_typing", {
                 roomId: activeChat?.roomId,
                 userId: user.id,
@@ -172,32 +168,31 @@ const ChatWindow = () => {
             );
         });
 
+        socket.on("typing", ({ user }) => {
+            console.log(user);
+
+            setTyping((prev) => {
+                if (prev.find((u) => u.id === user.id)) return prev;
+                return [...prev, user];
+            });
+        });
+
+        socket.on("stop_typing", ({ user }) => {
+            setTyping((prev) => prev.filter((prev) => prev.id !== user));
+        });
+
         return () => {
             socket.off("receive_message");
             socket.off("message_updated");
             socket.off("message_deleted");
-        };
-    }, [socket, activeChat?.roomId]);
-    useEffect(() => {
-        if (!socket) return;
-
-        socket.on("typing", ({ user }) => {
-            setTyping((prev) => [...prev, user]);
-        });
-
-        socket.on("stop_typing", ({ userId }) => {
-            setTyping((prev) => prev.filter((prev) => prev.id !== userId));
-        });
-
-        return () => {
             socket.off("typing");
             socket.off("stop_typing");
         };
-    }, [socket]);
+    }, [socket, activeChat?.roomId]);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+    }, [messages, typing]);
 
     const autoResize = () => {
         const el = textareaRef.current;
@@ -243,7 +238,7 @@ const ChatWindow = () => {
                         </div>
                     ))
                 )}
-                <TypingIndicator users={typing} show={true} />
+                <TypingIndicator users={typing} show={typing.length !== 0} />
                 <div ref={bottomRef}></div>
             </div>
 
