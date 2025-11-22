@@ -1,6 +1,6 @@
 import { type Message } from "../../constant/messages";
 import MessageBox from "../../components/chats/MessageBox";
-import { Check, Send, Settings } from "lucide-react";
+import { Check, Paperclip, Send, Settings } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useUsersInChat } from "../../contexts/chatListContext";
 import UserIcon from "../../components/userIcon/usericon";
@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSocket } from "../../contexts/SocketBaseContext";
 import { MessageSounds } from "../../constant/audio-files.ts";
 import TypingIndicator from "../../components/chat-window/TypingIndicator.tsx";
+import { DropUpMenu } from "../../components/chat-window/drop-up.tsx";
 
 const ChatWindow = () => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -271,6 +272,7 @@ const ChatWindow = () => {
                     placeholder="Add message..."
                 />
 
+                <DropUpMenu />
                 <button className="!w-max input-grad-btn-invert centered">
                     <Settings />
                 </button>
