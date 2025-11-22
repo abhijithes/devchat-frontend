@@ -1,6 +1,6 @@
 import { type Message } from "../../constant/messages";
 import MessageBox from "../../components/chats/MessageBox";
-import { Check, Paperclip, Send, Settings } from "lucide-react";
+import { Check, Send, Settings } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useUsersInChat } from "../../contexts/chatListContext";
 import UserIcon from "../../components/userIcon/usericon";

@@ -1,4 +1,4 @@
-import { ChevronDown, MessageSquareCode } from "lucide-react";
+import { MessageSquareCode } from "lucide-react";
 import { AiIcon } from "../../constant/icons";
 import type { Message } from "../../constant/messages";
 import UserIcon from "../userIcon/usericon";
