@@ -160,7 +160,6 @@ const ChatWindow = () => {
 
         // When someone edits a message
         socket.on("message_updated", (updated) => {
-            console.log(updated.id, updated.text);
             queryClient.setQueryData<Message[]>(["messages", updated.roomId], (old = []) =>
                 old.map((msg) => (msg._id === updated.id ? { ...msg, text: updated.text, isEdited: true } : msg))
             );
@@ -168,15 +167,12 @@ const ChatWindow = () => {
 
         // When someone Delete a message
         socket.on("message_deleted", (deleted) => {
-            console.log(deleted, "from reciever");
             queryClient.setQueryData<Message[]>(["messages", deleted.roomId], (old = []) =>
                 old.filter((msg) => msg._id !== deleted._id)
             );
         });
 
         socket.on("typing", ({ user }) => {
-            console.log(user);
-
             setTyping((prev) => {
                 if (prev.find((u) => u.id === user.id)) return prev;
                 return [...prev, user];
