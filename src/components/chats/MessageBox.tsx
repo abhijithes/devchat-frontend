@@ -1,4 +1,4 @@
-import { ChevronDown, MessageSquareCode } from "lucide-react";
+import { MessageSquareCode } from "lucide-react";
 import { AiIcon } from "../../constant/icons";
 import type { Message } from "../../constant/messages";
 import UserIcon from "../userIcon/usericon";
@@ -25,7 +25,6 @@ const DeleteMessage = async (id) => {
 
 const MessageBox: React.FC<MessageBoxProbs> = ({ message, align = "right", onEditMessage }) => {
     const { showSnackBar } = useSnackBar();
-    const [openDropDown, setOpenDropDown] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
     const queryClient = useQueryClient();
     const { socket } = useSocket();
@@ -76,18 +75,12 @@ const MessageBox: React.FC<MessageBoxProbs> = ({ message, align = "right", onEdi
             {message.senderId && <UserIcon user={message.senderId} />}
             <div className={`relative group`}>
                 <div className="absolute top-0 right-0 bg-blue-50 hover:bg-white w-6 h-6 pr-1 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <button className="cursor-pointer relative" onClick={() => setOpenDropDown(!openDropDown)}>
-                        <ChevronDown />
-                        {openDropDown && (
-                            <DropDown
-                                open={openDropDown}
-                                copyMessage={() => handleCopy(message?.text)}
-                                openDeletemodel={openDeleteModel}
-                                onEdit={() => onEditMessage(message)}
-                                showOperations={align === "right"}
-                            />
-                        )}
-                    </button>
+                    <DropDown
+                        copyMessage={() => handleCopy(message?.text)}
+                        openDeletemodel={openDeleteModel}
+                        onEdit={() => onEditMessage(message)}
+                        showOperations={align === "right"}
+                    />
                 </div>
                 <div className="bg-white p-4 flex gap-3 flex-col rounded-2xl hover:bg-zinc-200 transition-transform max-w-60 md:max-w-100 lg:max-w-150">
                     <ReadMore text={message?.text} limit={800} />
