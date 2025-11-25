@@ -22,7 +22,6 @@ const ChatLayout: React.FC = () => {
     }
   }, [path, usersInChat]);
 
-  console.log(roomId);
 
   return (
     <div className="w-full h-screen  flex items-center  overflow-hidden ">
