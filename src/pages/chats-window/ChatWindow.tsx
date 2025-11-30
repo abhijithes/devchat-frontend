@@ -205,21 +205,20 @@ const ChatWindow = () => {
     });
 
     socket.on("messages_read", (data) => {
-      const { messageIds, userId } = data;
+      const { userId } = data;
 
       queryClient.setQueryData<Message[]>(
         ["messages", activeChat?.roomId],
-        (old = []) =>
-          old.map((msg) => {
-            if (messageIds.includes(msg._id)) {
-              return {
-                ...msg,
-                readBy: [...msg.readby, userId],
-              };
-            }
-            return msg;
+        (old: Message[] = []) =>
+          old.map((msg: Message) => {
+            return {
+              ...msg,
+              readby: [userId],
+            };
           })
       );
+
+      console.log("updated!");
     });
 
     // When someone Delete a message
