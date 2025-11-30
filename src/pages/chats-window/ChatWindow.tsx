@@ -188,6 +188,7 @@ const ChatWindow = () => {
         (old = []) => [...old, message]
       );
       receiveSoundRef.current.play().catch((error) => console.log(error));
+      markAsReadSetUp();
     });
 
     // When someone edits a message
@@ -207,15 +208,13 @@ const ChatWindow = () => {
       const { messageIds, userId } = data;
 
       queryClient.setQueryData<Message[]>(
-        ["messages", activeChat.roomId],
+        ["messages", activeChat?.roomId],
         (old = []) =>
           old.map((msg) => {
             if (messageIds.includes(msg._id)) {
               return {
                 ...msg,
-                readBy: msg.readby
-                  ? [...new Set([...msg.readby, userId])]
-                  : [userId],
+                readBy: [...msg.readby, userId],
               };
             }
             return msg;
