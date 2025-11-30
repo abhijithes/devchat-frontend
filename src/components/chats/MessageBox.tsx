@@ -82,14 +82,14 @@ const MessageBox: React.FC<MessageBoxProbs> = ({ message, align = "right", onEdi
                         showOperations={align === "right"}
                     />
                 </div>
-                <div className="bg-white p-4 flex gap-3 flex-col rounded hover:bg-blue-50 transition-transform max-w-60 md:max-w-100 lg:max-w-150">
+                <div className="bg-white p-4 flex gap-3 flex-col rounded-2xl hover:bg-zinc-200 transition-transform max-w-60 md:max-w-100 lg:max-w-150">
                     <ReadMore text={message?.text} limit={800} />
                     <span className="text-sm text-gray-500 block self-end">
                         {message.isEdited && "Edited"}{" "}
                         {new Date(message.createdAt).toLocaleString([], { hour: "2-digit", minute: "2-digit" })}
                     </span>
                 </div>
-                <div className={`w-max h-max bg-white mt-2 px-5 py-2 rounded flex items-center space-x-2`}>
+                <div className={`w-max h-max bg-white mt-2 px-5 py-2 rounded-2xl flex items-center space-x-2`}>
                     <div className="icon-hover ">
                         <MessageSquareCode />
                     </div>

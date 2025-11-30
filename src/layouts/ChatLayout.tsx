@@ -10,6 +10,9 @@ const ChatLayout: React.FC = () => {
   const { usersInChat, setActiveChat, onlineUsers } = useUsersInChat();
   const [roomId, setRoomId] = useState<string | undefined>(path.roomId);
 
+  const [userSidebarOpen, setUserSidebarOpen] = useState(false);
+  const [navigationSidebarOpen, setNavigationSidebarOpen] = useState(false);
+
   useEffect(() => {
     if (!path.roomId && usersInChat.length > 0) {
       setRoomId(path.id);
@@ -19,20 +22,21 @@ const ChatLayout: React.FC = () => {
     }
   }, [path, usersInChat]);
 
-  console.log(roomId);
 
   return (
     <div className="w-full h-screen  flex items-center  overflow-hidden ">
       {/* Left Sidebar */}
-      <ChatSideBar />
+      <div className="w-max h-screen hidden md:block">
+        <ChatSideBar />
+      </div>
 
       {/* Chat Content */}
-      <main className="h-screen flex-1 bg-zinc-100 p-6 pt-14 pb-3 overflow-y-auto">
+      <main className="h-screen flex-1 bg-zinc-100 p-2 md:p-6 md:pt-14 pb-3 overflow-y-auto">
         <Outlet />
       </main>
 
       {/* Right Sidebar */}
-      <aside className="p-3 md:w-[6vw] h-full   pt-24 flex items-center flex-col  overflow-auto">
+      <aside className="p-3 hidden md:w-[6vw] h-full   md:pt-24 md:flex items-center flex-col  overflow-auto">
         {/* Right sidebar content */}
         {usersInChat.map((chat, index) => (
           <div
