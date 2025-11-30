@@ -10,8 +10,8 @@ const ChatLayout: React.FC = () => {
   const { usersInChat, setActiveChat, onlineUsers } = useUsersInChat();
   const [roomId, setRoomId] = useState<string | undefined>(path.roomId);
 
-  const [userSidebarOpen, setUserSidebarOpen] = useState(false);
-  const [navigationSidebarOpen, setNavigationSidebarOpen] = useState(false);
+  // const [userSidebarOpen, setUserSidebarOpen] = useState(false);
+  // const [navigationSidebarOpen, setNavigationSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!path.roomId && usersInChat.length > 0) {
@@ -21,7 +21,6 @@ const ChatLayout: React.FC = () => {
       );
     }
   }, [path, usersInChat]);
-
 
   return (
     <div className="w-full h-screen  flex items-center  overflow-hidden ">
