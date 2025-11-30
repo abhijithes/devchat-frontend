@@ -85,5 +85,6 @@ export const endpoints = {
   //Message endpoints
   sendMessage: `${current_url}/message/create`,
   updateMessage: (id) => `${current_url}/message/update/${id}`,
-  deleteMessage: (id) => `${current_url}/message/delete/${id}`
+  deleteMessage: (id) => `${current_url}/message/delete/${id}`,
+  markAsRead: `${current_url}/message/markasread`,
 };
