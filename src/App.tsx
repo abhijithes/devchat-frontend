@@ -22,7 +22,7 @@ import UserSettingsPage from "./pages/user-settings/UserSettingsPage";
 import ChatWindow from "./pages/chats-window/ChatWindow";
 import SelectChat from "./pages/SelectChat";
 import { UsersInChatProvider } from "./contexts/chatListContext";
-
+import TodoApp from "./pages/TodoApp";
 const App: React.FC = () => {
     return (
         <LoaderProvider>
@@ -41,6 +41,7 @@ const App: React.FC = () => {
                                     <Route path="/profile" element={<UserProfile />} />
                                     <Route path="/viewprofile/:id" element={<Viewprofile />}></Route>
                                     <Route path="/project/:projectId/viewtickets" element={<ViewTickets />} />
+                                     <Route path="/listTodos" element={<TodoApp />} />
                                     <Route path="/settings" element={<UserSettingsPage />} />
                                 </Route>
                                 {/* Chat Layout :- All routes under Chat Section */}
