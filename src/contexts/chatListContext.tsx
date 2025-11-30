@@ -19,6 +19,8 @@ interface UsersInChatContextType {
   setUsersInChat: React.Dispatch<React.SetStateAction<ChatsListType[]>>;
   activeChat?: ChatsListType | null;
   setActiveChat?: React.Dispatch<React.SetStateAction<ChatsListType | null>>;
+  onlineUsers?: string[];
+  setOnlineUsers?: React.Dispatch<React.SetStateAction<string[]>>;
   addUserToChat: (user: BaseUserInfo, roomId: string) => void;
   removeUserFromChat: (_id: string) => void;
   clearUsers: () => void;
@@ -28,6 +30,8 @@ const UsersInChatContext = createContext<UsersInChatContextType | null>(null);
 
 export const UsersInChatProvider = ({ children }: { children: ReactNode }) => {
   const [usersInChat, setUsersInChat] = useState<ChatsListType[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+
   const [activeChat, setActiveChat] = useState<ChatsListType | null>(null);
 
   const { data: chatsList } = useQuery({
@@ -70,6 +74,8 @@ export const UsersInChatProvider = ({ children }: { children: ReactNode }) => {
         setUsersInChat,
         activeChat,
         setActiveChat,
+        onlineUsers,
+        setOnlineUsers,
         addUserToChat,
         removeUserFromChat,
         clearUsers,
