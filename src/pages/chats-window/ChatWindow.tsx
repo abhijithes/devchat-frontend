@@ -17,6 +17,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSocket } from "../../contexts/SocketBaseContext";
 import { MessageSounds } from "../../constant/audio-files.ts";
 import TypingIndicator from "../../components/chat-window/TypingIndicator.tsx";
+import { DropUpMenu } from "../../components/chat-window/drop-up.tsx";
+import { markAsRead } from "../../components/chats/services/chat-service.ts";
 
 const ChatWindow = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -28,8 +30,6 @@ const ChatWindow = () => {
   const { socket } = useSocket();
   const receiveSoundRef = useRef(new Audio(MessageSounds[0]));
   const sendSoundRef = useRef(new Audio(MessageSounds[1]));
-
-  const firstScroll = useRef(true);
 
   const [isUserOnline, setIsUserOnline] = useState(false);
 
@@ -174,6 +174,13 @@ const ChatWindow = () => {
   useEffect(() => {
     if (!socket || !activeChat?.roomId) return;
 
+    async function markAsReadSetUp() {
+      const markAsReadReponse = markAsRead(activeChat.roomId);
+      console.log((await markAsReadReponse).data);
+    }
+
+    markAsReadSetUp();
+
     // When someone sends new message
     socket.on("receive_message", (message) => {
       queryClient.setQueryData<Message[]>(
@@ -181,11 +188,11 @@ const ChatWindow = () => {
         (old = []) => [...old, message]
       );
       receiveSoundRef.current.play().catch((error) => console.log(error));
+      markAsReadSetUp();
     });
 
     // When someone edits a message
     socket.on("message_updated", (updated) => {
-      console.log(updated.id, updated.text);
       queryClient.setQueryData<Message[]>(
         ["messages", updated.roomId],
         (old = []) =>
@@ -195,6 +202,23 @@ const ChatWindow = () => {
               : msg
           )
       );
+    });
+
+    socket.on("messages_read", (data) => {
+      const { userId } = data;
+
+      queryClient.setQueryData<Message[]>(
+        ["messages", activeChat?.roomId],
+        (old: Message[] = []) =>
+          old.map((msg: Message) => {
+            return {
+              ...msg,
+              readby: [userId],
+            };
+          })
+      );
+
+      console.log("updated!");
     });
 
     // When someone Delete a message
@@ -226,20 +250,7 @@ const ChatWindow = () => {
   }, [socket, activeChat?.roomId]);
 
   useEffect(() => {
-    if (firstScroll.current) {
-      bottomRef.current?.scrollIntoView({ behavior: "instant" });
-      firstScroll.current = false; // disable after first scroll
-    }
-
-    return () => {
-      firstScroll.current = true;
-    };
-  }, [activeChat?.roomId]);
-
-  useEffect(() => {
-    if (!firstScroll.current) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing]);
 
   const autoResize = () => {
@@ -327,6 +338,7 @@ const ChatWindow = () => {
           placeholder="Add message..."
         />
 
+        <DropUpMenu />
         <button className="!w-max input-grad-btn-invert centered">
           <Settings />
         </button>
