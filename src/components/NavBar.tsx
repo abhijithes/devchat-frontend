@@ -6,7 +6,8 @@ import {
   Settings,
 } from "@mui/icons-material";
 import { MenuIcon, XIcon } from "lucide-react";
-import ListAltIcon from '@mui/icons-material/ListAlt'
+import { ListAlt } from '@mui/icons-material';
+
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getToken, getUserPublicInfo, removeToken } from "../utils/token";
@@ -118,7 +119,7 @@ const NavBar = () => {
                 to="/listTodos"
                 className="text-gray-600 hover:text-zinc-900"
               >
-               <ListAltIcon/>
+               <ListAlt />
               </Link>
             </li>
 
