@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSnackBar } from "./snack-bar/snack-bar-context";
 import NotificationBox from "./notification-box/NotificationBox";
 import { useSocket } from "../contexts/SocketBaseContext";
+import NotesIcon from '@mui/icons-material/Notes';
 
 interface UserInfo {
   firstName?: string;
@@ -120,6 +121,14 @@ const NavBar = () => {
                 className="text-gray-600 hover:text-zinc-900"
               >
                <ListAlt />
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/notes"
+                className="text-gray-600 hover:text-zinc-900"
+              >
+               <NotesIcon />
               </Link>
             </li>
 
