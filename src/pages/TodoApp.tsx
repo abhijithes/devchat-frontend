@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
-
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
@@ -18,7 +13,7 @@ interface Todo {
   completed: boolean;
 }
 
-// LOCAL STORAGE FUNCTIONS  
+// LOCAL STORAGE FUNCTIONS
 const STORAGE_KEY = "todos";
 
 const getTodos = (): Todo[] => {
@@ -48,9 +43,7 @@ const toggleTodo = async (id: number): Promise<Todo[]> => {
 };
 
 const editTodo = async (id: number, text: string): Promise<Todo[]> => {
-  const updated = getTodos().map((t) =>
-    t.id === id ? { ...t, text } : t
-  );
+  const updated = getTodos().map((t) => (t.id === id ? { ...t, text } : t));
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   return updated;
 };
@@ -83,10 +76,12 @@ export default function ListTodos() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["todos"] }),
   });
 
-  const editMutation = useMutation<Todo[], Error, { id: number; text: string }>({
-    mutationFn: ({ id, text }) => editTodo(id, text),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["todos"] }),
-  });
+  const editMutation = useMutation<Todo[], Error, { id: number; text: string }>(
+    {
+      mutationFn: ({ id, text }) => editTodo(id, text),
+      onSuccess: () => qc.invalidateQueries({ queryKey: ["todos"] }),
+    }
+  );
 
   const handleAdd = () => {
     if (!value.trim()) return;
@@ -155,23 +150,43 @@ export default function ListTodos() {
               <div className="flex items-center gap-2 ml-1">
                 {editingId === todo.id ? (
                   <>
-                    <button onClick={() => editMutation.mutate({ id: todo.id, text: editValue })}>
+                    <button
+                      onClick={() => {
+                        editMutation.mutate(
+                          { id: todo.id, text: editValue },
+                          {
+                            onSuccess: () => {
+                              setEditingId(null); // EXIT edit mode after saving
+                            },
+                          }
+                        );
+                      }}
+                    >
                       <SaveIcon />
                     </button>
-                    <button onClick={() => setEditingId(null)}>
+
+                    {/* CLOSE button → cancel editing, no saving */}
+                    <button
+                      onClick={() => {
+                        setEditingId(null);
+                        setEditValue(""); // optional: clear field
+                      }}
+                    >
                       <CloseIcon />
                     </button>
                   </>
                 ) : (
                   <>
-                    <button
-                      onClick={() => {
-                        setEditingId(todo.id);
-                        setEditValue(todo.text);
-                      }}
-                    >
-                      <EditIcon />
-                    </button>
+                    {!todo.completed && (
+                      <button
+                        onClick={() => {
+                          setEditingId(todo.id);
+                          setEditValue(todo.text);
+                        }}
+                      >
+                        <EditIcon />
+                      </button>
+                    )}
 
                     <button onClick={() => deleteMutation.mutate(todo.id)}>
                       <DeleteIcon />
