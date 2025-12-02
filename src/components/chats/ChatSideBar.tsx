@@ -8,6 +8,7 @@ import { useLoader } from "../../contexts/GlobalLoaderContext";
 import { useNavigate } from "react-router-dom";
 import { useUsersInChat } from "../../contexts/chatListContext";
 import type { BaseUserInfo } from "../../constant/types";
+import ChatSettings from "../chatSettings/ChatSettings";
 let chatSideBarActions = [
   {
     name: "New chat",
@@ -32,11 +33,17 @@ let chatSideBarActions = [
 ];
 const ChatSideBar = () => {
   const [openSearchUserDialog, setOpenSearchUserDialog] = useState(false);
+  const [openChatSettingsDialog, setOpenChatSettingsDialog] = useState(false);
+  // console.log(openChatSettingsDialog);
+  
   const { showLoader, hideLoader } = useLoader();
   const navigate = useNavigate();
   const { addUserToChat } = useUsersInChat();
   chatSideBarActions[0].action = () => {
     setOpenSearchUserDialog(true);
+  };
+  chatSideBarActions[3].action = () => {
+    setOpenChatSettingsDialog(true);
   };
 
   const handleMakeChat = async (selectedUsers: BaseUserInfo[]) => {
@@ -65,6 +72,15 @@ const ChatSideBar = () => {
         onClose={() => setOpenSearchUserDialog(false)}
       >
         <ListMembers onSubmit={handleMakeChat} />
+      </DialogueBox>
+
+      {/*  */}
+      <DialogueBox
+        heading={"Chat Settings"}
+        opened={openChatSettingsDialog}
+        onClose={() => setOpenChatSettingsDialog(false)}
+      >
+        <ChatSettings />
       </DialogueBox>
       {/* Left sidebar content */}
       <h1 className="heading mt-5 hidden md:block">DevChats.io</h1>
