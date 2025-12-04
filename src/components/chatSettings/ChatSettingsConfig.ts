@@ -24,10 +24,10 @@ export const chatSettingsConfig: ChatSettingItem[] = [
     label: "Comments",
     default: false,
   },
-  {
-    key: "timer",
-    label: "Timer",
-    default: false,
-    isTimer: true, // special setting for timer UI
-  },
+  // {
+  //   key: "timer",
+  //   label: "Timer",
+  //   default: false,
+  //   isTimer: true, // special setting for timer UI
+  // },
 ];
