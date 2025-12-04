@@ -17,7 +17,7 @@ export const chatSettingsConfig: ChatSettingItem[] = [
     key: "ai",
     label: "AI",
     default: true,
-    activeColor: "bg-green-300",
+    
   },
   {
     key: "comments",
