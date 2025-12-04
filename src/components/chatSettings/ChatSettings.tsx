@@ -33,6 +33,7 @@ const ChatSettings = () => {
 
   useEffect(() => {
     localStorage.setItem("chatSettings", JSON.stringify(settings));
+    window.dispatchEvent(new Event("chatSettingsUpdated"));
   }, [settings]);
 
 

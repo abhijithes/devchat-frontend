@@ -3,7 +3,7 @@ import { AiIcon } from "../../constant/icons";
 import type { Message } from "../../constant/messages";
 import UserIcon from "../userIcon/usericon";
 import { DropDown } from "../../components/chat-window/drop-down";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ReadMore from "./ReadMore";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
 import DeleteConfirmation from "../Conformation/DeleteConformation";
@@ -44,6 +44,22 @@ const MessageBox: React.FC<MessageBoxProbs> = ({
   const closeDeleteModel = () => {
     setDeleteId(null);
   };
+
+ const [showControlBox, setShowControlBox] = useState(() => {
+  return JSON.parse(localStorage.getItem("chatSettings"))?.control;
+});
+
+  useEffect(() => {
+  const updateSettings = () => {
+    const settings = JSON.parse(localStorage.getItem("chatSettings"));
+    setShowControlBox(settings?.control);
+  };
+
+  window.addEventListener("chatSettingsUpdated", updateSettings);
+
+  return () => window.removeEventListener("chatSettingsUpdated", updateSettings);
+}, []);
+
   const DeletemessageMutation = useMutation({
     mutationFn: DeleteMessage,
     onMutate: async (messageId) => {
@@ -134,16 +150,16 @@ const MessageBox: React.FC<MessageBoxProbs> = ({
             })}
           </span>
         </div>
-        <div
-          className={`w-max h-max bg-white mt-2 px-5 py-2 rounded-2xl flex items-center space-x-2`}
-        >
-          <div className="icon-hover ">
-            <MessageSquareCode />
+        {showControlBox && (
+          <div className="w-max h-max bg-white mt-2 px-5 py-2 rounded-2xl flex items-center space-x-2">
+            <div className="icon-hover ">
+              <MessageSquareCode />
+            </div>
+            <div className="icon-hover ">
+              <img src={AiIcon} alt="AI Icon" className="w-7 h-7 block " />
+            </div>
           </div>
-          <div className="icon-hover ">
-            <img src={AiIcon} alt="AI Icon" className="w-7 h-7 block " />
-          </div>
-        </div>
+        )}
       </div>
       {deleteId && (
         <DeleteConfirmation
