@@ -48,11 +48,15 @@ const MessageBox: React.FC<MessageBoxProbs> = ({
  const [showControlBox, setShowControlBox] = useState(() => {
   return JSON.parse(localStorage.getItem("chatSettings"))?.control;
 });
+ const [showAiIcon , setShowAiIcon] = useState(() => {
+  return JSON.parse(localStorage.getItem("chatSettings"))?.ai;
+});
 
   useEffect(() => {
   const updateSettings = () => {
     const settings = JSON.parse(localStorage.getItem("chatSettings"));
     setShowControlBox(settings?.control);
+    setShowAiIcon(settings?.ai);
   };
 
   window.addEventListener("chatSettingsUpdated", updateSettings);
@@ -155,9 +159,11 @@ const MessageBox: React.FC<MessageBoxProbs> = ({
             <div className="icon-hover ">
               <MessageSquareCode />
             </div>
+           { showAiIcon && (
             <div className="icon-hover ">
               <img src={AiIcon} alt="AI Icon" className="w-7 h-7 block " />
             </div>
+           ) }
           </div>
         )}
       </div>
