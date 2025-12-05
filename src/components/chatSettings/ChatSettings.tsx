@@ -15,7 +15,7 @@ const ChatSettings = () => {
     }, {} as any);
   });
 
-  console.log(settings);
+  // console.log(settings);
   
 
   // const [timerValue, setTimerValue] = useState("");
@@ -38,7 +38,7 @@ const ChatSettings = () => {
 
 
   return (
-    <div className="p-10  w-full pl-0">
+    <div className="px-40 py-10   w-full pl-0">
       <h1 className="text-3xl font-bold mb-10 ">Chat</h1>
 
       {chatSettingsConfig.map((item) => (
