@@ -22,6 +22,8 @@ const ChatLayout: React.FC = () => {
     }
   }, [path, usersInChat]);
 
+  console.log(usersInChat);
+
   return (
     <div className="w-full h-screen  flex items-center  overflow-hidden ">
       {/* Left Sidebar */}
@@ -42,6 +44,17 @@ const ChatLayout: React.FC = () => {
             key={index}
             className="w-max h-max mb-4 p-[0.10px] flex justify-center shadow-xl  rounded-full relative"
           >
+            {chat.hasUnread && (
+              <div className="w-5 h-5 text-black bg-green-400 border-2 border-white  rounded-full centered   absolute right-0 -top-1 z-30 ">
+                <span className="text-xs">
+                  {chat.unreadCount < 10 ? (
+                    chat.unreadCount
+                  ) : (
+                    <span className="text-[9.5px] relative block ">10+</span>
+                  )}
+                </span>
+              </div>
+            )}
             <div
               className={` w-2 h-2 ${
                 onlineUsers?.includes(chat.user._id) ? "bg-green-500" : "hidden"
@@ -51,7 +64,7 @@ const ChatLayout: React.FC = () => {
               onClick={() => navigate(`/chat/${chat.roomId}`)}
               user={chat.user}
               style={`w-14 h-14  ${
-                roomId == chat.roomId ? "ring-2 ring-violet-500" : ""
+                roomId == chat.roomId ? "ring-2 ring-zinc-400" : ""
               }
               ${
                 onlineUsers?.includes(chat.user._id)
