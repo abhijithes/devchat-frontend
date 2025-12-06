@@ -100,13 +100,13 @@ export default function NotesPage() {
                 className="relative p-5 rounded-4xl shadow flex flex-col justify-between"
                 style={{ backgroundColor: getBgColor(note.color) }}
               >
-                {/* COLOR DOT */}
+                
                 <span
                   className="absolute top-4 right-4 h-5 w-5 rounded-full"
                   style={{ backgroundColor: getDotColor(note.color) }}
                 ></span>
 
-                {/* TEXT / EDIT MODE */}
+                {/* edit  */}
                 {editingId === note.id ? (
                   <textarea
                     value={editText}
@@ -122,8 +122,6 @@ export default function NotesPage() {
                     {note.text}
                   </p>
                 )}
-
-                {/* FOOTER */}
                 <div className="flex justify-between items-center mt-4 pt-2">
                   <div className="text-xs text-gray-600">
                      {
@@ -163,7 +161,7 @@ export default function NotesPage() {
           </div>
         </div>
 
-        {/* RIGHT SIDE — FIXED (NO SCROLL) */}
+        {/* RIGHT SIDE */}
         <div className="w-1/3 h-full border rounded-2xl p-5 flex flex-col">
           <p className="text-sm mb-2">Write your notes</p>
 
@@ -172,11 +170,9 @@ export default function NotesPage() {
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
-
-          {/* ADD BAR */}
           <div className="flex justify-between items-center mt-4 px-3 py-2">
             <div className="relative">
-              {/* Selected Color Circle */}
+              
 
               {/* Dropdown List */}
              
