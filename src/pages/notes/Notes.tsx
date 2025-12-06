@@ -90,9 +90,9 @@ export default function NotesPage() {
     <div className="p-10">
       <h1 className="font-semibold text-3xl mb-6">Quick Notes</h1>
 
-      <div className="flex gap-10 h-[500px] w-full border ">
+      <div className="flex gap-10 h-[500px] w-full  ">
       
-        <div className="w-2/3 h-full max-h-[600px] overflow-y-auto pr-4 border  ">
+        <div className="w-2/3 h-full max-h-[600px] overflow-y-auto pr-4   ">
           <div className="grid grid-cols-2 gap-6  ">
             {notes.map((note) => (
               <div

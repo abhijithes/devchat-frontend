@@ -3,6 +3,6 @@ export interface ChatSettingItem {
   label: string;
   default: boolean;
   activeColor?: string;
-  isTimer?: boolean;
+  
 }
 

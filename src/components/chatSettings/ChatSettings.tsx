@@ -18,7 +18,7 @@ const ChatSettings = () => {
   // console.log(settings);
   
 
-  // const [timerValue, setTimerValue] = useState("");
+  
 
   const updateSetting = (key: string) => {
     setSettings((prev: any) => ({
@@ -27,9 +27,7 @@ const ChatSettings = () => {
     }));
   };
 
-  // const updateTimer = () => {
-  //   console.log("Updated Timer:", timerValue);
-  // };
+  
 
   useEffect(() => {
     localStorage.setItem("chatSettings", JSON.stringify(settings));

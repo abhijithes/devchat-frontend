@@ -23,11 +23,5 @@ export const chatSettingsConfig: ChatSettingItem[] = [
     key: "comments",
     label: "Comments",
     default: false,
-  },
-  // {
-  //   key: "timer",
-  //   label: "Timer",
-  //   default: false,
-  //   isTimer: true, // special setting for timer UI
-  // },
+  }
 ];
