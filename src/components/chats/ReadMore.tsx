@@ -2,7 +2,6 @@ import { useState } from "react";
 
 const ReadMore = ({ text, limit = 180 }) => {
     const [expanded, setExpanded] = useState(false);
-
     if (text.length <= limit) return <p className="whitespace-pre-wrap">{text}</p>;
 
     return (
