@@ -17,6 +17,7 @@ import {
 } from "../constant/audio-files";
 import { getUserPublicInfo } from "../utils/token";
 import { useUsersInChat } from "./chatListContext";
+import { throttle } from "../utils/optimize_functions";
 
 interface Notification {
   _id: string;
@@ -156,7 +157,7 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
         }
 
         if (payload.data.message.includes("message")) {
-          queryClient.invalidateQueries({ queryKey: ["chatList"] });
+          throattleMessage();
         }
       }
     );
@@ -184,6 +185,10 @@ const SocketBaseProvider = ({ children }: { children: ReactNode }) => {
       prevRoomRef.current = newRoom;
     }
   }, [activeChat]);
+
+  const throattleMessage = throttle(() => {
+    queryClient.invalidateQueries({ queryKey: ["chatList"] });
+  }, 3000);
 
   return (
     <SocketBaseContext.Provider
