@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
@@ -10,15 +10,11 @@ interface Note {
   color: string;
 }
 const COLORS = [
-  { name: "Mint", bg: "#C8F7C5", border: "#7BC47F" },
-  { name: "SkyBlue", bg: "#D6F0FF", border: "#72A9E1" },
-  { name: "Peach", bg: "#FFE2CC", border: "#FF9F6E" },
-  { name: "SoftYellow", bg: "#FFF7C2", border: "#E6D872" },
-  { name: "Rose", bg: "#FFD6E7", border: "#E76C9F" },
-  { name: "Lilac", bg: "#EAD8FF", border: "#A87BE6" },
-  { name: "AquaMist", bg: "#D4FFF7", border: "#57CFC0" },
-  { name: "PowderBlue", bg: "#E3EDFF", border: "#7C9CE1" },
-  { name: "CoralBlush", bg: "#FFDAD1", border: "#FF8A74" },
+  { name: "Green", bg: "#F7FFD9", dot: "#D1FF00" },
+  { name: "Blue", bg: "#D9FBFF", dot: "#00CFFF" },
+  { name: "LightGreen", bg: "#D9FFE7", dot: "#00FF3C" },
+  { name: "Yellow", bg: "#FBFFD9", dot: "#FFF200" },
+  { name: "Purple", bg: "#F0D9FF", dot: "#C100FF" },
 ];
 
 const STORAGE_KEY = "notes-page-data";
@@ -36,18 +32,17 @@ export default function NotesPage() {
   const [notes, setNotes] = useState<Note[]>(getNotes());
   const [text, setText] = useState("");
   const [color, setColor] = useState(COLORS[0].name);
-  const [open, setOpen] = useState(false);
+  // const [open, setOpen] = useState(false);
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
 
-  useEffect(() => {
-    setNotes(notes?.sort((a, b) => b.id - a.id));
-  }, [notes]);
+  const [colorOpen, setColorOpen] = useState(false);
 
   const handleAdd = () => {
     if (!text.trim()) return;
     const updated = [...notes, { id: Date.now(), text, color }];
+
     setNotes(updated);
     saveNotes(updated);
     setText("");
@@ -61,8 +56,9 @@ export default function NotesPage() {
 
   const handleSaveEdit = () => {
     if (!editingId) return;
+    const id = Date.now();
     const updated = notes.map((n) =>
-      n.id === editingId ? { ...n, text: editText } : n
+      n.id === editingId ? { ...n, id: id, text: editText } : n
     );
     setNotes(updated);
     saveNotes(updated);
@@ -70,173 +66,160 @@ export default function NotesPage() {
     setEditText("");
   };
 
-  const getNoteStyles = (note: Note): React.CSSProperties => {
-    // Safe fallback for undefined color
-    const c = COLORS.find((x) => x.name === note.color) || COLORS[0];
-    return {
-      // backgroundColor: c.bg,
-      border:
-        editingId === note.id
-          ? `1px solid ${c.border}`
-          : `1px solid ${c.border}`,
-      color: "white",
-      wordWrap: "break-word",
-      overflowWrap: "break-word",
-      transition: "all 0.2s",
-    };
+  const getBgColor = (clr: string) =>
+    COLORS.find((c) => c.name === clr)?.bg || COLORS[0].bg;
+
+  const getDotColor = (clr: string) =>
+    COLORS.find((c) => c.name === clr)?.dot || COLORS[0].dot;
+
+  const formatNoteDate = (timestamp: number) => {
+    const date = new Date(timestamp);
+
+    return date.toLocaleString("en-US", {
+      weekday: "short",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row gap-8 p-4 md:p-6 bg-gray-50">
-      {/* LEFT — Notes List */}
-      <div className="flex-1">
-        <h1 className="text-3xl font-bold mb-5">Quick Notes</h1>
+    <div className="p-10">
+      <h1 className="font-semibold text-3xl mb-6">Quick Notes</h1>
 
-        <div
-          className="
-          grid gap-4 
-          grid-cols-1 
-          sm:grid-cols-2 
-          lg:grid-cols-3 
-          auto-rows-min 
-          max-h-[80vh] overflow-y-auto pr-2
-        "
-        >
-          {!notes.length && (
-            <div className="col-span-full h-[40vh] bg-white shadow rounded-xl flex items-center justify-center">
-              <p className="text-gray-500 text-lg">No notes yet...</p>
-            </div>
-          )}
+      <div className="flex gap-10 h-[500px] w-full  ">
+        <div className="w-2/3 h-full max-h-[600px] overflow-y-auto pr-4   ">
+          <div className="grid grid-cols-2 gap-6  ">
+            {notes.map((note) => (
+              <div
+                key={note.id}
+                className="relative p-5 rounded-4xl shadow flex flex-col justify-between"
+                style={{ backgroundColor: getBgColor(note.color) }}
+              >
+                <span
+                  className="absolute top-4 right-4 h-5 w-5 rounded-full"
+                  style={{ backgroundColor: getDotColor(note.color) }}
+                ></span>
 
-          {notes.map((note) => (
-            <div
-              key={note.id}
-              style={getNoteStyles(note)}
-              className="
-              bg-white rounded-xl shadow 
-              p-4 flex flex-col justify-between 
-              min-h-[180px]
-              hover:shadow-lg hover:-translate-y-1 
-              transition-all
-            "
-            >
-              {editingId === note.id ? (
-                <textarea
-                  value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
-                  className="w-full p-3 rounded-lg text-black bg-gray-100 border"
-                />
-              ) : (
-                <p className="text-gray-800 whitespace-pre-wrap text-[15px] leading-relaxed">
-                  {note.text}
-                </p>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-2 mt-3">
+                {/* edit  */}
                 {editingId === note.id ? (
-                  <>
-                    <button
-                      onClick={handleSaveEdit}
-                      className="p-2 bg-green-100 hover:bg-green-200 rounded-full"
-                    >
-                      <SaveIcon fontSize="small" />
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      className="p-2 bg-red-100 hover:bg-red-200 rounded-full"
-                    >
-                      <CloseIcon fontSize="small" />
-                    </button>
-                  </>
+                  <textarea
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    className="w-full p-2 rounded border"
+                    style={{
+                      backgroundColor: getBgColor(note.color),
+                      minHeight: "100px",
+                    }}
+                  />
                 ) : (
-                  <>
-                    <button
-                      onClick={() => {
-                        setEditingId(note.id);
-                        setEditText(note.text);
-                      }}
-                      className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full"
-                    >
-                      <EditIcon fontSize="small" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(note.id)}
-                      className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full"
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </button>
-                  </>
+                  <p className="font-medium break-words whitespace-pre-wrap max-h-[120px] overflow-y-auto pr-4">
+                    {note.text}
+                  </p>
+                )}
+                <div className="flex justify-between items-center mt-4 pt-2">
+                  <div className="text-xs text-gray-600">
+                    {formatNoteDate(note.id)}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {editingId === note.id ? (
+                      <>
+                        <button onClick={handleSaveEdit}>
+                          <SaveIcon fontSize="small" />
+                        </button>
+                        <button onClick={() => setEditingId(null)}>
+                          <CloseIcon fontSize="small" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditingId(note.id);
+                            setEditText(note.text);
+                          }}
+                        >
+                          <EditIcon fontSize="small" />
+                        </button>
+                        <button onClick={() => handleDelete(note.id)}>
+                          <DeleteIcon fontSize="small" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* RIGHT SIDE */}
+        <div className="w-1/3 h-full border rounded-2xl p-5 flex flex-col">
+          <p className="text-sm mb-2">Write your notes</p>
+
+          <textarea
+            className="border rounded-lg p-3 flex-1 resize-none"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <div className="flex justify-between items-center mt-4 px-3 py-2">
+            <div className="relative">
+              {/* Dropdown List */}
+
+              <div className="relative flex items-center gap-2">
+                {/* Selected Color Circle */}
+                <span
+                  className="h-6 w-6 rounded-full cursor-pointer border"
+                  style={{
+                    backgroundColor: COLORS.find((x) => x.name === color)?.dot,
+                  }}
+                  onClick={() => setColorOpen(!colorOpen)}
+                ></span>
+
+                {/* Dropdown Arrow Icon */}
+                <span
+                  className="cursor-pointer select-none text-gray-700"
+                  onClick={() => setColorOpen(!colorOpen)}
+                >
+                  ▼
+                </span>
+
+                {/* Dropdown Menu */}
+                {colorOpen && (
+                  <div className="absolute top-8 left-0 bg-white border shadow-md rounded-xl p-2 flex flex-col gap-2 z-50">
+                    {COLORS.map((c) => (
+                      <div
+                        key={c.name}
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => {
+                          setColor(c.name);
+                          setColorOpen(false);
+                        }}
+                      >
+                        <span
+                          className="h-6 w-6 rounded-full border"
+                          style={{ backgroundColor: c.dot }}
+                        ></span>
+
+                        {/* Color name */}
+                        <span className="text-sm">{c.name}</span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* RIGHT — Add Note */}
-      <div className="lg:w-1/3 bg-white shadow-md p-6 rounded-xl sticky top-4 h-fit">
-        <h1 className="text-xl font-semibold mb-4">Write Your Thoughts</h1>
-
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Write a note..."
-          className="
-          w-full min-h-48 p-4 bg-gray-100 rounded-xl border focus:ring-2 
-          focus:ring-purple-300 outline-none
-        "
-        />
-
-        {/* Color Picker + Add Button */}
-        <div className="flex items-center justify-between mt-4">
-          {/* Color Picker */}
-          <div className="relative">
-            <div
-              title="Select Color"
-              onClick={() => setOpen(!open)}
-              className="w-9 h-9 rounded-full border cursor-pointer shadow"
-              style={{
-                backgroundColor: COLORS.find((c) => c.name === color)?.bg,
-              }}
-            ></div>
-
-            {open && (
-              <div
-                className="
-                absolute bottom-14 bg-white shadow-xl rounded-xl p-4 
-                grid grid-cols-4 gap-3 w-48 z-50
-              "
-              >
-                {COLORS.map((c) => (
-                  <div
-                    key={c.name}
-                    onClick={() => {
-                      setColor(c.name);
-                      setOpen(false);
-                    }}
-                    className={`
-                      w-8 h-8 rounded-full border cursor-pointer 
-                      hover:scale-110 transition 
-                      ${color === c.name ? "ring-2 ring-black" : ""}
-                    `}
-                    style={{ backgroundColor: c.bg }}
-                  ></div>
-                ))}
-              </div>
-            )}
+            <button
+              onClick={handleAdd}
+              className="bg-black text-white px-6 py-2 rounded-xl"
+            >
+              Add
+            </button>
           </div>
-
-          <button
-            onClick={handleAdd}
-            className="
-            px-6 py-2 rounded-lg text-white font-medium 
-            bg-gradient-to-r from-purple-500 to-blue-500 
-            hover:opacity-90 transition
-          "
-          >
-            Add Note
-          </button>
         </div>
       </div>
     </div>

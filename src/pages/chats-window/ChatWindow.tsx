@@ -47,6 +47,23 @@ const ChatWindow = () => {
     enabled: !!activeChat?.roomId,
   });
 
+  // from the local storage get the chat settings for write permission
+  const [canWrite, setCanWrite] = useState(() => {
+  const settings = JSON.parse(localStorage.getItem("chatSettings"));
+  return settings?.write ?? true; // default true
+});
+
+useEffect(() => {
+  const handleUpdate = () => {
+    const settings = JSON.parse(localStorage.getItem("chatSettings"));
+    setCanWrite(settings?.write ?? true);
+  };
+
+  window.addEventListener("chatSettingsUpdated", handleUpdate);
+
+  return () => window.removeEventListener("chatSettingsUpdated", handleUpdate);
+}, []);
+
   const sendMessageMutation = useMutation({
     mutationFn: sendMessage,
     onMutate: async (newMessage: any) => {
@@ -327,29 +344,42 @@ const ChatWindow = () => {
       </div>
 
       {/* Input Box */}
-      <div className="w-[98%] h-max bg-white/90 backdrop-blur-2xl shadow-xl border border-zinc-300 rounded-2xl flex gap-2 items-end p-5 absolute bottom-5 z-20">
-        <textarea
-          ref={textareaRef}
-          onInput={() => {
-            autoResize();
-            handleTyping();
-          }}
-          className="w-full outline-none min-h-8 max-h-[30vh] resize-none bg-transparent scrollbar-hide text-black"
-          placeholder="Add message..."
-        />
+   <div className="w-[98%] h-max bg-white/90 backdrop-blur-2xl shadow-xl border border-zinc-300 rounded-2xl flex gap-2 items-end p-5 absolute bottom-5 z-20">
+  <textarea
+    ref={textareaRef}
+    disabled={!canWrite}
+    onInput={() => {
+      if (!canWrite) return;   // prevent typing logic
+      autoResize();
+      handleTyping();
+    }}
+    className={`w-full outline-none min-h-8 max-h-[30vh] resize-none bg-transparent scrollbar-hide text-black
+      ${!canWrite ? "opacity-50 cursor-not-allowed select-none" : ""}
+    `}
+    placeholder={
+      canWrite ? "Add message..." : "Writing disabled in settings"
+    }
+  />
 
-        <DropUpMenu />
-        <button className="!w-max input-grad-btn-invert centered">
-          <Settings />
-        </button>
+  <DropUpMenu />
 
-        <button
-          onClick={handleSendMessage}
-          className="!w-max input-grad-btn centered"
-        >
-          {editMessage ? <Check /> : <Send />}
-        </button>
-      </div>
+  {/* Settings button works normally */}
+  <button className="!w-max input-grad-btn-invert centered">
+    <Settings />
+  </button>
+
+  {/* Disable send button too */}
+  <button
+    disabled={!canWrite}
+    onClick={canWrite ? handleSendMessage : undefined}
+    className={`!w-max input-grad-btn centered 
+      ${!canWrite ? "opacity-50 cursor-not-allowed" : ""}
+    `}
+  >
+    {editMessage ? <Check /> : <Send />}
+  </button>
+</div>
+
     </section>
   );
 };

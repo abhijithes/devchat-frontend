@@ -12,6 +12,8 @@ import { getChatsList } from "../services/chat-service";
 interface ChatsListType {
   roomId: string;
   user: BaseUserInfo;
+  unreadCount: number;
+  hasUnread: boolean;
 }
 
 interface UsersInChatContextType {
@@ -45,7 +47,9 @@ export const UsersInChatProvider = ({ children }: { children: ReactNode }) => {
         .filter((chat: any) => chat.members?.length > 0)
         .map((chat: any) => ({
           roomId: chat._id,
-          user: chat.members[0], // or map all users if needed
+          user: chat.members[0],
+          unreadCount: chat.unreadCount,
+          hasUnread: chat.hasUnread, // or map all users if needed
         }));
 
       setUsersInChat(list);
@@ -55,7 +59,7 @@ export const UsersInChatProvider = ({ children }: { children: ReactNode }) => {
   const addUserToChat = (user: BaseUserInfo, roomId: string) => {
     setUsersInChat((prev) => {
       if (prev.some((u) => u.user._id === user._id)) return prev;
-      return [...prev, { roomId, user }];
+      return [...prev, { roomId, user, unreadCount: 0, hasUnread: false }];
     });
   };
 
