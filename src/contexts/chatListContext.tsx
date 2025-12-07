@@ -9,7 +9,7 @@ import type { BaseUserInfo } from "../constant/types";
 import { useQuery } from "@tanstack/react-query";
 import { getChatsList } from "../services/chat-service";
 
-interface ChatsListType {
+export interface ChatsListType {
   roomId: string;
   user: BaseUserInfo;
   unreadCount: number;

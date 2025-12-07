@@ -1,7 +1,10 @@
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import UserIcon from "../components/userIcon/usericon";
 import ChatSideBar from "../components/chats/ChatSideBar";
-import { useUsersInChat } from "../contexts/chatListContext";
+import {
+  useUsersInChat,
+  type ChatsListType,
+} from "../contexts/chatListContext";
 import { useEffect, useState } from "react";
 
 const ChatLayout: React.FC = () => {
@@ -22,7 +25,12 @@ const ChatLayout: React.FC = () => {
     }
   }, [path, usersInChat]);
 
-  console.log(usersInChat);
+  const handleUserClick = (chat: ChatsListType) => {
+    navigate(`/chat/${chat.roomId}`);
+    if (chat.hasUnread) {
+      chat.hasUnread = false;
+    }
+  };
 
   return (
     <div className="w-full h-screen  flex items-center  overflow-hidden ">
@@ -61,7 +69,7 @@ const ChatLayout: React.FC = () => {
               }  absolute bottom-0 left-0 z-5 rounded-full`}
             />
             <UserIcon
-              onClick={() => navigate(`/chat/${chat.roomId}`)}
+              onClick={() => handleUserClick(chat)}
               user={chat.user}
               style={`w-14 h-14  ${
                 roomId == chat.roomId ? "ring-2 ring-zinc-400" : ""
