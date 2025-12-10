@@ -334,6 +334,10 @@ const ChatWindow = () => {
             autoResize();
             handleTyping();
           }}
+          onKeyDown={(e)=> {if(e.key === "Enter" && window.innerWidth > 920){
+            e.preventDefault();
+            handleSendMessage();
+          }}}
           className="w-full outline-none min-h-8 max-h-[30vh] resize-none bg-transparent scrollbar-hide text-black"
           placeholder="Add message..."
         />
@@ -346,6 +350,7 @@ const ChatWindow = () => {
         <button
           onClick={handleSendMessage}
           className="!w-max input-grad-btn centered"
+          onKeyDown={(e) => { if(e.key === "Enter" && window.innerWidth >= 920) handleSendMessage()}}
         >
           {editMessage ? <Check /> : <Send />}
         </button>
