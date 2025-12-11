@@ -165,6 +165,7 @@ const ChatWindow = () => {
       sendSoundRef.current.play().catch((err) => console.error(err));
       socket.emit("send_message", {
         text,
+        files: images,
         roomId: activeChat?.roomId,
         _id: Math.random().toString(),
         senderId: user,
