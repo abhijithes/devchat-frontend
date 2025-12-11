@@ -21,6 +21,7 @@ import { DropUpMenu } from "../../components/chat-window/drop-up.tsx";
 import { markAsRead } from "../../components/chats/services/chat-service.ts";
 import { useSnackBar } from "../../components/snack-bar/snack-bar-context.tsx";
 import { UploadFiles } from "../../services/upload-service.ts";
+import Spinner from "../../components/loaders/Spinner.tsx";
 
 const ChatWindow = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -32,9 +33,10 @@ const ChatWindow = () => {
   const { socket } = useSocket();
   const receiveSoundRef = useRef(new Audio(MessageSounds[0]));
   const sendSoundRef = useRef(new Audio(MessageSounds[1]));
-  const [Files, setFiles] = useState([]);
+  const [FilePreviews, setFilePreviews] = useState([]);
   const [isUserOnline, setIsUserOnline] = useState(false);
   const { showSnackBar } = useSnackBar();
+  const [images, setImages] = useState([])
   
 
   const typingTimeoutRef = useRef(null);
@@ -62,7 +64,8 @@ const ChatWindow = () => {
         "messages",
         newMessage.roomId,
       ]);
-
+      console.log(messages, "new");
+      
       queryClient.setQueryData<Message[]>(
         ["messages", newMessage.roomId],
         (old = []) => [
@@ -75,6 +78,7 @@ const ChatWindow = () => {
           },
         ]
       );
+      console.log(newMessage, "newa");
 
       return { previousMessages };
     },
@@ -133,9 +137,9 @@ const ChatWindow = () => {
     }, 1000);
   };
 
-  const handleSendMessage = () => {
-    const text = textareaRef.current?.value.trim();
-    if (!text) return;
+  const handleSendMessage = async () => {
+    const text = textareaRef.current?.value.trim() || "";
+    if (!text && images.length === 0) return;
 
     if (editMessage) {
       updateMutation.mutate({
@@ -150,10 +154,14 @@ const ChatWindow = () => {
         senderId: user,
       });
     } else {
+      
       sendMessageMutation.mutate({
         roomId: activeChat?.roomId,
+        files: images,
         text,
       });
+      setFilePreviews([]);
+      setImages([])
       sendSoundRef.current.play().catch((err) => console.error(err));
       socket.emit("send_message", {
         text,
@@ -264,15 +272,23 @@ const ChatWindow = () => {
     el.style.height = `${el.scrollHeight}px`;
   };
 
+  const fileuploudMutation = useMutation({
+    mutationFn: UploadFiles,
+    onSuccess: (data) => {
+      setImages((prev) => [...(prev ?? []), ...data.files]);
+    },
+  })
+
   const handleFileSelect = async (file) => {
-    if(Files.length + file.length > 4) {
+    if(FilePreviews.length + file.length > 4) {
       showSnackBar("You can upload a maximum of 4 images at a time.", "error", 3000); 
       return;
     }
-    const fileUploudResponse = await UploadFiles(file);
-    console.log(fileUploudResponse.files[0].url);
+    const PreviewFiles = [...(FilePreviews || []), ...file]
+    console.log(PreviewFiles, "check", file);
     
-  setFiles((files) => [...(files || []), ...file]);
+    setFilePreviews(PreviewFiles);
+    fileuploudMutation.mutate(file);
 };
 
   useMemo(() => {
@@ -344,11 +360,13 @@ const ChatWindow = () => {
       {/* Input Box */}
       <div className="w-[98%] h-max bg-white/90 backdrop-blur-2xl shadow-xl border border-zinc-300 rounded-2xl flex flex-col items-end p-5 absolute bottom-5 z-20">
         <div className="file-preview w-full overflow-x-auto">{
-          Files && Files.map((file, index) => (
-            <div key={index} className={`inline-block mr-2 mb-2 border border-gray-300 rounded-lg bg-gray-100 relative ${Files.length < 2 ? 'w-35 h-35' : Files.length < 3 ? 'w-25 h-25' : 'w-20 h-20'}`}>
+          FilePreviews && FilePreviews.map((file, index) => (
+            <div key={index} className={`inline-block mr-2 mb-2 border border-gray-300 rounded-lg bg-gray-100 relative ${FilePreviews.length < 2 ? 'w-35 h-35' : FilePreviews.length < 3 ? 'w-25 h-25' : 'w-20 h-20'}`}>
               <X  className="absolute top-[2px] right-[2px] cursor-pointer text-black bg-white rounded-full font-bold" size={18} fontWeight={900} onClick={() => {
-                setFiles((files) => files.filter((_, i) => i !== index));
+                setFilePreviews((files) => files.filter((_, i) => i !== index));
+                setImages((files) => files.filter((_, i) => i !== index))
               }}/>
+             {fileuploudMutation.isPending ?  <Spinner style="w-1/3 h-1/3 absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%]"/> : ''}
             <img
               src={URL.createObjectURL(file)}
               alt={file.name}
@@ -375,6 +393,7 @@ const ChatWindow = () => {
         </button>
 
         <button
+          disabled={fileuploudMutation.isPending}
           onClick={handleSendMessage}
           className="!w-max input-grad-btn centered"
         >

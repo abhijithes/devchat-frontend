@@ -12,6 +12,7 @@ import api from "../../utils/axios";
 import { endpoints } from "../../constant/constant";
 import { useSocket } from "../../contexts/SocketBaseContext";
 import { Done, DoneAll } from "@mui/icons-material";
+import ImageBox from "./ImageBox";
 
 interface MessageBoxProbs {
   message: Message;
@@ -103,12 +104,13 @@ const MessageBox: React.FC<MessageBoxProbs> = ({
           />
         </div>
         <div className="bg-white p-4 flex gap-3 flex-col rounded-2xl hover:bg-zinc-200 transition-transform max-w-60 md:max-w-100 lg:max-w-150">
+          <ImageBox files={message.files} />
           <ReadMore text={message?.text} limit={800} />
           <span
             className={`text-sm  text-gray-500  flex items-center justify-end-safe`}
           >
             {align == "right" && (
-              <div>
+              <div> 
                 <span
                   className={`text-xs ${
                     getMessageStatus() == "seen"

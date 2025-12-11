@@ -24,7 +24,10 @@ export const UploadFiles = async (files: File[]): Promise<UploadResponse> => {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      timeout: 60000,
     }
   );
+  console.log(response.data.files);
+  
   return response.data; 
 };

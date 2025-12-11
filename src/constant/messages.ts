@@ -9,11 +9,11 @@ export interface Message {
     profilePicture?: string;
   };
   text?: string;
-  file?: {
-    fileName?: string;
+  files?: {
+    public_id?: string;
     originalName?: string;
-    fileUrl?: string;
-  };
+    url?: string;
+  }[];
   status: "sent" | "delivered" | "seen";
   readby: string[];
   isEdited?: boolean;
