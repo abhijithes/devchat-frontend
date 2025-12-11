@@ -1,11 +1,39 @@
 import { CalendarRange, FileText, Image, Paperclip } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useSnackBar } from "../snack-bar/snack-bar-context";
 
-export const DropUpMenu = () => {
+export const DropUpMenu = ({onFileSelect}) => {
     const [isOpen, setIsOpen] = useState(false);
+    const inputRef = useRef(null);
+    const { showSnackBar } = useSnackBar();
+
+    const triggerFileInput = () => {
+        inputRef.current.click();
+        setIsOpen(false);
+    };
+
+    const handleFileChange = (e) => {
+        const file = Array.from(e.target.files);
+        if(file.length > 4) {
+            showSnackBar("You can upload a maximum of 4 images at a time.", "error", 3000); 
+            return;
+        }
+        console.log(file);
+        
+        if (file && file.length > 0) onFileSelect(file);
+    };
+
 
     return (
         <div className="relative ">
+                        <input
+                type="file"
+                multiple
+                ref={inputRef}
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+            />
             {/* Paperclip Button */}
             <button onClick={() => setIsOpen(!isOpen)} className="!w-max input-grad-btn-invert centered">
                 <Paperclip />
@@ -30,6 +58,7 @@ export const DropUpMenu = () => {
                     className={`flex w-full gap-2 hover:bg-zinc-300 transition-all duration-300 p-2 cursor-pointer rounded-lg ${
                         isOpen ? "" : "translate-x-10 opacity-0"
                     }`}
+                    onClick={triggerFileInput}
                 >
                     <Image color="blue" /> photo
                 </button>

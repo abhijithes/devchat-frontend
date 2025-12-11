@@ -1,6 +1,6 @@
 import { type Message } from "../../constant/messages";
 import MessageBox from "../../components/chats/MessageBox";
-import { Check, Send, Settings } from "lucide-react";
+import { Check, Send, Settings, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useUsersInChat } from "../../contexts/chatListContext";
 import UserIcon from "../../components/userIcon/usericon";
@@ -19,6 +19,8 @@ import { MessageSounds } from "../../constant/audio-files.ts";
 import TypingIndicator from "../../components/chat-window/TypingIndicator.tsx";
 import { DropUpMenu } from "../../components/chat-window/drop-up.tsx";
 import { markAsRead } from "../../components/chats/services/chat-service.ts";
+import { useSnackBar } from "../../components/snack-bar/snack-bar-context.tsx";
+import { UploadFiles } from "../../services/upload-service.ts";
 
 const ChatWindow = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -30,8 +32,10 @@ const ChatWindow = () => {
   const { socket } = useSocket();
   const receiveSoundRef = useRef(new Audio(MessageSounds[0]));
   const sendSoundRef = useRef(new Audio(MessageSounds[1]));
-
+  const [Files, setFiles] = useState([]);
   const [isUserOnline, setIsUserOnline] = useState(false);
+  const { showSnackBar } = useSnackBar();
+  
 
   const typingTimeoutRef = useRef(null);
   const isTypingRef = useRef(false);
@@ -260,6 +264,17 @@ const ChatWindow = () => {
     el.style.height = `${el.scrollHeight}px`;
   };
 
+  const handleFileSelect = async (file) => {
+    if(Files.length + file.length > 4) {
+      showSnackBar("You can upload a maximum of 4 images at a time.", "error", 3000); 
+      return;
+    }
+    const fileUploudResponse = await UploadFiles(file);
+    console.log(fileUploudResponse.files[0].url);
+    
+  setFiles((files) => [...(files || []), ...file]);
+};
+
   useMemo(() => {
     if (onlineUsers?.includes(activeChat?.user._id)) {
       setIsUserOnline(true);
@@ -327,22 +342,34 @@ const ChatWindow = () => {
       </div>
 
       {/* Input Box */}
-      <div className="w-[98%] h-max bg-white/90 backdrop-blur-2xl shadow-xl border border-zinc-300 rounded-2xl flex gap-2 items-end p-5 absolute bottom-5 z-20">
+      <div className="w-[98%] h-max bg-white/90 backdrop-blur-2xl shadow-xl border border-zinc-300 rounded-2xl flex flex-col items-end p-5 absolute bottom-5 z-20">
+        <div className="file-preview w-full overflow-x-auto">{
+          Files && Files.map((file, index) => (
+            <div key={index} className={`inline-block mr-2 mb-2 border border-gray-300 rounded-lg bg-gray-100 relative ${Files.length < 2 ? 'w-35 h-35' : Files.length < 3 ? 'w-25 h-25' : 'w-20 h-20'}`}>
+              <X  className="absolute top-[2px] right-[2px] cursor-pointer text-black bg-white rounded-full font-bold" size={18} fontWeight={900} onClick={() => {
+                setFiles((files) => files.filter((_, i) => i !== index));
+              }}/>
+            <img
+              src={URL.createObjectURL(file)}
+              alt={file.name}
+              className="w-full h-full object-cover rounded-lg"
+            />
+            </div>
+          ))
+          }</div>
+          <div className="flex w-full gap-2 items-end">
+
         <textarea
           ref={textareaRef}
           onInput={() => {
             autoResize();
             handleTyping();
           }}
-          onKeyDown={(e)=> {if(e.key === "Enter" && window.innerWidth > 920){
-            e.preventDefault();
-            handleSendMessage();
-          }}}
           className="w-full outline-none min-h-8 max-h-[30vh] resize-none bg-transparent scrollbar-hide text-black"
           placeholder="Add message..."
         />
 
-        <DropUpMenu />
+        <DropUpMenu onFileSelect={handleFileSelect}/>
         <button className="!w-max input-grad-btn-invert centered">
           <Settings />
         </button>
@@ -350,10 +377,10 @@ const ChatWindow = () => {
         <button
           onClick={handleSendMessage}
           className="!w-max input-grad-btn centered"
-          onKeyDown={(e) => { if(e.key === "Enter" && window.innerWidth >= 920) handleSendMessage()}}
         >
           {editMessage ? <Check /> : <Send />}
         </button>
+        </div>
       </div>
     </section>
   );
