@@ -4,7 +4,7 @@ const ImageBox = ({ files }: { files?: { url?: string }[] }) => {
   if (!files || files.length === 0) return null;
   
   return (
-<div className="w-60 h-60 lg:w-100 lg:h-100 rounded-lg overflow-hidden">
+<div className="w-full max-h-60 md:w-100 lg:max-h-140 rounded-lg overflow-hidden">
   <div
     className={`
       grid w-full h-full gap-1

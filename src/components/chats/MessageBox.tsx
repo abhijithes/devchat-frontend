@@ -89,7 +89,7 @@ const MessageBox: React.FC<MessageBoxProbs> = ({
   return (
     <div
       key={message._id}
-      className={`w-full mb-4 flex gap-2 ${
+      className={`w-full mb-2 lg:mb-4 flex gap-2 ${
         align === "right" ? "flex-row-reverse" : ""
       }`}
     >
@@ -103,16 +103,20 @@ const MessageBox: React.FC<MessageBoxProbs> = ({
             showOperations={align === "right"}
           />
         </div>
-        <div className="bg-white p-4 flex gap-3 flex-col rounded-2xl hover:bg-zinc-200 transition-transform max-w-60 md:max-w-100 lg:max-w-150">
+        <div className={`bg-white p-1 flex md:gap-1 lg:gap-3 flex-col rounded-xl md:rounded-2xl hover:bg-zinc-200 transition-transform max-w-60 md:max-w-100 lg:max-w-150`}>
+         <div className="message">
           <ImageBox files={message.files} />
           <ReadMore text={message?.text} limit={800} />
+         </div>
+         <div>
+
           <span
             className={`text-sm  text-gray-500  flex items-center justify-end-safe`}
           >
             {align == "right" && (
               <div> 
                 <span
-                  className={`text-xs ${
+                  className={`text-xs opacity-0 md:opacity-100 ml-3 ${
                     getMessageStatus() == "seen"
                       ? "text-green-500"
                       : "text-gray-500"
@@ -129,15 +133,18 @@ const MessageBox: React.FC<MessageBoxProbs> = ({
                 </span>
               </div>
             )}
+            <span className="text-xs md:text-sm">
             {message.isEdited && "Edited"}{" "}
             {new Date(message.createdAt).toLocaleString([], {
               hour: "2-digit",
               minute: "2-digit",
             })}
+            </span>
           </span>
+         </div>
         </div>
         <div
-          className={`w-max h-max bg-white mt-2 px-5 py-2 rounded-2xl flex items-center space-x-2`}
+          className={`w-max h-max bg-white mt-2 px-2 md:px-5 py-0 md:py-2 rounded-2xl flex items-center space-x-2`}
         >
           <div className="icon-hover ">
             <MessageSquareCode />
