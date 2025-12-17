@@ -1,6 +1,6 @@
 import { type Message } from "../../constant/messages";
 import MessageBox from "../../components/chats/MessageBox";
-import { Check, FileText, Send, Settings, X } from "lucide-react";
+import { Check, Send, Settings } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useUsersInChat } from "../../contexts/chatListContext";
 import UserIcon from "../../components/userIcon/usericon";
@@ -14,7 +14,6 @@ import { DropUpMenu } from "../../components/chat-window/drop-up.tsx";
 import { markAsRead } from "../../components/chats/services/chat-service.ts";
 import { useSnackBar } from "../../components/snack-bar/snack-bar-context.tsx";
 import { UploadFiles } from "../../services/upload-service.ts";
-import Spinner from "../../components/loaders/Spinner.tsx";
 import { FilePreview } from "../../components/chat-window/filePreview.tsx";
 
 const ChatWindow = () => {
