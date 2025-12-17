@@ -15,155 +15,143 @@ import { Done, DoneAll } from "@mui/icons-material";
 import ImageBox from "./ImageBox";
 
 interface MessageBoxProbs {
-  message: Message;
-  align: "right" | "left";
-  onEditMessage?: (msg: Message) => void;
+    message: Message;
+    align: "right" | "left";
+    onEditMessage?: (msg: Message) => void;
 }
 
 const DeleteMessage = async (id) => {
-  const data = await api.delete(endpoints.deleteMessage(id));
-  return data;
+    const data = await api.delete(endpoints.deleteMessage(id));
+    return data;
 };
 
-const MessageBox: React.FC<MessageBoxProbs> = ({
-  message,
-  align = "right",
-  onEditMessage,
-}) => {
-  const { showSnackBar } = useSnackBar();
-  const [deleteId, setDeleteId] = useState(null);
-  const queryClient = useQueryClient();
-  const { socket } = useSocket();
+const MessageBox: React.FC<MessageBoxProbs> = ({ message, align = "right", onEditMessage }) => {
+    const { showSnackBar } = useSnackBar();
+    const [deleteId, setDeleteId] = useState(null);
+    const queryClient = useQueryClient();
+    const { socket } = useSocket();
 
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text);
-    showSnackBar("Message Copied!", "info", 2000);
-  };
-  const openDeleteModel = () => {
-    setDeleteId(message._id);
-  };
-  const closeDeleteModel = () => {
-    setDeleteId(null);
-  };
-  const DeletemessageMutation = useMutation({
-    mutationFn: DeleteMessage,
-    onMutate: async (messageId) => {
-      await queryClient.cancelQueries({
-        queryKey: ["messages", message.roomId],
-      });
-      const previousMessages = queryClient.getQueryData([
-        "messages",
-        message.roomId,
-      ]);
+    const handleCopy = (text) => {
+        navigator.clipboard.writeText(text);
+        showSnackBar("Message Copied!", "info", 2000);
+    };
+    const openDeleteModel = () => {
+        setDeleteId(message._id);
+    };
+    const closeDeleteModel = () => {
+        setDeleteId(null);
+    };
+    const DeletemessageMutation = useMutation({
+        mutationFn: DeleteMessage,
+        onMutate: async (messageId) => {
+            await queryClient.cancelQueries({
+                queryKey: ["messages", message.roomId],
+            });
+            const previousMessages = queryClient.getQueryData(["messages", message.roomId]);
 
-      queryClient.setQueryData(["messages", message.roomId], (old: [Message]) =>
-        old?.filter((msg) => msg._id !== messageId)
-      );
+            queryClient.setQueryData(["messages", message.roomId], (old: [Message]) =>
+                old?.filter((msg) => msg._id !== messageId)
+            );
 
-      return previousMessages;
-    },
-    onError: (_error, _variable, _onMutateResult) => {
-      console.log(_onMutateResult);
-      queryClient.setQueryData(["messages", message.roomId], _onMutateResult);
+            return previousMessages;
+        },
+        onError: (_error, _variable, _onMutateResult) => {
+            console.log(_onMutateResult);
+            queryClient.setQueryData(["messages", message.roomId], _onMutateResult);
 
-      showSnackBar("Delete failed!", "error", 2000);
-    },
-    onSuccess: () => {
-      showSnackBar("Message deleted!", "info", 2000);
-      queryClient.invalidateQueries({ queryKey: ["messages", message.roomId] });
-    },
-  });
+            showSnackBar("Delete failed!", "error", 2000);
+        },
+        onSuccess: () => {
+            showSnackBar("Message deleted!", "info", 2000);
+            queryClient.invalidateQueries({ queryKey: ["messages", message.roomId] });
+        },
+    });
 
-  const HandleDelete = () => {
-    DeletemessageMutation.mutate(message._id);
-    console.log(message, " from here");
-    socket.emit("delete_message", message);
-    closeDeleteModel();
-  };
+    const HandleDelete = () => {
+        DeletemessageMutation.mutate(message._id);
+        console.log(message, " from here");
+        socket.emit("delete_message", message);
+        closeDeleteModel();
+    };
 
-  function getMessageStatus() {
-    if (message.readby?.length > 0) return "seen";
-    else return "delivered";
-  }
+    function getMessageStatus() {
+        if (message.readby?.length > 0) return "seen";
+        else return "delivered";
+    }
 
-  return (
-    <div
-      key={message._id}
-      className={`w-full mb-2 lg:mb-4 flex gap-2 ${
-        align === "right" ? "flex-row-reverse" : ""
-      }`}
-    >
-      {message.senderId && <UserIcon user={message.senderId} />}
-      <div className={`relative group`}>
-        <div className="absolute top-0 right-0 bg-blue-50 hover:bg-white w-6 h-6 pr-1 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <DropDown
-            copyMessage={() => handleCopy(message?.text)}
-            openDeletemodel={openDeleteModel}
-            onEdit={() => onEditMessage(message)}
-            showOperations={align === "right"}
-          />
-        </div>
-        <div className={`bg-white p-1 flex md:gap-1 lg:gap-3 flex-col rounded-xl md:rounded-2xl hover:bg-zinc-200 transition-transform max-w-60 md:max-w-100 lg:max-w-150`}>
-         <div className="message">
-          <ImageBox files={message.files} />
-          <ReadMore text={message?.text} limit={800} />
-         </div>
-         <div>
-
-          <span
-            className={`text-sm  text-gray-500  flex items-center justify-end-safe`}
-          >
-            {align == "right" && (
-              <div> 
-                <span
-                  className={`text-xs opacity-0 md:opacity-100 ml-3 ${
-                    getMessageStatus() == "seen"
-                      ? "text-green-500"
-                      : "text-gray-500"
-                  }`}
-                >
-                  {getMessageStatus()}
-                </span>
-                <span className="text-lg px-2">
-                  {getMessageStatus() === "seen" ? (
-                    <DoneAll fontSize="inherit" className=" text-green-500" />
-                  ) : (
-                    <Done fontSize="small" className="text-gray-400" />
-                  )}
-                </span>
-              </div>
-            )}
-            <span className="text-xs md:text-sm">
-            {message.isEdited && "Edited"}{" "}
-            {new Date(message.createdAt).toLocaleString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-            </span>
-          </span>
-         </div>
-        </div>
+    return (
         <div
-          className={`w-max h-max bg-white mt-2 px-2 md:px-5 py-0 md:py-2 rounded-2xl flex items-center space-x-2`}
+            key={message._id}
+            className={`w-full mb-2 lg:mb-4 flex gap-2 ${align === "right" ? "flex-row-reverse" : ""}`}
         >
-          <div className="icon-hover ">
-            <MessageSquareCode />
-          </div>
-          <div className="icon-hover ">
-            <img src={AiIcon} alt="AI Icon" className="w-7 h-7 block " />
-          </div>
+            {message.senderId && <UserIcon user={message.senderId} />}
+            <div className={`relative group`}>
+                <div className="absolute top-0 right-0 bg-blue-50 hover:bg-white w-6 h-6 pr-1 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-40">
+                    <DropDown
+                        copyMessage={() => handleCopy(message?.text)}
+                        openDeletemodel={openDeleteModel}
+                        onEdit={() => onEditMessage(message)}
+                        showOperations={align === "right"}
+                    />
+                </div>
+                <div
+                    className={`bg-white p-1 flex md:gap-1 lg:gap-3 flex-col rounded-xl md:rounded-2xl hover:bg-zinc-200 transition-transform max-w-60 md:max-w-100 lg:max-w-150`}
+                >
+                    <div className="message">
+                        <ImageBox files={message.files} />
+                        <ReadMore text={message?.text} limit={800} />
+                    </div>
+                    <div>
+                        <span className={`text-sm  text-gray-500  flex items-center justify-end-safe`}>
+                            {align == "right" && (
+                                <div>
+                                    <span
+                                        className={`text-xs opacity-0 md:opacity-100 ml-3 ${
+                                            getMessageStatus() == "seen" ? "text-green-500" : "text-gray-500"
+                                        }`}
+                                    >
+                                        {getMessageStatus()}
+                                    </span>
+                                    <span className="text-lg px-2">
+                                        {getMessageStatus() === "seen" ? (
+                                            <DoneAll fontSize="inherit" className=" text-green-500" />
+                                        ) : (
+                                            <Done fontSize="small" className="text-gray-400" />
+                                        )}
+                                    </span>
+                                </div>
+                            )}
+                            <span className="text-xs md:text-sm">
+                                {message.isEdited && "Edited"}{" "}
+                                {new Date(message.createdAt).toLocaleString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
+                            </span>
+                        </span>
+                    </div>
+                </div>
+                <div
+                    className={`w-max h-max bg-white mt-2 px-2 md:px-5 py-0 md:py-2 rounded-2xl flex items-center space-x-2`}
+                >
+                    <div className="icon-hover ">
+                        <MessageSquareCode />
+                    </div>
+                    <div className="icon-hover ">
+                        <img src={AiIcon} alt="AI Icon" className="w-7 h-7 block " />
+                    </div>
+                </div>
+            </div>
+            {deleteId && (
+                <DeleteConfirmation
+                    message="Are you sure to delete Message?"
+                    onCancel={closeDeleteModel}
+                    onConfirm={HandleDelete}
+                    isDeleting={DeletemessageMutation.isPending}
+                />
+            )}
         </div>
-      </div>
-      {deleteId && (
-        <DeleteConfirmation
-          message="Are you sure to delete Message?"
-          onCancel={closeDeleteModel}
-          onConfirm={HandleDelete}
-          isDeleting={DeletemessageMutation.isPending}
-        />
-      )}
-    </div>
-  );
+    );
 };
 
 export default MessageBox;
