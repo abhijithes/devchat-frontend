@@ -4,7 +4,7 @@ export default function DialogueBox({
     onClose,
     opened = true,
     children,
-    className,
+    className = "p-4 pb-5",
     heading,
 }: {
     children: React.ReactNode;
@@ -21,11 +21,11 @@ export default function DialogueBox({
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className={`min-w-[20vw] min-h-[20vh] bg-white rounded shadow-lg p-4 pb-5 border border-zinc-200  ${className}`}
+                className={`min-w-[20vw] min-h-[20vh] bg-white rounded shadow-lg border border-zinc-200 relative ${className}`}
             >
                 <div className="flex">
-                    <p className="flex-1 mb-2 font-semibold">{heading}</p>
-                    <div className="flex justify-end cursor-pointer">
+                    {heading && <p className="flex-1 mb-2 font-semibold">{heading}</p>}
+                    <div className="flex justify-end cursor-pointer absolute right-1 top-2">
                         <X onClick={onClose} />
                     </div>
                 </div>

@@ -12,7 +12,7 @@ import api from "../../utils/axios";
 import { endpoints } from "../../constant/constant";
 import { useSocket } from "../../contexts/SocketBaseContext";
 import { Done, DoneAll } from "@mui/icons-material";
-import ImageBox from "./ImageBox";
+import AttachmentBox from "./AttachmentBox";
 
 interface MessageBoxProbs {
     message: Message;
@@ -98,7 +98,7 @@ const MessageBox: React.FC<MessageBoxProbs> = ({ message, align = "right", onEdi
                     className={`bg-white p-1 flex md:gap-1 lg:gap-3 flex-col rounded-xl md:rounded-2xl hover:bg-zinc-200 transition-transform max-w-60 md:max-w-100 lg:max-w-150`}
                 >
                     <div className="message">
-                        <ImageBox files={message.files} />
+                        <AttachmentBox files={message.files} />
                         <ReadMore text={message?.text} limit={800} />
                     </div>
                     <div>
