@@ -16,11 +16,12 @@ const getUserslist = async (searchTerm: string) => {
   return response;
 };
 
-const openChats = async (recieverIds: string[]) => {
+const openChats = async (recieverIds: string[], groupName?: string | null) => {
   const response = await axios.post(
     endpoints.createChat,
     {
       recieverIds,
+      name: groupName,
     },
     generalHeader
   );
@@ -57,4 +58,11 @@ const getChats = async (roomId: string) => {
   return response;
 };
 
-export { getUserslist, openChats, getChatsList, sendMessage, getChats, UpdateMessage };
+export {
+  getUserslist,
+  openChats,
+  getChatsList,
+  sendMessage,
+  getChats,
+  UpdateMessage,
+};
