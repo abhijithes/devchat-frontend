@@ -66,7 +66,9 @@ const ChatLayout: React.FC = () => {
             )}
             <div
               className={` w-2 h-2 ${
-                onlineUsers?.includes(chat.user._id) ? "bg-green-500" : "hidden"
+                onlineUsers?.includes(chat.user._id) && chat.type !== "group"
+                  ? "bg-green-500"
+                  : "hidden"
               }  absolute bottom-0 left-0 z-5 rounded-full`}
             />
             {chat.type === "private" ? (
@@ -85,7 +87,11 @@ const ChatLayout: React.FC = () => {
               />
             ) : (
               <GroupIcon
-                style="w-14 h-14"
+                style={`w-14 h-14  ${
+                  roomId == chat.roomId ? "ring-2 ring-zinc-400" : ""
+                }
+                  
+                  active:ring-2  active:ring-violet-500 active:scale-95  cursor-pointer`}
                 groupName={chat.name}
                 onClick={() => handleUserClick(chat)}
               />

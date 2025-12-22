@@ -37,7 +37,7 @@ const GroupIcon: React.FC<GroupIconProps> = ({ groupName, style, onClick }) => {
 
   return (
     <div
-      title={`View ${groupName}'s profile`}
+      title={`View ${groupName}' group`}
       onClick={handleNavigateToProfile}
       className={`${
         style ?? "w-10 h-10"
