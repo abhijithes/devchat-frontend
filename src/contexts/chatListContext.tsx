@@ -14,6 +14,8 @@ export interface ChatsListType {
   user: BaseUserInfo;
   unreadCount: number;
   hasUnread: boolean;
+  name?: string;
+  type?: string;
 }
 
 interface UsersInChatContextType {
@@ -49,7 +51,9 @@ export const UsersInChatProvider = ({ children }: { children: ReactNode }) => {
           roomId: chat._id,
           user: chat.members[0],
           unreadCount: chat.unreadCount,
-          hasUnread: chat.hasUnread, // or map all users if needed
+          hasUnread: chat.hasUnread,
+          type: chat.type,
+          name: chat.name,
         }));
 
       setUsersInChat(list);

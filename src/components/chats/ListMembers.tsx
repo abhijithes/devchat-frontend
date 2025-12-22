@@ -85,7 +85,7 @@ const ListMembers = ({
       )}
 
       {/* Users List */}
-      <ul className="max-h-[60vh] overflow-auto pr-2">
+      <ul className="max-h-[50vh] overflow-auto pr-2">
         {usersList?.map((user: BaseUserInfo) => (
           <li
             key={user._id}

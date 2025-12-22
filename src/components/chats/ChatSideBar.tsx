@@ -31,11 +31,20 @@ let chatSideBarActions = [
   },
 ];
 const ChatSideBar = () => {
-  const [openSearchUserDialog, setOpenSearchUserDialog] = useState(false);
   const { showLoader, hideLoader } = useLoader();
-  const navigate = useNavigate();
   const { addUserToChat } = useUsersInChat();
+  const navigate = useNavigate();
+
+  const [openSearchUserDialog, setOpenSearchUserDialog] = useState(false);
+  const [openGroupCreate, setOpenGroupCreate] = useState(false);
+  const [groupName, setGroupName] = useState<null | string>(null);
+
   chatSideBarActions[0].action = () => {
+    setOpenSearchUserDialog(true);
+  };
+
+  chatSideBarActions[1].action = () => {
+    setOpenGroupCreate(true);
     setOpenSearchUserDialog(true);
   };
 
@@ -45,7 +54,12 @@ const ChatSideBar = () => {
       return;
     }
     showLoader();
-    const response = await openChats(selectedUsers.map((u) => u._id));
+    console.log(selectedUsers, groupName);
+
+    const response = await openChats(
+      selectedUsers.map((u) => u._id),
+      groupName
+    );
     hideLoader();
     const chatId = response?.data?.chatId;
     if (chatId) {
@@ -56,15 +70,41 @@ const ChatSideBar = () => {
     setOpenSearchUserDialog(false);
   };
 
+  const onListDialogClose = () => {
+    setOpenSearchUserDialog(false);
+    setOpenGroupCreate(false);
+  };
+
   return (
     <aside className="w-max md:w-64 h-full  p-4">
       {/* Dialog boxes for aside function  : start */}
       <DialogueBox
-        heading={"Search user"}
+        heading={openGroupCreate ? "Create  group" : "Search user"}
         opened={openSearchUserDialog}
-        onClose={() => setOpenSearchUserDialog(false)}
+        onClose={onListDialogClose}
+        className={``}
       >
-        <ListMembers onSubmit={handleMakeChat} />
+        {openGroupCreate && (
+          <div className="flex flex-col gap-2 mb-5">
+            <label className="input-label" htmlFor="group-name">
+              Group Name
+            </label>
+            <input
+              type="text"
+              id="group-name"
+              className="input-field"
+              placeholder="Give group name"
+              onChange={(e) => setGroupName(e.target.value)}
+            />
+          </div>
+        )}
+        {openGroupCreate && (
+          <label className="input-label ">Select chats</label>
+        )}
+        <ListMembers
+          onSubmit={handleMakeChat}
+          selectType={openGroupCreate ? "multiple" : "single"}
+        />
       </DialogueBox>
       {/* Left sidebar content */}
       <h1 className="heading mt-5 hidden md:block">DevChats.io</h1>

@@ -47,6 +47,11 @@
   @apply text-sm text-center;
 }
 
+.input-label {
+  font-size: smaller;
+  color: rgb(78, 78, 78);
+}
+
 .input-field {
   width: 100%;
   border: 1px solid gray;
