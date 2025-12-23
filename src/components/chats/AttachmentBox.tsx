@@ -137,7 +137,7 @@ const AttachmentBox = ({ files }: { files?: any[] }) => {
                 </div>
             )}
 
-            <DialogueBox opened={isFileOPen} onClose={() => setIsFileOpen(false)} className="p-1 rounded-lg">
+            <DialogueBox opened={isFileOPen} onClose={() => setIsFileOpen(false)} className="rounded-lg" noPadding>
                 <div className="flex-1 flex justify-end mr-10 m-1">
                     {/* <a href={opendFIle} download target="_blank" rel="noopener noreferrer"> */}
                     <Download className="" onClick={() => handleDownload(opendFIle)} />
