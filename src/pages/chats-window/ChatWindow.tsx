@@ -16,6 +16,7 @@ import { useSnackBar } from "../../components/snack-bar/snack-bar-context.tsx";
 import { UploadFiles } from "../../services/upload-service.ts";
 import { FilePreview } from "../../components/chat-window/filePreview.tsx";
 import GroupIcon from "../../components/userIcon/groupIcon.tsx";
+import { QuickSettings } from "../../components/chat-window/Quick-settings.tsx";
 
 const ChatWindow = () => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -31,6 +32,7 @@ const ChatWindow = () => {
     const [isUserOnline, setIsUserOnline] = useState(false);
     const { showSnackBar } = useSnackBar();
     const [Files, setFiles] = useState([]);
+    const [messageType, setMessageType] = useState<"text" | "code">("text");
 
     const typingTimeoutRef = useRef(null);
     const isTypingRef = useRef(false);
@@ -138,6 +140,7 @@ const ChatWindow = () => {
                 roomId: activeChat?.roomId,
                 files: Files,
                 text,
+                messageType,
             });
             setFilePreviews([]);
             setFiles([]);
@@ -147,6 +150,7 @@ const ChatWindow = () => {
                 files: Files,
                 roomId: activeChat?.roomId,
                 _id: Math.random().toString(),
+                messageType,
                 senderId: user,
                 createdAt: new Date().toISOString(),
             });
@@ -375,9 +379,7 @@ const ChatWindow = () => {
                     />
 
                     <DropUpMenu onFileSelect={handleFileSelect} />
-                    <button className="!w-max input-grad-btn-invert centered">
-                        <Settings />
-                    </button>
+                    <QuickSettings setMessageType={setMessageType} messsageType={messageType} />
 
                     <button
                         disabled={fileuploudMutation.isPending}

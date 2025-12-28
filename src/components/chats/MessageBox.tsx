@@ -13,6 +13,7 @@ import { endpoints } from "../../constant/constant";
 import { useSocket } from "../../contexts/SocketBaseContext";
 import { Done, DoneAll } from "@mui/icons-material";
 import AttachmentBox from "./AttachmentBox";
+import CodeMessage from "./CodeMessage";
 
 interface MessageBoxProbs {
     message: Message;
@@ -99,7 +100,11 @@ const MessageBox: React.FC<MessageBoxProbs> = ({ message, align = "right", onEdi
                 >
                     <div className="message">
                         <AttachmentBox files={message.files} />
-                        <ReadMore text={message?.text} limit={800} />
+                        {message.messageType === "text" ? (
+                            <ReadMore text={message?.text} limit={800} />
+                        ) : (
+                            <CodeMessage content={message?.text} />
+                        )}
                     </div>
                     <div>
                         <span className={`text-sm  text-gray-500  flex items-center justify-end-safe`}>
