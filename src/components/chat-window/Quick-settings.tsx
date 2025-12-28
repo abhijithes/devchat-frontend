@@ -1,4 +1,4 @@
-import { CodeXml, ListChevronsUpDown, ListFilterPlus, MessageSquare, Option, OptionIcon, Settings } from "lucide-react";
+import { CodeXml, MessageSquare, Settings } from "lucide-react";
 import { useState } from "react";
 
 export const QuickSettings = ({ setMessageType, messsageType }) => {
