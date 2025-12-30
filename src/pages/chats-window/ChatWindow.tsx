@@ -279,6 +279,7 @@ const ChatWindow = () => {
         else {
             if (e.shiftKey) return;
             handleSendMessage();
+            e.preventDefault();
         }
     };
 
