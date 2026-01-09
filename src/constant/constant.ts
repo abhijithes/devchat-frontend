@@ -1,4 +1,4 @@
-const isProduction = true;
+const isProduction = false;
 
 export const dev_api_url = "http://localhost:5001/api";
 export const producttion_api_url = "https://devchat-backend-kpfa.onrender.com/api";
@@ -66,7 +66,7 @@ export const endpoints = {
     // chat endpoints
     createChat: `${current_url}/chat/create`,
     getChatsList: `${current_url}/chat/chat-list`,
-    getChats: (roomId: string) => `${current_url}/message/get-messages/${roomId}`,
+    getChats: (roomId: string, cursor: string) => `${current_url}/message/get-messages/${roomId}?cursor=${cursor}`,
 
     //Message endpoints
     sendMessage: `${current_url}/message/create`,

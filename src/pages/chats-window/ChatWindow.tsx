@@ -6,7 +6,7 @@ import { useUsersInChat } from "../../contexts/chatListContext";
 import UserIcon from "../../components/userIcon/usericon";
 import { getChats, sendMessage, UpdateMessage } from "../../services/chat-service";
 import { LeftMessageSkeleton, RightMessageSkeleton } from "../../components/chats/MessageSkeletons";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { useSocket } from "../../contexts/SocketBaseContext";
 import { MessageSounds } from "../../constant/audio-files.ts";
 import TypingIndicator from "../../components/chat-window/TypingIndicator.tsx";
@@ -33,64 +33,136 @@ const ChatWindow = () => {
     const { showSnackBar } = useSnackBar();
     const [Files, setFiles] = useState([]);
     const [messageType, setMessageType] = useState<"text" | "code">("text");
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const typingTimeoutRef = useRef(null);
     const isTypingRef = useRef(false);
     const [typing, setTyping] = useState([]);
-    const { data: messages = [], isLoading } = useQuery({
+    const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
         queryKey: ["messages", activeChat?.roomId],
-        queryFn: async ({ queryKey }) => {
-            const [, roomId] = queryKey;
+        queryFn: async ({ pageParam }) => {
+            const roomId = activeChat?.roomId;
             if (!roomId) return [];
-            const response = await getChats(roomId);
-            return response?.data?.messages || [];
+            const response = await getChats(roomId, pageParam);
+            return response?.data || [];
         },
+        initialPageParam: null,
+        getNextPageParam: (LastPage) => (LastPage.hasMore ? LastPage.nextCursor : undefined),
         enabled: !!activeChat?.roomId,
     });
 
-    const sendMessageMutation = useMutation({
-        mutationFn: sendMessage,
-        onMutate: async (newMessage: any) => {
-            await queryClient.cancelQueries({
-                queryKey: ["messages", newMessage.roomId],
+    const messages =
+        data?.pages
+            ?.slice()
+            .reverse()
+            .flatMap((page) => page.messages ?? []) ?? [];
+
+    // Infinite scroll handler
+    const handleScroll = async () => {
+        const el = containerRef.current;
+        if (!el) return;
+
+        if (el.scrollTop === 0 && hasNextPage && !isFetchingNextPage) {
+            const prevHeight = el.scrollHeight;
+
+            await fetchNextPage();
+
+            requestAnimationFrame(() => {
+                el.scrollTop = el.scrollHeight - prevHeight;
             });
-
-            const previousMessages = queryClient.getQueryData<Message[]>(["messages", newMessage.roomId]);
-            console.log(messages, "new");
-
-            queryClient.setQueryData<Message[]>(["messages", newMessage.roomId], (old = []) => [
-                ...old,
-                {
-                    ...newMessage,
-                    _id: Math.random().toString(),
-                    senderId: { ...user, _id: user.id },
-                    createdAt: new Date().toISOString(),
-                },
-            ]);
-            console.log(newMessage, "newa");
-
-            return { previousMessages };
+        }
+    };
+    const sendMessageMutation = useMutation<
+        any,
+        any,
+        {
+            roomId: string;
+            files: any[];
+            text: string;
+            messageType: "text" | "code";
+        }
+    >({
+        mutationFn: async (data) => {
+            return sendMessage(data);
         },
-        onError: (_err, newMessage, onMutateResult) => {
-            queryClient.setQueryData(["messages", newMessage.roomId], onMutateResult);
+
+        onMutate: async (newMessage) => {
+            try {
+                if (!newMessage?.roomId) return;
+
+                const previousData = queryClient.getQueryData(["messages", newMessage.roomId]);
+
+                queryClient.setQueryData(["messages", newMessage.roomId], (oldData: any) => {
+                    const optimisticMessage = {
+                        ...newMessage,
+                        _id: `optimistic-${Date.now()}`,
+                        senderId: user?.id ? { ...user, _id: user.id } : null,
+                        createdAt: new Date().toISOString(),
+                    };
+
+                    if (!oldData || !Array.isArray(oldData.pages)) {
+                        return {
+                            pages: [
+                                {
+                                    messages: [optimisticMessage],
+                                    nextCursor: null,
+                                    hasMore: true,
+                                },
+                            ],
+                            pageParams: [null],
+                        };
+                    }
+
+                    const pages = [...oldData.pages];
+                    const firstPage = pages[0];
+
+                    pages[0] = {
+                        ...firstPage,
+                        messages: [...(firstPage?.messages ?? []), optimisticMessage],
+                    };
+
+                    return { ...oldData, pages };
+                });
+
+                return { previousData };
+            } catch (err) {
+                console.error("onMutate failed:", err);
+            }
         },
     });
-    const updateMutation = useMutation({
+
+    const updateMutation = useMutation<any, any, { id: string; text: string; roomId: string }>({
         mutationFn: UpdateMessage,
-        onMutate: async (data) => {
-            await queryClient.cancelQueries({ queryKey: ["messages", data.roomId] });
 
-            const previousMessages = queryClient.getQueryData(["messages", data.roomId]);
+        onMutate: async ({ id, text, roomId }) => {
+            await queryClient.cancelQueries({
+                queryKey: ["messages", roomId],
+            });
 
-            queryClient.setQueryData(["messages", data.roomId], (old: [Message]) =>
-                old.map((msg) => (msg._id === data.id ? { ...msg, text: data.text, isEdited: true } : msg))
-            );
+            const previousData = queryClient.getQueryData(["messages", roomId]);
 
-            return { previousMessages };
+            queryClient.setQueryData(["messages", roomId], (oldData: any) => {
+                if (!oldData || !Array.isArray(oldData.pages)) {
+                    return oldData;
+                }
+
+                const pages = oldData.pages.map((page) => ({
+                    ...page,
+                    messages: page.messages.map((msg) => (msg._id === id ? { ...msg, text, isEdited: true } : msg)),
+                }));
+
+                return { ...oldData, pages };
+            });
+
+            return { previousData };
         },
-        onError: (_err, newMessage, onMutateResult) => {
-            queryClient.setQueryData(["messages", newMessage.roomId], onMutateResult);
+
+        onError: (_err, variables, context: { previousData?: any } | undefined) => {
+            if (context?.previousData) {
+                queryClient.setQueryData(["messages", variables.roomId], context.previousData);
+            }
         },
+
         onSettled: () => {
             setEditMessage(null);
         },
@@ -136,12 +208,15 @@ const ChatWindow = () => {
                 senderId: user,
             });
         } else {
+            console.log("before mutate");
+
             sendMessageMutation.mutate({
                 roomId: activeChat?.roomId,
                 files: Files,
                 text,
                 messageType,
             });
+            console.log("after mutate");
             setFilePreviews([]);
             setFiles([]);
             sendSoundRef.current.play().catch((err) => console.error(err));
@@ -179,38 +254,52 @@ const ChatWindow = () => {
 
         // When someone sends new message
         socket.on("receive_message", (message) => {
-            queryClient.setQueryData<Message[]>(["messages", message.roomId], (old = []) => [...old, message]);
-            receiveSoundRef.current.play().catch((error) => console.log(error));
-            markAsReadSetUp();
+            if (message.senderId?._id === user.id) return;
+
+            queryClient.setQueryData(["messages", message.roomId], (oldData: any) => {
+                if (!oldData || !Array.isArray(oldData.pages)) return oldData;
+
+                const pages = [...oldData.pages];
+                const firstPage = pages[0];
+
+                pages[0] = {
+                    ...firstPage,
+                    messages: [...(firstPage?.messages ?? []), message],
+                };
+
+                return { ...oldData, pages };
+            });
+            receiveSoundRef.current.play().catch((err) => console.error(err));
         });
 
         // When someone edits a message
         socket.on("message_updated", (updated) => {
-            queryClient.setQueryData<Message[]>(["messages", updated.roomId], (old = []) =>
-                old.map((msg) => (msg._id === updated.id ? { ...msg, text: updated.text, isEdited: true } : msg))
-            );
-        });
+            queryClient.setQueryData(["messages", updated.roomId], (oldData: any) => {
+                if (!oldData || !Array.isArray(oldData.pages)) return oldData;
 
-        socket.on("messages_read", (data) => {
-            const { userId } = data;
+                const pages = oldData.pages.map((page) => ({
+                    ...page,
+                    messages: page.messages.map((msg) =>
+                        msg._id === updated.id ? { ...msg, text: updated.text, isEdited: true } : msg
+                    ),
+                }));
 
-            queryClient.setQueryData<Message[]>(["messages", activeChat?.roomId], (old: Message[] = []) =>
-                old.map((msg: Message) => {
-                    return {
-                        ...msg,
-                        readby: [userId],
-                    };
-                })
-            );
-
-            console.log("updated!");
+                return { ...oldData, pages };
+            });
         });
 
         // When someone Delete a message
         socket.on("message_deleted", (deleted) => {
-            queryClient.setQueryData<Message[]>(["messages", deleted.roomId], (old = []) =>
-                old.filter((msg) => msg._id !== deleted._id)
-            );
+            queryClient.setQueryData(["messages", deleted.roomId], (oldData: any) => {
+                if (!oldData || !Array.isArray(oldData.pages)) return oldData;
+
+                const pages = oldData.pages.map((page) => ({
+                    ...page,
+                    messages: page.messages.filter((msg) => msg._id !== deleted._id),
+                }));
+
+                return { ...oldData, pages };
+            });
         });
 
         socket.on("typing", ({ user }) => {
@@ -333,7 +422,11 @@ const ChatWindow = () => {
             )}
 
             {/* Messages */}
-            <div className="w-full h-full pr-5 overflow-auto flex flex-col mt-5 pt-8 pb-32">
+            <div
+                className="w-full h-full pr-5 overflow-auto flex flex-col mt-5 pt-8 pb-32"
+                ref={containerRef}
+                onScroll={handleScroll}
+            >
                 {isLoading && (
                     <>
                         <LeftMessageSkeleton />

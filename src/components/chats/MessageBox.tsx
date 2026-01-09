@@ -42,34 +42,45 @@ const MessageBox: React.FC<MessageBoxProbs> = ({ message, align = "right", onEdi
     const closeDeleteModel = () => {
         setDeleteId(null);
     };
-    const DeletemessageMutation = useMutation({
-        mutationFn: DeleteMessage,
-        onMutate: async (messageId) => {
+    const deleteMessageMutation = useMutation<any, any, { messageId: string; roomId: string }>({
+        mutationFn: ({ messageId }) => DeleteMessage(messageId),
+
+        onMutate: async ({ messageId, roomId }) => {
             await queryClient.cancelQueries({
-                queryKey: ["messages", message.roomId],
+                queryKey: ["messages", roomId],
             });
-            const previousMessages = queryClient.getQueryData(["messages", message.roomId]);
 
-            queryClient.setQueryData(["messages", message.roomId], (old: [Message]) =>
-                old?.filter((msg) => msg._id !== messageId)
-            );
+            const previousData = queryClient.getQueryData(["messages", roomId]);
 
-            return previousMessages;
+            queryClient.setQueryData(["messages", roomId], (oldData: any) => {
+                if (!oldData || !Array.isArray(oldData.pages)) return oldData;
+
+                const pages = oldData.pages.map((page) => ({
+                    ...page,
+                    messages: page.messages.filter((msg) => msg._id !== messageId),
+                }));
+
+                return { ...oldData, pages };
+            });
+
+            return { previousData };
         },
-        onError: (_error, _variable, _onMutateResult) => {
-            console.log(_onMutateResult);
-            queryClient.setQueryData(["messages", message.roomId], _onMutateResult);
+
+        onError: (_err, variables, context: any) => {
+            if (context?.previousData) {
+                queryClient.setQueryData(["messages", variables.roomId], context.previousData);
+            }
 
             showSnackBar("Delete failed!", "error", 2000);
         },
+
         onSuccess: () => {
             showSnackBar("Message deleted!", "info", 2000);
-            queryClient.invalidateQueries({ queryKey: ["messages", message.roomId] });
         },
     });
 
     const HandleDelete = () => {
-        DeletemessageMutation.mutate(message._id);
+        deleteMessageMutation.mutate({ messageId: message._id, roomId: message.roomId });
         console.log(message, " from here");
         socket.emit("delete_message", message);
         closeDeleteModel();
@@ -152,7 +163,7 @@ const MessageBox: React.FC<MessageBoxProbs> = ({ message, align = "right", onEdi
                     message="Are you sure to delete Message?"
                     onCancel={closeDeleteModel}
                     onConfirm={HandleDelete}
-                    isDeleting={DeletemessageMutation.isPending}
+                    isDeleting={deleteMessageMutation.isPending}
                 />
             )}
         </div>

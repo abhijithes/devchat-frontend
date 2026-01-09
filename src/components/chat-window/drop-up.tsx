@@ -1,11 +1,13 @@
 import { CalendarRange, FileText, Image, Paperclip } from "lucide-react";
 import { useRef, useState } from "react";
 import { useSnackBar } from "../snack-bar/snack-bar-context";
+import { useClickOutside } from "../../utils/useClickOutside";
 
 export const DropUpMenu = ({ onFileSelect }) => {
     const [isOpen, setIsOpen] = useState(false);
     const inputRef = useRef(null);
     const { showSnackBar } = useSnackBar();
+    const menuRef = useRef(null);
 
     const triggerFileInput = (type: string) => {
         if (type === "image") {
@@ -28,8 +30,10 @@ export const DropUpMenu = ({ onFileSelect }) => {
         if (file && file.length > 0) onFileSelect(file);
     };
 
+    useClickOutside(menuRef, () => setIsOpen(false), isOpen);
+
     return (
-        <div className="relative ">
+        <div className="relative" ref={menuRef}>
             <input
                 type="file"
                 multiple

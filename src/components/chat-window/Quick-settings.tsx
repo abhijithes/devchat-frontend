@@ -1,11 +1,15 @@
 import { CodeXml, MessageSquare, Settings } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useClickOutside } from "../../utils/useClickOutside";
 
 export const QuickSettings = ({ setMessageType, messsageType }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const menuRef = useRef(null);
+
+    useClickOutside(menuRef, () => setIsOpen(false), isOpen);
 
     return (
-        <div className="relative ">
+        <div className="relative" ref={menuRef}>
             <button onClick={() => setIsOpen(!isOpen)} className="!w-max input-grad-btn-invert centered">
                 <Settings />
             </button>
