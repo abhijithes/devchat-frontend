@@ -302,6 +302,27 @@ const ChatWindow = () => {
             });
         });
 
+        // When someone reads messages
+        socket.on("messages_read", (data) => {
+            const { userId, roomId } = data;
+
+            queryClient.setQueryData(["messages", roomId], (oldData: any) => {
+                if (!oldData || !Array.isArray(oldData.pages)) {
+                    return oldData;
+                }
+
+                const pages = oldData.pages.map((page) => ({
+                    ...page,
+                    messages: page.messages.map((msg) => ({
+                        ...msg,
+                        readby: msg.readby?.includes(userId) ? msg.readby : [...(msg.readby || []), userId],
+                    })),
+                }));
+
+                return { ...oldData, pages };
+            });
+        });
+
         socket.on("typing", ({ user }) => {
             setTyping((prev) => {
                 if (prev.find((u) => u.id === user.id)) return prev;
