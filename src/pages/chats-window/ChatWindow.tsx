@@ -270,6 +270,7 @@ const ChatWindow = () => {
                 return { ...oldData, pages };
             });
             receiveSoundRef.current.play().catch((err) => console.error(err));
+            markAsReadSetUp();
         });
 
         // When someone edits a message
