@@ -14,6 +14,8 @@ import { useSocket } from "../../contexts/SocketBaseContext";
 import { Done, DoneAll } from "@mui/icons-material";
 import AttachmentBox from "./AttachmentBox";
 import CodeMessage from "./CodeMessage";
+import DialogueBox from "../dailogue-box/dialogueBox";
+import AiMessageDialog from "./AiMessageDialog";
 
 interface MessageBoxProbs {
     message: Message;
@@ -29,6 +31,7 @@ const DeleteMessage = async (id) => {
 const MessageBox: React.FC<MessageBoxProbs> = ({ message, align = "right", onEditMessage }) => {
     const { showSnackBar } = useSnackBar();
     const [deleteId, setDeleteId] = useState(null);
+    const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
     const queryClient = useQueryClient();
     const { socket } = useSocket();
 
@@ -41,6 +44,12 @@ const MessageBox: React.FC<MessageBoxProbs> = ({ message, align = "right", onEdi
     };
     const closeDeleteModel = () => {
         setDeleteId(null);
+    };
+    const openAiDialog = () => {
+        setIsAiDialogOpen(true);
+    };
+    const closeAiDialog = () => {
+        setIsAiDialogOpen(false);
     };
     const deleteMessageMutation = useMutation<any, any, { messageId: string; roomId: string }>({
         mutationFn: ({ messageId }) => DeleteMessage(messageId),
@@ -148,15 +157,33 @@ const MessageBox: React.FC<MessageBoxProbs> = ({ message, align = "right", onEdi
                     </div>
                 </div>
                 <div
-                    className={`w-max h-max bg-white mt-2 px-2 md:px-5 py-0 md:py-2 rounded-2xl flex items-center space-x-2`}
+                    className={`w-max h-max bg-white mt-2 px-2 md:px-5 py-0 md:py-2 rounded-2xl flex items-center space-x-2 ${message.messageType === "code" ? "block" : "hidden"}`}
                 >
                     <div className="icon-hover ">
                         <MessageSquareCode />
                     </div>
-                    <div className="icon-hover ">
+                    <button
+                        type="button"
+                        className="icon-hover"
+                        onClick={openAiDialog}
+                        aria-label="Open AI message preview"
+                    >
                         <img src={AiIcon} alt="AI Icon" className="w-7 h-7 block " />
-                    </div>
+                    </button>
                 </div>
+                <DialogueBox
+                    opened={isAiDialogOpen}
+                    onClose={closeAiDialog}
+                    className="h-[88vh] w-[95vw] max-w-5xl overflow-hidden rounded-[28px] border-0 shadow-[0_30px_90px_rgba(15,23,42,0.2)]"
+                    noPadding
+                >
+                    <AiMessageDialog
+                        opened={isAiDialogOpen}
+                        messageContent={message?.text ?? ""}
+                        messageId={message._id}
+                        roomId={message.roomId}
+                    />
+                </DialogueBox>
             </div>
             {deleteId && (
                 <DeleteConfirmation

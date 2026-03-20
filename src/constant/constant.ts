@@ -73,4 +73,7 @@ export const endpoints = {
     updateMessage: (id) => `${current_url}/message/update/${id}`,
     deleteMessage: (id) => `${current_url}/message/delete/${id}`,
     markAsRead: `${current_url}/message/markasread`,
+
+    // AI endpoint
+    aiRun: `${current_url}/ai/run`,
 };
