@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
-import { AlertCircle, LoaderCircle, RefreshCcw, Sparkles } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AlertCircle, Check, Copy, LoaderCircle, RefreshCcw, Sparkles } from "lucide-react";
 import { runAiTask, type RunAiTaskResponse } from "../../services/ai";
 import CodeMessage from "./CodeMessage";
+import { useSnackBar } from "../snack-bar/snack-bar-context";
 
 interface AiMessageDialogProps {
     opened: boolean;
@@ -11,18 +12,37 @@ interface AiMessageDialogProps {
 }
 
 const AiMessageDialog: React.FC<AiMessageDialogProps> = ({ opened, messageContent, messageId, roomId }) => {
+    const { showSnackBar } = useSnackBar();
     const [result, setResult] = useState<RunAiTaskResponse | null>(null);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const requestIdRef = useRef(0);
+    const cacheRef = useRef(new Map<string, RunAiTaskResponse>());
 
     const trimmedMessage = messageContent.trim();
+    const reviewKey = `${messageId ?? "no-message-id"}:${roomId ?? "no-room-id"}:${trimmedMessage}`;
 
-    const fetchReview = async () => {
+    const fetchReview = async (forceRefresh = false) => {
         if (!trimmedMessage) {
             setResult(null);
             setError("");
             return;
         }
+
+        if (!forceRefresh) {
+            const cachedResult = cacheRef.current.get(reviewKey);
+
+            if (cachedResult) {
+                setResult(cachedResult);
+                setError("");
+                setLoading(false);
+                return;
+            }
+        }
+
+        const currentRequestId = requestIdRef.current + 1;
+        requestIdRef.current = currentRequestId;
 
         try {
             setLoading(true);
@@ -38,19 +58,43 @@ const AiMessageDialog: React.FC<AiMessageDialogProps> = ({ opened, messageConten
                 },
             });
 
+            if (requestIdRef.current !== currentRequestId) {
+                return;
+            }
+
+            cacheRef.current.set(reviewKey, response);
             setResult(response);
         } catch (requestError: any) {
+            if (requestIdRef.current !== currentRequestId) {
+                return;
+            }
+
             setResult(null);
             setError(requestError?.response?.data?.message || "Unable to generate an AI review right now.");
         } finally {
-            setLoading(false);
+            if (requestIdRef.current === currentRequestId) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
         if (!opened) return;
         void fetchReview();
-    }, [opened, trimmedMessage, messageId, roomId]);
+    }, [opened, reviewKey]);
+
+    const handleCopyRewrittenCode = async () => {
+        if (!result?.result.rewrittenCode) return;
+
+        try {
+            await navigator.clipboard.writeText(result.result.rewrittenCode);
+            setCopied(true);
+            showSnackBar("Rewritten code copied!", "info", 2000);
+            window.setTimeout(() => setCopied(false), 1800);
+        } catch {
+            showSnackBar("Failed to copy rewritten code.", "error", 2000);
+        }
+    };
 
     return (
         <div className="flex h-full max-h-[88vh] min-h-0 flex-col overflow-hidden rounded-[26px] bg-[linear-gradient(180deg,#fffef8_0%,#ffffff_18%,#f8fafc_100%)]">
@@ -85,7 +129,7 @@ const AiMessageDialog: React.FC<AiMessageDialogProps> = ({ opened, messageConten
 
                     <button
                         type="button"
-                        onClick={() => void fetchReview()}
+                        onClick={() => void fetchReview(true)}
                         disabled={loading || !trimmedMessage}
                         className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
@@ -185,9 +229,19 @@ const AiMessageDialog: React.FC<AiMessageDialogProps> = ({ opened, messageConten
 
                         {!!result.result.rewrittenCode && (
                             <div className="rounded-3xl border border-zinc-200 bg-white/90 p-5 shadow-sm">
-                                <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                                    Rewritten Code
-                                </h3>
+                                <div className="mb-3 flex items-center justify-between gap-3">
+                                    <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                                        Rewritten Code
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => void handleCopyRewrittenCode()}
+                                        className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50"
+                                    >
+                                        {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                                        {copied ? "Copied" : "Copy code"}
+                                    </button>
+                                </div>
                                 <div className="max-h-[42vh] overflow-auto rounded-2xl">
                                     <CodeMessage content={result.result.rewrittenCode} />
                                 </div>
