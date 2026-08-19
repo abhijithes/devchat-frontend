@@ -15,7 +15,7 @@ function CodeMessage({ content }: { content: string }) {
 
     return (
         <div className="max-w-full overflow-x-auto rounded-lg border border-[#30363d] bg-[#0d1117] text-sm">
-            <div className="flex">
+            <div className="flex w-full">
                 {/* Line numbers */}
                 <div className="select-none px-3 py-2 pt-5 text-right text-[#6e7681] font-mono">
                     {lines.map((_, i) => (

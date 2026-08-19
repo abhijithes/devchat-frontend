@@ -119,7 +119,9 @@ const AiMessageDialog: React.FC<AiMessageDialogProps> = ({ opened, messageConten
                                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
                                     Source snippet
                                 </p>
-                                {messageId && <span className="text-[11px] text-zinc-500">Message {messageId.slice(-6)}</span>}
+                                {messageId && (
+                                    <span className="text-[11px] text-zinc-500">Message {messageId.slice(-6)}</span>
+                                )}
                             </div>
                             <div className="max-h-48 overflow-auto rounded-xl">
                                 <CodeMessage content={trimmedMessage || "No message content available for review."} />
@@ -169,7 +171,9 @@ const AiMessageDialog: React.FC<AiMessageDialogProps> = ({ opened, messageConten
                     <div className="space-y-4">
                         <div className="rounded-3xl border border-zinc-200 bg-white/90 p-5 shadow-sm">
                             <div className="mb-3 flex items-center justify-between gap-3">
-                                <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">Summary</h3>
+                                <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                                    Summary
+                                </h3>
                                 {result.usage?.provider && result.usage?.model && (
                                     <span className="rounded-full bg-amber-50 px-3 py-1 text-[11px] font-medium text-amber-700">
                                         {result.usage.provider} · {result.usage.model}
@@ -181,7 +185,9 @@ const AiMessageDialog: React.FC<AiMessageDialogProps> = ({ opened, messageConten
 
                         {!!result.result.issues?.length && (
                             <div className="rounded-3xl border border-zinc-200 bg-white/90 p-5 shadow-sm">
-                                <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">Issues</h3>
+                                <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                                    Issues
+                                </h3>
                                 <div className="space-y-3">
                                     {result.result.issues.map((issue, index) => (
                                         <div
@@ -238,7 +244,11 @@ const AiMessageDialog: React.FC<AiMessageDialogProps> = ({ opened, messageConten
                                         onClick={() => void handleCopyRewrittenCode()}
                                         className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50"
                                     >
-                                        {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                                        {copied ? (
+                                            <Check className="h-4 w-4 text-green-600" />
+                                        ) : (
+                                            <Copy className="h-4 w-4" />
+                                        )}
                                         {copied ? "Copied" : "Copy code"}
                                     </button>
                                 </div>
@@ -250,7 +260,9 @@ const AiMessageDialog: React.FC<AiMessageDialogProps> = ({ opened, messageConten
 
                         {!!result.result.notes?.length && (
                             <div className="rounded-3xl border border-zinc-200 bg-white/90 p-5 shadow-sm">
-                                <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">Notes</h3>
+                                <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                                    Notes
+                                </h3>
                                 <ul className="space-y-2 text-sm leading-6 text-zinc-700">
                                     {result.result.notes.map((note, index) => (
                                         <li key={`${note}-${index}`} className="rounded-2xl bg-zinc-50/80 px-4 py-3">
