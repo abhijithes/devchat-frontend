@@ -1,17 +1,16 @@
-const isProduction = true;
-
 export const dev_api_url = "http://localhost:5001/api";
 export const producttion_api_url = "https://devchat-backend-kpfa.onrender.com/api";
-export const api_url = "https://devchat-backend-kpfa.onrender.com/api";
+export const api_url = import.meta.env.VITE_API_URL || producttion_api_url;
 
-export const socket_url = isProduction ? "https://devchat-backend-kpfa.onrender.com" : "http://localhost:5001";
+export const socket_url = import.meta.env.VITE_SOCKET_URL || "https://devchat-backend-kpfa.onrender.com";
 
-export const current_url = isProduction ? producttion_api_url : dev_api_url;
+export const current_url = api_url;
 
 export const endpoints = {
     // Existing routes...
     register: `${current_url}/users/register`,
     login: `${current_url}/users/login`,
+    googleLogin: `${current_url}/users/auth/google`,
     searchUser: `${current_url}/users/searchUser`,
 
     // otp service api
