@@ -14,3 +14,8 @@
   background-color: rgba(0, 0, 0, 0.233);
   border-radius: 4px;
 }
+
+.google-signin-button iframe {
+  transform: scaleY(1.18);
+  transform-origin: top center;
+}
