@@ -17,6 +17,7 @@ import { UploadFiles } from "../../services/upload-service.ts";
 import { FilePreview } from "../../components/chat-window/filePreview.tsx";
 import GroupIcon from "../../components/userIcon/groupIcon.tsx";
 import { QuickSettings } from "../../components/chat-window/Quick-settings.tsx";
+import { EmojiPicker } from "../../components/chat-window/EmojiPicker.tsx";
 
 const ChatWindow = () => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -281,7 +282,7 @@ const ChatWindow = () => {
                 const pages = oldData.pages.map((page) => ({
                     ...page,
                     messages: page.messages.map((msg) =>
-                        msg._id === updated.id ? { ...msg, text: updated.text, isEdited: true } : msg
+                        msg._id === updated.id ? { ...msg, text: updated.text, isEdited: true } : msg,
                     ),
                 }));
 
@@ -382,6 +383,20 @@ const ChatWindow = () => {
     const removeFile = (index: number) => {
         setFilePreviews((files) => files.filter((_, i) => i !== index));
         setFiles((files) => files.filter((_, i) => i !== index));
+    };
+
+    const handleEmojiSelect = (emoji: string) => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = textarea.value;
+
+        textarea.value = value.slice(0, start) + emoji + value.slice(end);
+        textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+        textarea.focus();
+        autoResize();
     };
 
     const handlekeydown = (e) => {
@@ -494,6 +509,7 @@ const ChatWindow = () => {
                         onKeyDown={handlekeydown}
                     />
 
+                    <EmojiPicker onEmojiSelect={handleEmojiSelect} />
                     <DropUpMenu onFileSelect={handleFileSelect} />
                     <QuickSettings setMessageType={setMessageType} messsageType={messageType} />
 
