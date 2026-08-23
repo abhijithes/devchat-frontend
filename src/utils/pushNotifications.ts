@@ -24,16 +24,27 @@ export function isPushSupported(): boolean {
 }
 
 /**
- * Register the service worker (safe to call multiple times)
+ * Register the service worker — explicit registration with error handling
  */
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
     try {
-        console.log("[Push] registerServiceWorker: calling navigator.serviceWorker.ready...");
-        const registration = await navigator.serviceWorker.ready;
-        console.log("[Push] registerServiceWorker: SW ready, scope:", registration.scope);
+        // Check if already registered
+        const existing = await Promise.race([
+            navigator.serviceWorker.getRegistration("/"),
+            new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), 3000)),
+        ]);
+
+        if (existing) {
+            console.log("[Push] SW already registered, scope:", existing.scope);
+            return existing;
+        }
+
+        console.log("[Push] Registering new service worker at /sw.js...");
+        const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+        console.log("[Push] SW registered, scope:", registration.scope);
         return registration;
     } catch (error) {
-        console.error("[Push] registerServiceWorker failed:", error);
+        console.error("[Push] SW registration failed:", error);
         return null;
     }
 }
@@ -56,23 +67,22 @@ export async function subscribeToPush(token: string): Promise<boolean> {
     }
 
     try {
-        console.log("[Push] subscribeToPush: getting SW ready...");
         const registration = await navigator.serviceWorker.ready;
-        console.log("[Push] subscribeToPush: checking existing subscription...");
+        console.log("[Push] SW ready, checking subscription...");
 
         let subscription = await registration.pushManager.getSubscription();
-        console.log("[Push] subscribeToPush: existing subscription:", !!subscription);
+        console.log("[Push] Existing subscription:", !!subscription);
 
         if (!subscription) {
-            console.log("[Push] subscribeToPush: creating new subscription...");
+            console.log("[Push] Creating new push subscription...");
             subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
             });
-            console.log("[Push] subscribeToPush: subscription created");
+            console.log("[Push] Subscription created");
         }
 
-        console.log("[Push] subscribeToPush: sending to backend...");
+        console.log("[Push] Sending subscription to backend...");
         const response = await fetch(`${api_url}/users/push/subscribe`, {
             method: "POST",
             headers: {
@@ -83,7 +93,7 @@ export async function subscribeToPush(token: string): Promise<boolean> {
         });
 
         const body = await response.text();
-        console.log("[Push] subscribeToPush: backend response:", response.status, body);
+        console.log("[Push] Backend response:", response.status, body);
 
         if (response.ok) {
             console.log("[Push] ✅ Push subscription saved");
