@@ -8,6 +8,7 @@ import { useLoader } from "../../contexts/GlobalLoaderContext";
 import { useNavigate } from "react-router-dom";
 import { useUsersInChat } from "../../contexts/chatListContext";
 import type { BaseUserInfo } from "../../constant/types";
+import { ChatSettingsContent } from "./ChatSettings";
 let chatSideBarActions = [
   {
     name: "New chat",
@@ -70,6 +71,12 @@ const ChatSideBar = () => {
     setOpenSearchUserDialog(false);
   };
 
+  const [openSettingsDialog, setOpenSettingsDialog] = useState(false);
+
+  chatSideBarActions[3].action = () => {
+    setOpenSettingsDialog(true);
+  };
+
   const onListDialogClose = () => {
     setOpenSearchUserDialog(false);
     setOpenGroupCreate(false);
@@ -105,6 +112,13 @@ const ChatSideBar = () => {
           onSubmit={handleMakeChat}
           selectType={openGroupCreate ? "multiple" : "single"}
         />
+      </DialogueBox>
+      <DialogueBox
+        heading="Chat Settings"
+        opened={openSettingsDialog}
+        onClose={() => setOpenSettingsDialog(false)}
+      >
+        <ChatSettingsContent />
       </DialogueBox>
       {/* Left sidebar content */}
       <h1 className="heading mt-5 hidden md:block">DevChats.io</h1>

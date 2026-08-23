@@ -81,7 +81,7 @@ const NavBar = () => {
   };
 
   return (
-    <nav className="backdrop-blur-xs bg-linear-to-tl from-black/5 to-white/10 border-zinc-200 rounded sticky top-0 md:fixed md:top-5 md:right-8 w-full md:w-max z-[45]">
+    <nav className="backdrop-blur-xs bg-linear-to-tl from-black/5 to-white/10 border-zinc-200 rounded fixed top-0 left-0 right-0 md:top-5 md:left-auto md:right-8 md:w-max z-[45]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex gap-5 justify-between items-center h-14">
           {/* Logo */}
@@ -214,6 +214,7 @@ const NavBar = () => {
               to="/chat"
               title="Go to developer chats"
               className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
+              onClick={() => setIsOpen(false)}
             >
               Dev Chats
             </Link>

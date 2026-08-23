@@ -17,6 +17,8 @@ export interface ChatsListType {
   hasUnread: boolean;
   name?: string;
   type?: string;
+  lastMessage?: { text: string; senderId?: string; time?: string; messageId?: string } | string;
+  lastMessageTime?: string;
 }
 
 interface UsersInChatContextType {
@@ -56,6 +58,8 @@ export const UsersInChatProvider = ({ children }: { children: ReactNode }) => {
           hasUnread: chat.hasUnread,
           type: chat.type,
           name: chat.name,
+          lastMessage: chat.lastMessage,
+          lastMessageTime: chat.lastMessageTime,
         }));
 
       setUsersInChat(list);
