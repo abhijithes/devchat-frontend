@@ -264,6 +264,10 @@ const ChatWindow = () => {
             queryClient.setQueryData(["messages", message.roomId], (oldData: any) => {
                 if (!oldData || !Array.isArray(oldData.pages)) return oldData;
 
+                // Deduplicate: skip if message already exists in cache
+                const allMessages = oldData.pages.flatMap((p) => p.messages ?? []);
+                if (allMessages.some((msg) => msg._id === message._id)) return oldData;
+
                 const pages = [...oldData.pages];
                 const firstPage = pages[0];
 
