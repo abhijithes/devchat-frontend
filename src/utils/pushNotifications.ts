@@ -26,10 +26,16 @@ export function isPushSupported(): boolean {
 /**
  * Register the service worker (safe to call multiple times)
  */
-export async function registerServiceWorker(): Promise<ServiceWorkerRegistration> {
-    // navigator.serviceWorker.ready always returns the existing registration
-    // if already registered, or registers a new one
-    return navigator.serviceWorker.ready;
+export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+    try {
+        console.log("[Push] registerServiceWorker: calling navigator.serviceWorker.ready...");
+        const registration = await navigator.serviceWorker.ready;
+        console.log("[Push] registerServiceWorker: SW ready, scope:", registration.scope);
+        return registration;
+    } catch (error) {
+        console.error("[Push] registerServiceWorker failed:", error);
+        return null;
+    }
 }
 
 /**
@@ -50,20 +56,23 @@ export async function subscribeToPush(token: string): Promise<boolean> {
     }
 
     try {
+        console.log("[Push] subscribeToPush: getting SW ready...");
         const registration = await navigator.serviceWorker.ready;
+        console.log("[Push] subscribeToPush: checking existing subscription...");
 
-        // Check for existing subscription
         let subscription = await registration.pushManager.getSubscription();
+        console.log("[Push] subscribeToPush: existing subscription:", !!subscription);
 
-        // If no subscription, create one
         if (!subscription) {
+            console.log("[Push] subscribeToPush: creating new subscription...");
             subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
             });
+            console.log("[Push] subscribeToPush: subscription created");
         }
 
-        // Send subscription to backend
+        console.log("[Push] subscribeToPush: sending to backend...");
         const response = await fetch(`${api_url}/users/push/subscribe`, {
             method: "POST",
             headers: {
@@ -73,15 +82,16 @@ export async function subscribeToPush(token: string): Promise<boolean> {
             body: JSON.stringify(subscription),
         });
 
+        const body = await response.text();
+        console.log("[Push] subscribeToPush: backend response:", response.status, body);
+
         if (response.ok) {
-            console.log("[Push] ✅ Push subscription saved to server");
+            console.log("[Push] ✅ Push subscription saved");
             return true;
-        } else {
-            console.error("[Push] Failed to save push subscription:", response.status);
-            return false;
         }
+        return false;
     } catch (error) {
-        console.error("[Push] Push subscription failed:", error);
+        console.error("[Push] subscribeToPush failed:", error);
         return false;
     }
 }
