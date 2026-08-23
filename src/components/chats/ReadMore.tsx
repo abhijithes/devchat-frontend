@@ -24,13 +24,13 @@ const ReadMore = ({ text, limit = 180 }: { text: string; limit?: number }) => {
     const [expanded, setExpanded] = useState(false);
 
     if (text.length <= limit) {
-        return <p className="whitespace-pre-wrap pl-1 md:pl-3 pt-1">{linkify(text)}</p>;
+        return <span className="whitespace-pre-wrap break-words pl-1 md:pl-3 pt-1">{linkify(text)}</span>;
     }
 
     const displayText = expanded ? text : text.slice(0, limit) + "...";
 
     return (
-        <div className="whitespace-pre-wrap pl-1 md:pl-3 pt-1">
+        <span className="whitespace-pre-wrap break-words pl-1 md:pl-3 pt-1 block">
             {linkify(displayText)}
 
             <button
@@ -38,8 +38,7 @@ const ReadMore = ({ text, limit = 180 }: { text: string; limit?: number }) => {
                 className="ml-2 cursor-pointer text-blue-600 hover:underline"
             >
                 {expanded ? "Read less" : "Read more"}
-            </button>
-        </div>
+            </button>            </span>
     );
 };
 

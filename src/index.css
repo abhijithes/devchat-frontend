@@ -13,9 +13,53 @@
 ::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.233);
   border-radius: 4px;
+}.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .chat-input-btns .input-grad-btn-invert,
+    .chat-input-btns .input-grad-btn {
+        padding: 5px;
+        min-width: unset;
+    }
+    .chat-input-btns .input-grad-btn-invert svg,
+    .chat-input-btns .input-grad-btn svg {
+        width: 22px;
+        height: 22px;
+    }
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .google-signin-button iframe {
   transform: scaleY(1.18);
   transform-origin: top center;
+}
+
+.chat-message-before-element::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 0px solid transparent;
+  border-top: 10px solid #fff; 
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  margin-left: -10px;
+}
+.chat-message-before-element-2::after {
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 0px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #fff; 
+  position: absolute;
+  top: 0px;
+  right: -10px;
+  margin-left: -10px;
 }

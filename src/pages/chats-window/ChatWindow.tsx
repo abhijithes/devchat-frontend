@@ -1,7 +1,8 @@
 import { type Message } from "../../constant/messages";
 import MessageBox from "../../components/chats/MessageBox";
-import { Check, Send } from "lucide-react";
+import { ArrowLeft, Check, Send } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useUsersInChat } from "../../contexts/chatListContext";
 import UserIcon from "../../components/userIcon/usericon";
 import { getChats, sendMessage, UpdateMessage } from "../../services/chat-service";
@@ -18,10 +19,13 @@ import { FilePreview } from "../../components/chat-window/filePreview.tsx";
 import GroupIcon from "../../components/userIcon/groupIcon.tsx";
 import { QuickSettings } from "../../components/chat-window/Quick-settings.tsx";
 import { EmojiPicker } from "../../components/chat-window/EmojiPicker.tsx";
+import Spinner from "../../components/loaders/Spinner";
 
 const ChatWindow = () => {
+    const navigate = useNavigate();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
+    const isInitialLoad = useRef(true);
     const [editMessage, setEditMessage] = useState(null);
     const { activeChat, onlineUsers } = useUsersInChat();
     const user = JSON.parse(localStorage.getItem("DEV_CHATX_USER_URD"));
@@ -345,8 +349,27 @@ const ChatWindow = () => {
         };
     }, [socket, activeChat?.roomId]);
 
+    // Reset initial load flag when switching chats
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        isInitialLoad.current = true;
+    }, [activeChat?.roomId]);
+
+    // Auto-scroll to bottom on initial load and when new messages arrive (only if near bottom)
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+
+        if (isInitialLoad.current && messages.length > 0) {
+            // Initial load: scroll to bottom instantly
+            bottomRef.current?.scrollIntoView();
+            isInitialLoad.current = false;
+            return;
+        }
+
+        const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 200;
+        if (isNearBottom) {
+            bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
     }, [messages, typing]);
 
     const autoResize = () => {
@@ -422,14 +445,22 @@ const ChatWindow = () => {
             {/* Header */}
             {activeChat ? (
                 activeChat.type == "group" ? (
-                    <div className="flex  items-center justify-between gap-4  border-b border-zinc-300 py-3 ">
-                        <div className=" flex  items-center gap-4  ">
-                            <GroupIcon groupName={activeChat.name} style="w-12 h-12" />
-                            <div className="flex flex-col">
-                                <div className="flex gap-2">
-                                    <h2 className="text-lg font-medium">{activeChat.name}</h2>
+                    <div className="flex  items-center justify-between gap-2 md:gap-4  border-b border-zinc-300 py-2 md:py-3">
+                        <div className=" flex  items-center gap-2 md:gap-4  ">
+                            <button
+                                onClick={() => navigate("/chat")}
+                                className="md:hidden p-1 ml-1 rounded-lg hover:bg-zinc-200 transition-colors"
+                            >
+                                <ArrowLeft size={24} />
+                            </button>
+                            <GroupIcon groupName={activeChat.name} style="w-11 h-11 md:w-12 md:h-12" />
+                            <div className="flex flex-col -gap-1">
+                                <div className="flex gap-0 md:gap-2">
+                                    <h2 className="text-base md:text-lg font-medium">{activeChat.name}</h2>
                                 </div>
-                                <p className={` ${isUserOnline ? "text-green-600" : "text-gray-500"}`}>
+                                <p
+                                    className={`text-sm md:text-sm ${isUserOnline ? "text-green-600" : "text-gray-500"}`}
+                                >
                                     {isUserOnline ? "online" : "offline"}
                                 </p>
                             </div>
@@ -441,14 +472,20 @@ const ChatWindow = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className=" flex  items-center gap-4  border-b border-zinc-300 py-3 ">
-                        <UserIcon user={activeChat.user} style="w-12 h-12" />
-                        <div className="flex flex-col">
+                    <div className=" flex  items-center gap-2  border-b border-zinc-300 py-3 ">
+                        <button
+                            onClick={() => navigate("/chat")}
+                            className="md:hidden p-1 ml-1 rounded-lg hover:bg-zinc-200 transition-colors"
+                        >
+                            <ArrowLeft size={24} />
+                        </button>
+                        <UserIcon user={activeChat.user} style="w-11 h-11" />
+                        <div className="flex flex-col gap-0">
                             <div className="flex gap-2">
-                                <h2 className="text-lg font-medium">{activeChat.user.firstName}</h2>
-                                <p className="text-lg font-medium">{activeChat.user.lastName}</p>
+                                <h2 className="text-base font-medium">{activeChat.user.firstName}</h2>
+                                <p className="text-base font-medium">{activeChat.user.lastName}</p>
                             </div>
-                            <p className={` ${isUserOnline ? "text-green-600" : "text-gray-500"}`}>
+                            <p className={`text-sm ${isUserOnline ? "text-green-600" : "text-gray-500"}`}>
                                 {isUserOnline ? "online" : "offline"}
                             </p>
                         </div>
@@ -460,7 +497,7 @@ const ChatWindow = () => {
 
             {/* Messages */}
             <div
-                className="w-full h-full pr-5 overflow-auto flex flex-col mt-5 pt-8 pb-32"
+                className="w-full h-full px-2 sm:pr-5 sm:pl-0  overflow-auto flex flex-col mt-0 pt-8 pb-32"
                 ref={containerRef}
                 onScroll={handleScroll}
             >
@@ -473,18 +510,29 @@ const ChatWindow = () => {
                     </>
                 )}
 
+                {isFetchingNextPage && (
+                    <div className="flex justify-center py-3">
+                        <Spinner />
+                    </div>
+                )}
+
                 {!isLoading && messages.length === 0 ? (
                     <div className="w-full h-full centered text-gray-500">No messages yet. Start the conversation!</div>
                 ) : (
-                    messages.map((msg: Message) => (
-                        <div key={msg._id}>
-                            <MessageBox
-                                message={msg}
-                                align={msg?.senderId?._id === user.id ? "right" : "left"}
-                                onEditMessage={handleStartEditMessage}
-                            />
-                        </div>
-                    ))
+                    messages.map((msg: Message, index: number) => {
+                        const prevMsg = messages[index - 1];
+                        const showAvatar = !prevMsg || prevMsg.senderId?._id !== msg.senderId?._id;
+                        return (
+                            <div key={msg._id}>
+                                <MessageBox
+                                    message={msg}
+                                    align={msg?.senderId?._id === user.id ? "right" : "left"}
+                                    onEditMessage={handleStartEditMessage}
+                                    showAvatar={showAvatar}
+                                />
+                            </div>
+                        );
+                    })
                 )}
                 <TypingIndicator users={typing} show={typing.length !== 0} />
                 <div ref={bottomRef}></div>
@@ -497,7 +545,7 @@ const ChatWindow = () => {
                     removeFile={removeFile}
                     isPending={fileuploudMutation.isPending}
                 />
-                <div className="flex w-full gap-2 items-end">
+                <div className="chat-input-btns flex w-full gap-2 items-end">
                     <textarea
                         ref={textareaRef}
                         onInput={() => {
@@ -509,14 +557,16 @@ const ChatWindow = () => {
                         onKeyDown={handlekeydown}
                     />
 
-                    <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                    <div className="hidden md:block">
+                        <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                    </div>
                     <DropUpMenu onFileSelect={handleFileSelect} />
                     <QuickSettings setMessageType={setMessageType} messsageType={messageType} />
 
                     <button
                         disabled={fileuploudMutation.isPending}
                         onClick={handleSendMessage}
-                        className="!w-max input-grad-btn centered"
+                        className=" md:!w-max w-16 input-grad-btn centered"
                     >
                         {editMessage ? <Check /> : <Send />}
                     </button>
