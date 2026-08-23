@@ -1,0 +1,16 @@
+{
+    "name": "DevChat",
+    "short_name": "DevChat",
+    "description": "Chat & collaboration app for developers",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "icons": [
+        {
+            "src": "/dev-tp.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}

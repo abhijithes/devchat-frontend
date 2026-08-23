@@ -5,12 +5,16 @@ import { useLoader } from "../contexts/GlobalLoaderContext";
 import GlobalLoader from "./GlobalLoader";
 import { useSnackBar } from "../components/snack-bar/snack-bar-context";
 import NavBar from "../components/NavBar";
+import { usePushSetup } from "../utils/usePushSetup";
 
 const AppLayout = () => {
     const { isLoading } = useLoader();
     const { showSnackBar } = useSnackBar();
     const [isLogged, setIsLogged] = useState(false);
     const navigate = useNavigate();
+
+    // Auto-register service worker and subscribe to push notifications
+    usePushSetup();
 
     useEffect(() => {
         const token = getToken();
