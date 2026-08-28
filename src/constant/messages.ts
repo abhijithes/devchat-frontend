@@ -13,11 +13,14 @@ export interface Message {
         public_id?: string;
         originalName?: string;
         url?: string;
+        type?: "image" | "document" | "audio";
+        duration?: number;
+        waveform?: number[];
     }[];
     status: "sent" | "delivered" | "seen";
     readby: string[];
     isEdited?: boolean;
-    messageType: "text" | "code";
+    messageType: "text" | "code" | "voice";
     createdAt?: Date;
     updatedAt?: Date;
 }

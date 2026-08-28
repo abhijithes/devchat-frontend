@@ -20,6 +20,7 @@ import GroupIcon from "../../components/userIcon/groupIcon.tsx";
 import { QuickSettings } from "../../components/chat-window/Quick-settings.tsx";
 import { EmojiPicker } from "../../components/chat-window/EmojiPicker.tsx";
 import Spinner from "../../components/loaders/Spinner";
+import VoiceRecorder from "../../components/chat-window/VoiceRecorder.tsx";
 
 const ChatWindow = () => {
     const navigate = useNavigate();
@@ -37,8 +38,10 @@ const ChatWindow = () => {
     const [isUserOnline, setIsUserOnline] = useState(false);
     const { showSnackBar } = useSnackBar();
     const [Files, setFiles] = useState([]);
-    const [messageType, setMessageType] = useState<"text" | "code">("text");
+    const [messageType, setMessageType] = useState<"text" | "code" | "voice">("text");
     const containerRef = useRef<HTMLDivElement>(null);
+    const [hasInput, setHasInput] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
 
     const typingTimeoutRef = useRef(null);
     const isTypingRef = useRef(false);
@@ -84,7 +87,7 @@ const ChatWindow = () => {
             roomId: string;
             files: any[];
             text: string;
-            messageType: "text" | "code";
+            messageType: "text" | "code" | "voice";
         }
     >({
         mutationFn: async (data) => {
@@ -238,11 +241,13 @@ const ChatWindow = () => {
 
         textareaRef.current.value = "";
         textareaRef.current.style.height = "auto";
+        setHasInput(Files.length > 0);
     };
 
     const handleStartEditMessage = (message) => {
         setEditMessage(message);
         textareaRef.current.value = message.text;
+        setHasInput(!!message.text.trim());
         textareaRef.current.focus();
         autoResize();
     };
@@ -401,15 +406,59 @@ const ChatWindow = () => {
             return;
         }
         const PreviewFiles = [...(FilePreviews || []), ...file];
-        console.log(PreviewFiles, "check", file);
 
         setFilePreviews(PreviewFiles);
+        setHasInput(true);
         fileuploudMutation.mutate(file);
     };
 
     const removeFile = (index: number) => {
-        setFilePreviews((files) => files.filter((_, i) => i !== index));
-        setFiles((files) => files.filter((_, i) => i !== index));
+        setFilePreviews((prev) => {
+            const next = prev.filter((_, i) => i !== index);
+            return next;
+        });
+        setFiles((prev) => {
+            const next = prev.filter((_, i) => i !== index);
+            setHasInput(!!textareaRef.current?.value.trim() || next.length > 0);
+            return next;
+        });
+    };
+
+    const handleVoiceComplete = async (blob: Blob, duration: number, waveform: number[]) => {
+        try {
+            // Upload directly — bypass fileuploudMutation to avoid its onSuccess
+            // overwriting type or conflicting with the per-call callback
+            const file = new File([blob], `voice-${Date.now()}.webm`, { type: "audio/webm" });
+            const data = await UploadFiles([file]);
+
+            const audioFile = data.files.map((f) => ({
+                ...f,
+                type: "audio",
+                duration,
+                waveform,
+            }));
+
+            const msgData = {
+                roomId: activeChat?.roomId,
+                files: audioFile,
+                text: "",
+                messageType: "voice" as const,
+            };
+
+            console.log("[Voice] Sending message with waveform:", waveform.length, "bars");
+
+            sendMessageMutation.mutate(msgData);
+            sendSoundRef.current.play().catch((err) => console.error(err));
+            socket.emit("send_message", {
+                ...msgData,
+                _id: Math.random().toString(),
+                senderId: user,
+                createdAt: new Date().toISOString(),
+            });
+        } catch (err) {
+            console.error("[Voice] Upload or send failed:", err);
+            showSnackBar("Failed to send voice message.", "error", 3000);
+        }
     };
 
     const handleEmojiSelect = (emoji: string) => {
@@ -544,36 +593,57 @@ const ChatWindow = () => {
 
             {/* Input Box */}
             <div className="w-[98%] h-max bg-white/90 backdrop-blur-2xl shadow-xl border border-zinc-300 rounded-2xl flex flex-col items-end p-5 absolute bottom-5 z-20">
-                <FilePreview
-                    FilePreviews={FilePreviews}
-                    removeFile={removeFile}
-                    isPending={fileuploudMutation.isPending}
-                />
-                <div className="chat-input-btns flex w-full gap-2 items-end">
-                    <textarea
-                        ref={textareaRef}
-                        onInput={() => {
-                            autoResize();
-                            handleTyping();
-                        }}
-                        className="w-full outline-none min-h-8 max-h-[30vh] resize-none bg-transparent scrollbar-hide text-black"
-                        placeholder="Add message..."
-                        onKeyDown={handlekeydown}
+                {!isRecording && (
+                    <FilePreview
+                        FilePreviews={FilePreviews}
+                        removeFile={removeFile}
+                        isPending={fileuploudMutation.isPending}
                     />
+                )}
+                <div className="chat-input-btns flex w-full gap-2 items-end">
+                    {!isRecording && (
+                        <textarea
+                            ref={textareaRef}
+                            onInput={() => {
+                                autoResize();
+                                handleTyping();
+                                setHasInput(!!textareaRef.current?.value.trim() || Files.length > 0);
+                            }}
+                            className="w-full outline-none min-h-8 max-h-[30vh] resize-none bg-transparent scrollbar-hide text-black"
+                            placeholder="Add message..."
+                            onKeyDown={handlekeydown}
+                        />
+                    )}
 
-                    <div className="hidden md:block">
-                        <EmojiPicker onEmojiSelect={handleEmojiSelect} />
-                    </div>
-                    <DropUpMenu onFileSelect={handleFileSelect} />
-                    <QuickSettings setMessageType={setMessageType} messsageType={messageType} />
+                    {!isRecording && (
+                        <>
+                            <div className="hidden md:block">
+                                <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                            </div>
+                            <DropUpMenu onFileSelect={handleFileSelect} />
+                            <QuickSettings setMessageType={setMessageType} messsageType={messageType} />
+                        </>
+                    )}
 
-                    <button
-                        disabled={fileuploudMutation.isPending}
-                        onClick={handleSendMessage}
-                        className=" md:!w-max w-16 input-grad-btn centered"
-                    >
-                        {editMessage ? <Check /> : <Send />}
-                    </button>
+                    {/* VoiceRecorder — hidden when text is typed (send button takes over), always visible during recording */}
+                    {(!hasInput || isRecording) && (
+                        <VoiceRecorder
+                            onRecordingComplete={handleVoiceComplete}
+                            onRecordingStateChange={setIsRecording}
+                            disabled={fileuploudMutation.isPending}
+                        />
+                    )}
+
+                    {/* Send button only visible when text is typed or files attached (and not recording) */}
+                    {!isRecording && hasInput && (
+                        <button
+                            disabled={fileuploudMutation.isPending}
+                            onClick={handleSendMessage}
+                            className="md:!w-max w-16 input-grad-btn centered"
+                        >
+                            {editMessage ? <Check /> : <Send />}
+                        </button>
+                    )}
                 </div>
             </div>
         </section>
