@@ -121,7 +121,7 @@ const MessageBox: React.FC<MessageBoxProbs> = ({ message, align = "right", onEdi
                     />
                 </div>
                 <div
-                    className={`bg-white p-1 flex md:gap-1 lg:gap-3 flex-col rounded-lg md:rounded-2xl hover:bg-zinc-200 transition-transform max-w-74 md:max-w-100 lg:max-w-150 ${align === "right" ? (showAvatar ? "rounded-tr-none md:rounded-tr-none chat-message-before-element-2" : "rounded-tr-none md:rounded-tr-none") : showAvatar ? "rounded-tl-none md:rounded-tl-none chat-message-before-element" : "rounded-tl-none md:rounded-tl-none"}`}
+                    className={`bg-white p-1 flex md:gap-1 lg:gap-3 flex-col rounded-lg md:rounded-2xl hover:bg-zinc-200 transition-transform max-w-66 md:max-w-100 lg:max-w-150 ${align === "right" ? (showAvatar ? "rounded-tr-none md:rounded-tr-none chat-message-before-element-2" : "rounded-tr-none md:rounded-tr-none") : showAvatar ? "rounded-tl-none md:rounded-tl-none chat-message-before-element" : "rounded-tl-none md:rounded-tl-none"}`}
                 >
                     <div className="message break-words overflow-hidden">
                         <AttachmentBox files={message.files} />
