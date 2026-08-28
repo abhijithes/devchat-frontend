@@ -1,6 +1,7 @@
 import { FileText, FileSpreadsheet, FileType, FileArchive, Download } from "lucide-react";
 import DialogueBox from "../dailogue-box/dialogueBox";
 import { useState } from "react";
+import WaveformPlayer from "../chat-window/WaveformPlayer";
 
 const getDocMeta = (file: any) => {
     const ext = file.format || file.originalName?.split(".").pop()?.toLowerCase();
@@ -19,11 +20,7 @@ const getDocMeta = (file: any) => {
                 icon: FileSpreadsheet,
             };
         case "zip":
-            return {
-                label: "ZIP",
-                color: "bg-yellow-100 text-yellow-700",
-                icon: FileArchive,
-            };
+            return { label: "ZIP", color: "bg-yellow-100 text-yellow-700", icon: FileArchive };
         default:
             return { label: "FILE", color: "bg-gray-100 text-gray-600", icon: FileText };
     }
@@ -32,8 +29,24 @@ const getDocMeta = (file: any) => {
 const AttachmentBox = ({ files }: { files?: any[] }) => {
     if (!files || files.length === 0) return null;
     const isImageFile = (file: any) => file.type === "image" || /\.(jpg|jpeg|png|webp|gif)$/i.test(file.url);
+    const isAudioFile = (file: any) => file.type === "audio";
     const images = files.filter(isImageFile);
-    const documents = files.filter((f) => !isImageFile(f));
+    const audioFiles = files.filter(isAudioFile);
+    const documents = files.filter((f) => !isImageFile(f) && !isAudioFile(f));
+
+    // Debug: log audio file data to verify waveform arrives
+    if (audioFiles.length > 0) {
+        console.log(
+            "[AttachmentBox] audioFiles:",
+            audioFiles.map((f) => ({
+                type: f.type,
+                hasWaveform: !!f.waveform,
+                waveformLength: f.waveform?.length,
+                duration: f.duration,
+                url: f.url?.slice(0, 50),
+            })),
+        );
+    }
     const [isFileOPen, setIsFileOpen] = useState(false);
     const [opendFIle, setOpenedFile] = useState<string | null>(null);
 
@@ -64,6 +77,21 @@ const AttachmentBox = ({ files }: { files?: any[] }) => {
 
     return (
         <div className="w-full space-y-2">
+            {/* 🔊 Audio / Voice Messages */}
+            {audioFiles.length > 0 && (
+                <div className="flex flex-col gap-2">
+                    {audioFiles.map((file, index) => (
+                        <div key={index} className="flex flex-col gap-1 p-3 pb-0 rounded-lg w-65 sm:w-80">
+                            {file.waveform && file.waveform.length > 0 ? (
+                                <WaveformPlayer src={file.url} waveform={file.waveform} duration={file.duration} />
+                            ) : (
+                                <audio controls src={file.url} className="w-full h-8" preload="metadata" />
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+
             {/* 🖼 Images */}
             {images.length > 0 && (
                 <div className="w-full max-h-60 md:w-100 lg:max-h-140 rounded-lg overflow-hidden">
@@ -72,8 +100,8 @@ const AttachmentBox = ({ files }: { files?: any[] }) => {
                             images.length === 1
                                 ? "grid-cols-1"
                                 : images.length === 2
-                                ? "grid-cols-2"
-                                : "grid-cols-2 grid-rows-2"
+                                  ? "grid-cols-2"
+                                  : "grid-cols-2 grid-rows-2"
                         }`}
                     >
                         {images.slice(0, 4).map((file, index) => (

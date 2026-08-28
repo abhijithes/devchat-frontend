@@ -6,6 +6,7 @@ interface UploadResponse {
     url: string;
     public_id: string;
     originalName: string;
+    duration?: number;
   }[];
   message: string;
 }
