@@ -4,6 +4,7 @@ import AddProject from "../components/AddProject";
 import SidebarButtons from "../components/SidebarButtons";
 import { Plus } from "lucide-react";
 import { Close, DocumentScanner } from "@mui/icons-material";
+import { app_icon_path } from "../constant/app_icons";
 
 const TaskLayout: React.FC = () => {
   const [showAddProject, setShowAddProject] = useState(false);
@@ -28,7 +29,7 @@ const TaskLayout: React.FC = () => {
   }, [shownProjects]);
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen ">
+    <div className="flex flex-col mt-16 md:mt-0  md:flex-row min-h-screen ">
       {/* Sidebar */}
       <div
         onClick={() => setShownProject((prev) => !prev)}
@@ -54,13 +55,15 @@ const TaskLayout: React.FC = () => {
       >
         <Link
           to={"/"}
-          className="md:text-2xl font-semibold my-4 block hover:scale-x-95 transition-all"
+          className=" font-medium my-4 block hover:scale-x-95 transition-all"
         >
-          Dev Manager
+          <div className="flex items-center gap-2">
+            <img src={app_icon_path} className="size-5" /> Dev Manager
+          </div>
         </Link>
         <button
           onClick={() => setShowAddProject(true)}
-          className="bg-zinc-800 text-white  px-4 py-2  flex gap-3 w-full my-2 sticky top-0 z-40"
+          className="input-grad-btn mt-8  px-4 py-2  flex gap-3 w-full my-2 sticky top-0 z-40"
         >
           <Plus /> Add new Project
         </button>

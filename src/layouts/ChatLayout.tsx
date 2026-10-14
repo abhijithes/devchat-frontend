@@ -35,6 +35,7 @@ const ChatLayout: React.FC = () => {
     };
 
     const isMobileView = !path.id;
+    const isLoading = usersInChat.length === 0;
 
     return (
         <div className="w-full h-screen flex items-center overflow-hidden">
@@ -55,67 +56,86 @@ const ChatLayout: React.FC = () => {
                 }`}
             >
                 <div className="flex-1 overflow-y-auto no-scrollbar">
-                    {usersInChat.map((chat, index) => (
-                        <div
-                            key={index}
-                            onClick={() => handleUserClick(chat)}
-                            className={`flex items-center gap-3 cursor-pointer px-4 py-2 transition-colors hover:bg-zinc-100 ${
-                                roomId == chat.roomId ? "bg-zinc-100" : ""
-                            }`}
-                        >
-                            <div className="relative shrink-0">
-                                {chat.hasUnread && (
-                                    <div className="w-5 h-5 text-black bg-green-400 border-2 border-white rounded-full centered absolute right-0 -top-1 z-30">
-                                        <span className="text-xs">
-                                            {chat.unreadCount < 10 ? (
-                                                chat.unreadCount
-                                            ) : (
-                                                <span className="text-[9.5px] relative block">10+</span>
-                                            )}
-                                        </span>
-                                    </div>
-                                )}
-                                <div
-                                    className={`w-2 h-2 ${
-                                        onlineUsers?.includes(chat.user._id) && chat.type !== "group"
-                                            ? "bg-green-500"
-                                            : "hidden"
-                                    } absolute bottom-0 left-0 z-5 rounded-full`}
-                                />
-                                {chat.type === "private" ? (
-                                    <UserIcon
-                                        user={chat.user}
-                                        style={`w-14 h-14 ${
-                                            onlineUsers?.includes(chat.user._id) ? "ring-green-400 ring-2" : ""
-                                        }`}
-                                    />
-                                ) : (
-                                    <GroupIcon style="w-14 h-14" groupName={chat.name} />
-                                )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between">
-                                    <p
-                                        className={`text-base font-medium truncate ${chat.hasUnread ? "font-bold" : ""}`}
-                                    >
-                                        {chat.type === "private"
-                                            ? `${chat.user.firstName} ${chat.user.lastName || ""}`
-                                            : chat.name || "Group"}
-                                    </p>
-                                    {chat.lastMessageTime && (
-                                        <span className="text-[12px] text-zinc-400 shrink-0 ml-2">
-                                            {chat.lastMessageTime}
-                                        </span>
-                                    )}
-                                </div>
-                                <p
-                                    className={`text-[13px] truncate ${chat.hasUnread ? "text-zinc-800 font-medium" : "text-zinc-500"}`}
-                                >
-                                    {(chat.lastMessage as any)?.text || "No messages yet"}
-                                </p>
-                            </div>
-                        </div>
-                    ))}
+                    {isLoading
+                        ? /* Mobile Skeleton Loader */
+                          Array.from({ length: 8 }).map((_, index) => (
+                              <div
+                                  key={index}
+                                  className="flex items-center gap-3 px-4 py-2 animate-pulse"
+                              >
+                                  {/* Avatar skeleton */}
+                                  <div className="w-14 h-14 rounded-full bg-zinc-200 shrink-0" />
+                                  {/* Text skeleton */}
+                                  <div className="flex-1 min-w-0 space-y-2">
+                                      <div className="flex items-center justify-between">
+                                          <div className="h-4 bg-zinc-200 rounded w-1/3" />
+                                          <div className="h-3 bg-zinc-200 rounded w-10 ml-2" />
+                                      </div>
+                                      <div className="h-3 bg-zinc-200 rounded w-2/3" />
+                                  </div>
+                              </div>
+                          ))
+                        : usersInChat.map((chat, index) => (
+                              <div
+                                  key={index}
+                                  onClick={() => handleUserClick(chat)}
+                                  className={`flex items-center gap-3 cursor-pointer px-4 py-2 transition-colors hover:bg-zinc-100 ${
+                                      roomId == chat.roomId ? "bg-zinc-100" : ""
+                                  }`}
+                              >
+                                  <div className="relative shrink-0">
+                                      {chat.hasUnread && (
+                                          <div className="w-5 h-5 text-black bg-green-400 border-2 border-white rounded-full centered absolute right-0 -top-1 z-30">
+                                              <span className="text-xs">
+                                                  {chat.unreadCount < 10 ? (
+                                                      chat.unreadCount
+                                                  ) : (
+                                                      <span className="text-[9.5px] relative block">10+</span>
+                                                  )}
+                                              </span>
+                                          </div>
+                                      )}
+                                      <div
+                                          className={`w-2 h-2 ${
+                                              onlineUsers?.includes(chat.user._id) && chat.type !== "group"
+                                                  ? "bg-green-500"
+                                                  : "hidden"
+                                          } absolute bottom-0 left-0 z-5 rounded-full`}
+                                      />
+                                      {chat.type === "private" ? (
+                                          <UserIcon
+                                              user={chat.user}
+                                              style={`w-14 h-14 ${
+                                                  onlineUsers?.includes(chat.user._id) ? "ring-green-400 ring-2" : ""
+                                              }`}
+                                          />
+                                      ) : (
+                                          <GroupIcon style="w-14 h-14" groupName={chat.name} />
+                                      )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                      <div className="flex items-center justify-between">
+                                          <p
+                                              className={`text-base font-medium truncate ${chat.hasUnread ? "font-bold" : ""}`}
+                                          >
+                                              {chat.type === "private"
+                                                  ? `${chat.user.firstName} ${chat.user.lastName || ""}`
+                                                  : chat.name || "Group"}
+                                          </p>
+                                          {chat.lastMessageTime && (
+                                              <span className="text-[12px] text-zinc-400 shrink-0 ml-2">
+                                                  {chat.lastMessageTime}
+                                              </span>
+                                          )}
+                                      </div>
+                                      <p
+                                          className={`text-[13px] truncate ${chat.hasUnread ? "text-zinc-800 font-medium" : "text-zinc-500"}`}
+                                      >
+                                          {(chat.lastMessage as any)?.text || "No messages yet"}
+                                      </p>
+                                  </div>
+                              </div>
+                          ))}
                 </div>
             </div>
 
@@ -130,23 +150,95 @@ const ChatLayout: React.FC = () => {
 
             {/* Right Sidebar - desktop only */}
             <aside
-                className={`hidden md:flex h-full flex-col overflow-hidden transition-all duration-300 ease-in-out p-3 no-scrollbar ${
-                    sidebarExpanded ? "w-80 md:pt-24" : "w-[6vw] md:pt-24"
+                className={`hidden md:flex h-full flex-col overflow-hidden transition-all duration-300 ease-in-out  no-scrollbar ${
+                    sidebarExpanded ? "w-80 md:pt-24 p-3" : "w-[6vw] md:pt-24"
                 }`}
             >
                 {/* Chat list */}
                 <div className="flex-1 overflow-y-auto no-scrollbar">
-                    {usersInChat.map((chat, index) => (
-                        <div key={index}>
-                            {sidebarExpanded ? (
-                                /* Expanded: avatar + name + last message */
+                    {isLoading ? (
+                        sidebarExpanded ? (
+                            /* ===== Desktop Expanded Skeleton ===== */
+                            Array.from({ length: 10 }).map((_, index) => (
                                 <div
-                                    onClick={() => handleUserClick(chat)}
-                                    className={`flex items-center gap-3 cursor-pointer rounded-lg p-2 transition-colors hover:bg-zinc-200 ${
-                                        roomId == chat.roomId ? "bg-zinc-200" : ""
-                                    }`}
+                                    key={index}
+                                    className="flex items-center gap-3 rounded-lg p-2 animate-pulse"
                                 >
-                                    <div className="relative shrink-0">
+                                    {/* Avatar skeleton */}
+                                    <div className="w-11 h-11 rounded-full bg-zinc-200 shrink-0" />
+                                    {/* Text skeleton */}
+                                    <div className="flex-1 min-w-0 space-y-2">
+                                        <div className="h-3.5 bg-zinc-200 rounded w-1/3" />
+                                        <div className="h-3 bg-zinc-200 rounded w-2/3" />
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            /* ===== Desktop Collapsed Skeleton ===== */
+                            Array.from({ length: 10 }).map((_, index) => (
+                                <div
+                                    key={index}
+                                    className="w-max h-max mb-4 ml-5 p-[0.10px] flex justify-center rounded-full animate-pulse"
+                                >
+                                    <div className="w-14 h-14 rounded-full bg-zinc-200" />
+                                </div>
+                            ))
+                        )
+                    ) : (
+                        usersInChat.map((chat, index) => (
+                            <div key={index}>
+                                {sidebarExpanded ? (
+                                    /* Expanded: avatar + name + last message */
+                                    <div
+                                        onClick={() => handleUserClick(chat)}
+                                        className={`flex items-center gap-3 cursor-pointer rounded-lg p-2 transition-colors hover:bg-zinc-200 ${
+                                            roomId == chat.roomId ? "bg-zinc-200" : ""
+                                        }`}
+                                    >
+                                        <div className="relative shrink-0">
+                                            {chat.hasUnread && (
+                                                <div className="w-5 h-5 text-black bg-green-400 border-2 border-white rounded-full centered absolute right-0 -top-1 z-30">
+                                                    <span className="text-xs">
+                                                        {chat.unreadCount < 10 ? (
+                                                            chat.unreadCount
+                                                        ) : (
+                                                            <span className="text-[9.5px] relative block">10+</span>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <div
+                                                className={`w-2 h-2 ${
+                                                    onlineUsers?.includes(chat.user._id) && chat.type !== "group"
+                                                        ? "bg-green-500"
+                                                        : "hidden"
+                                                } absolute bottom-0 left-0 z-5 rounded-full`}
+                                            />
+                                            {chat.type === "private" ? (
+                                                <UserIcon
+                                                    user={chat.user}
+                                                    style={`w-11 h-11 ${
+                                                        onlineUsers?.includes(chat.user._id) ? "ring-green-400 ring-2" : ""
+                                                    }`}
+                                                />
+                                            ) : (
+                                                <GroupIcon style="w-11 h-11" groupName={chat.name} />
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0 overflow-hidden">
+                                            <p className="text-sm font-medium truncate">
+                                                {chat.type === "private"
+                                                    ? `${chat.user.firstName} ${chat.user.lastName || ""}`
+                                                    : chat.name || "Group"}
+                                            </p>
+                                            <p className="text-xs text-zinc-500 truncate">
+                                                {(chat.lastMessage as any)?.text || "No messages yet"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    /* Collapsed: avatars only */
+                                    <div className="w-max h-max mb-4 ml-5 p-[0.10px] flex justify-center shadow-xl rounded-full relative">
                                         {chat.hasUnread && (
                                             <div className="w-5 h-5 text-black bg-green-400 border-2 border-white rounded-full centered absolute right-0 -top-1 z-30">
                                                 <span className="text-xs">
@@ -167,67 +259,25 @@ const ChatLayout: React.FC = () => {
                                         />
                                         {chat.type === "private" ? (
                                             <UserIcon
+                                                onClick={() => handleUserClick(chat)}
                                                 user={chat.user}
-                                                style={`w-11 h-11 ${
-                                                    onlineUsers?.includes(chat.user._id) ? "ring-green-400 ring-2" : ""
-                                                }`}
-                                            />
-                                        ) : (
-                                            <GroupIcon style="w-11 h-11" groupName={chat.name} />
-                                        )}
-                                    </div>
-                                    <div className="flex-1 min-w-0 overflow-hidden">
-                                        <p className="text-sm font-medium truncate">
-                                            {chat.type === "private"
-                                                ? `${chat.user.firstName} ${chat.user.lastName || ""}`
-                                                : chat.name || "Group"}
-                                        </p>
-                                        <p className="text-xs text-zinc-500 truncate">
-                                            {(chat.lastMessage as any)?.text || "No messages yet"}
-                                        </p>
-                                    </div>
-                                </div>
-                            ) : (
-                                /* Collapsed: avatars only */
-                                <div className="w-max h-max mb-4 ml-5 p-[0.10px] flex justify-center shadow-xl rounded-full relative">
-                                    {chat.hasUnread && (
-                                        <div className="w-5 h-5 text-black bg-green-400 border-2 border-white rounded-full centered absolute right-0 -top-1 z-30">
-                                            <span className="text-xs">
-                                                {chat.unreadCount < 10 ? (
-                                                    chat.unreadCount
-                                                ) : (
-                                                    <span className="text-[9.5px] relative block">10+</span>
-                                                )}
-                                            </span>
-                                        </div>
-                                    )}
-                                    <div
-                                        className={`w-2 h-2 ${
-                                            onlineUsers?.includes(chat.user._id) && chat.type !== "group"
-                                                ? "bg-green-500"
-                                                : "hidden"
-                                        } absolute bottom-0 left-0 z-5 rounded-full`}
-                                    />
-                                    {chat.type === "private" ? (
-                                        <UserIcon
-                                            onClick={() => handleUserClick(chat)}
-                                            user={chat.user}
-                                            style={`w-14 h-14 ${roomId == chat.roomId ? "ring-2 ring-zinc-400" : ""}
+                                                style={`w-14 h-14 ${roomId == chat.roomId ? "ring-2 ring-zinc-400" : ""}
                     ${onlineUsers?.includes(chat.user._id) ? "ring-green-400 ring-2" : ""}
                     active:ring-2 active:ring-violet-500 active:scale-95 cursor-pointer`}
-                                        />
-                                    ) : (
-                                        <GroupIcon
-                                            style={`w-14 h-14 ${roomId == chat.roomId ? "ring-2 ring-zinc-400" : ""}
+                                            />
+                                        ) : (
+                                            <GroupIcon
+                                                style={`w-14 h-14 ${roomId == chat.roomId ? "ring-2 ring-zinc-400" : ""}
                     active:ring-2 active:ring-violet-500 active:scale-95 cursor-pointer`}
-                                            groupName={chat.name}
-                                            onClick={() => handleUserClick(chat)}
-                                        />
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                                                groupName={chat.name}
+                                                onClick={() => handleUserClick(chat)}
+                                            />
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    )}
                 </div>
             </aside>
         </div>
