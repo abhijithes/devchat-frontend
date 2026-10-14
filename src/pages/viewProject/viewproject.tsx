@@ -356,10 +356,10 @@ export const Viewproject = () => {
             {/* Bottom Section */}
             <div className="bottom-section mt-10 flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-10">
                 {/* Contributors and Groups */}
-                <div className="people border border-zinc-200 p-5 flex flex-col gap-6 w-full lg:w-3/4">
+                <div className="people border rounded-2xl border-zinc-200 p-5 flex flex-col gap-6 w-full lg:w-3/4">
                     <div className="contributers">
                         <p className="text-lg font-semibold">Contributors</p>
-                        <div className="allmembers mt-3 bg-primary p-3">
+                        <div className="allmembers mt-3 bg-primary p-3 rounded-2xl">
                             <p className="pb-3">All members</p>
                             <div className="flex flex-wrap gap-4 pb-4">
                                 {project.assignedUsersData?.map((user, index) => (
@@ -400,7 +400,7 @@ export const Viewproject = () => {
                                 </CheckUserRole>
                             </div>
                         </div>
-                        <div className="managers mt-3 p-3 bg-primary">
+                        <div className="managers mt-3 p-3 bg-primary rounded-2xl">
                             <p className="pb-3">Managers</p>
                             <div className="flex flex-wrap gap-4 pb-4">
                                 {project.managersData?.map((user, index) => (
@@ -443,7 +443,7 @@ export const Viewproject = () => {
                         </div>
                     </div>
 
-                    <div className="groups bg-primary p-3">
+                    <div className="groups bg-primary p-3 rounded-2xl">
                         <p className="text-lg font-semibold">Groups</p>
                         <div className="flex flex-wrap gap-4 pb-3">
                             <span className="text-xs">No groups found</span>
@@ -478,7 +478,7 @@ export const Viewproject = () => {
                 )}
 
                 {/* Ticket List  */}
-                <div className="tasklist bg-primary w-full lg:w-2/5 p-5 flex flex-col justify-center gap-3">
+                <div className="tasklist bg-primary w-full lg:w-2/5 p-5 flex flex-col justify-center gap-3 rounded-2xl">
                     <div className="head flex flex-col sm:flex-row justify-between gap-2">
                         <h5 className="text-lg font-medium">Tickets</h5>
                         <div className="colorinfo flex gap-3 items-center flex-wrap">

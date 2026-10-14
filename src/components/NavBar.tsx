@@ -13,6 +13,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSnackBar } from "./snack-bar/snack-bar-context";
 import NotificationBox from "./notification-box/NotificationBox";
 import { useSocket } from "../contexts/SocketBaseContext";
+import { app_icon_path } from "../constant/app_icons";
 
 interface UserInfo {
   firstName?: string;
@@ -86,7 +87,9 @@ const NavBar = () => {
         <div className="flex gap-5 justify-between items-center h-14">
           {/* Logo */}
           <Link to={"/"} className="text-xl font-bold text-zinc-900">
-            DevChats.io
+             <div className="flex items-center gap-2">
+            <img src={app_icon_path} className="size-5" /> Dev chats io 
+          </div>
           </Link>
 
           {/* navigation arrows */}

@@ -13,22 +13,22 @@ let chatSideBarActions = [
   {
     name: "New chat",
     action: () => {},
-    icon: <ChatOutlined fontSize="small" />,
+    icon: <ChatOutlined />,
   },
   {
     name: "New group chat",
     action: () => {},
-    icon: <GroupAddOutlined fontSize="small" />,
+    icon: <GroupAddOutlined />,
   },
   {
     name: "Requests",
     action: () => {},
-    icon: <Inbox fontSize="small" />,
+    icon: <Inbox />,
   },
   {
     name: "Chat settings",
     action: () => {},
-    icon: <Settings fontSize="small" />,
+    icon: <Settings />,
   },
 ];
 const ChatSideBar = () => {
@@ -59,7 +59,7 @@ const ChatSideBar = () => {
 
     const response = await openChats(
       selectedUsers.map((u) => u._id),
-      groupName
+      groupName,
     );
     hideLoader();
     const chatId = response?.data?.chatId;
@@ -123,14 +123,14 @@ const ChatSideBar = () => {
       {/* Left sidebar content */}
       <h1 className="heading mt-5 hidden md:block">DevChats.io</h1>
 
-      <ul className="flex flex-col gap-3 mt-5">
+      <ul className="flex flex-col gap-1 mt-5">
         {chatSideBarActions.map((item, index) => (
           <li
             onClick={item.action}
             key={index}
-            className="text-base mt-3 rounded flex gap-2 items-center justify-start group  cursor-pointer "
+            className="hover:bg-violet-200 p-1 text-base  rounded-xl flex gap-2 items-center justify-start group  cursor-pointer "
           >
-            <div className="  bg-linear-to-r from-zinc-100 to-zinc-200 p-2 rounded-lg group-hover:from-violet-100 group-hover:to-violet-300 transition-all">
+            <div className=" size-8  text-violet-700 bg-linear-to-r- from-zinc-100 to-zinc-200 p-1 rounded-lg group-hover:from-violet-100 group-hover:to-violet-300 transition-all">
               {item.icon}
             </div>
             <p className="hidden md:block group-hover:translate-x-1 group-hover:text-violet-700 transition-all ">
