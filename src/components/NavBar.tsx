@@ -1,9 +1,12 @@
 import {
+  Chat,
   KeyboardArrowLeft,
   KeyboardArrowRight,
+  Logout,
   Notifications,
   NotificationsActive,
   Settings,
+  TaskAltSharp,
 } from "@mui/icons-material";
 import { LayoutList, MenuIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -48,7 +51,7 @@ const NavBar = () => {
         email: "",
         firstName: "",
         profilePicture: "",
-      }
+      },
     );
     triggerWelcomeToast();
   }, []);
@@ -87,9 +90,9 @@ const NavBar = () => {
         <div className="flex gap-5 justify-between items-center h-14">
           {/* Logo */}
           <Link to={"/"} className="text-xl font-bold text-zinc-900">
-             <div className="flex items-center gap-2">
-            <img src={app_icon_path} className="size-5" /> Dev chats io 
-          </div>
+            <div className="flex items-center gap-2">
+              <img src={app_icon_path} className="size-5" /> Dev chats io
+            </div>
           </Link>
 
           {/* navigation arrows */}
@@ -115,7 +118,7 @@ const NavBar = () => {
                 Dev chats
               </Link>
             </li>
-           
+
             <li title="Personal Tasks Manager">
               <Link
                 to="/personal-tasks"
@@ -228,7 +231,17 @@ const NavBar = () => {
               className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
               onClick={() => setIsOpen(false)}
             >
-              Dev Chats
+             <Chat fontSize="small" />  Dev Chats
+            </Link>
+          </li>
+
+          {/* personal tasks */}
+          <li title="Personal Tasks Manager">
+            <Link
+              to="/personal-tasks"
+              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
+            >
+              <TaskAltSharp fontSize={'small'} /> Quick Personal Tasks
             </Link>
           </li>
 
@@ -296,7 +309,7 @@ const NavBar = () => {
                 onClick={handleLogout}
                 className="px-4 py-2 text-red-500 hover:bg-gray-100 rounded cursor-pointer"
               >
-                Logout
+                <Logout /> Logout
               </li>
             </>
           ) : (
