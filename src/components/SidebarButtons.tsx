@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { endpoints } from "../constant/constant";
 import { useLoader } from "../contexts/GlobalLoaderContext";
 import { optionsForContextBox } from "../constant/option_config";
+import api from "../utils/axios";
 
 interface Project {
   projects: { _id: string; name: string }[];
@@ -12,13 +13,7 @@ interface Project {
 
 // Fetch projects function with proper typing
 const fetchProjects = async (): Promise<Project> => {
-  const res = await fetch(endpoints.getAllProjectNames, {
-    headers: {
-      authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-    },
-  });
-  if (!res.ok) throw new Error("Failed to fetch projects");
-  const data = await res.json();
+  const { data } = await api.get<Project>(endpoints.getAllProjectNames);
   return data;
 };
 

@@ -5,7 +5,7 @@ import {
   NotificationsActive,
   Settings,
 } from "@mui/icons-material";
-import { MenuIcon, XIcon } from "lucide-react";
+import { LayoutList, MenuIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getToken, getUserPublicInfo, removeToken } from "../utils/token";
@@ -113,6 +113,15 @@ const NavBar = () => {
                 className="text-gray-600 hover:text-zinc-900"
               >
                 Dev chats
+              </Link>
+            </li>
+           
+            <li title="Personal Tasks Manager">
+              <Link
+                to="/personal-tasks"
+                className="text-gray-600 hover:text-zinc-900"
+              >
+                <LayoutList size={18} />
               </Link>
             </li>
 
