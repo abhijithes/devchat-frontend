@@ -75,4 +75,7 @@ export const endpoints = {
 
     // AI endpoint
     aiRun: `${current_url}/ai/run`,
+
+    // Personal Tasks endpoint
+    personaTasks : `${current_url}/personal-tasks`
 };

@@ -22,39 +22,50 @@ import UserSettingsPage from "./pages/user-settings/UserSettingsPage";
 import ChatWindow from "./pages/chats-window/ChatWindow";
 import SelectChat from "./pages/SelectChat";
 import { UsersInChatProvider } from "./contexts/chatListContext";
+import PersonalTasks from "./pages/personal-tasks/PersonalTasks";
 
 const App: React.FC = () => {
-    return (
-        <LoaderProvider>
-            <SnackBarContextProvider>
-                <UsersInChatProvider>
-                    <SocketBaseProvider>
-                        <Routes>
-                            <Route path="/" element={<Start />} />
-                            <Route element={<AppLayout />}>
-                                <Route path="/login" element={<Login />} />
-                                {/* Task Layout :- All routes under Task Manager */}
-                                <Route element={<TaskLayout />}>
-                                    <Route path="/select-project" element={<NoProjectSelected />} />
-                                    <Route path="/project/:id" element={<Viewproject />} />
-                                    {/* <Route path="/addProject" element={<AddProject />} /> */}
-                                    <Route path="/profile" element={<UserProfile />} />
-                                    <Route path="/viewprofile/:id" element={<Viewprofile />}></Route>
-                                    <Route path="/project/:projectId/viewtickets" element={<ViewTickets />} />
-                                    <Route path="/settings" element={<UserSettingsPage />} />
-                                </Route>
-                                {/* Chat Layout :- All routes under Chat Section */}
-                                <Route element={<ChatLayout />}>
-                                    <Route path="/chat" element={<SelectChat />} />
-                                    <Route path="/chat/:id" element={<ChatWindow />} />
-                                </Route>
-                            </Route>
-                        </Routes>
-                    </SocketBaseProvider>
-                </UsersInChatProvider>
-            </SnackBarContextProvider>
-        </LoaderProvider>
-    );
+  return (
+    <LoaderProvider>
+      <SnackBarContextProvider>
+        <UsersInChatProvider>
+          <SocketBaseProvider>
+            <Routes>
+              <Route path="/" element={<Start />} />
+              <Route element={<AppLayout />}>
+                <Route path="/login" element={<Login />} />
+                {/* Task Layout :- All routes under Task Manager */}
+                <Route element={<TaskLayout />}>
+                  <Route
+                    path="/select-project"
+                    element={<NoProjectSelected />}
+                  />
+                  <Route path="/project/:id" element={<Viewproject />} />
+                  {/* <Route path="/addProject" element={<AddProject />} /> */}
+                  <Route path="/profile" element={<UserProfile />} />
+                  <Route
+                    path="/viewprofile/:id"
+                    element={<Viewprofile />}
+                  ></Route>
+                  <Route
+                    path="/project/:projectId/viewtickets"
+                    element={<ViewTickets />}
+                  />
+                  <Route path="/settings" element={<UserSettingsPage />} />
+                </Route>
+                {/* Chat Layout :- All routes under Chat Section */}
+                <Route element={<ChatLayout />}>
+                  <Route path="/chat" element={<SelectChat />} />
+                  <Route path="/chat/:id" element={<ChatWindow />} />
+                </Route>
+                <Route path="/personal-tasks" element={<PersonalTasks />}></Route>
+              </Route>
+            </Routes>
+          </SocketBaseProvider>
+        </UsersInChatProvider>
+      </SnackBarContextProvider>
+    </LoaderProvider>
+  );
 };
 
 export default App;
