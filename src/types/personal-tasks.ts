@@ -16,7 +16,7 @@ export interface CreateTaskInput {
   title: string;
   description?: string;
   priority?: Priority;
-  dueDate?: string;
+  dueDate?: string | Date;
   completed?: boolean;
 }
 

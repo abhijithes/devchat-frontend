@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import DialogueBox from "../../components/dailogue-box/dialogueBox";
 import taskService from "../../services/personal-tasks-service";
+import DvcCalander from "../../components/dvc-calander/DvcCalander";
 
 /* ============================================================
    Types
@@ -24,27 +25,29 @@ type Filter = "all" | "active" | "completed";
 
 interface Task {
   id: string;
-  user: string; // owner (returned by API, never sent)
+  user: string;
   title: string;
   description?: string;
   completed: boolean;
   priority: Priority;
-  dueDate?: string;
+  dueDate?: string; // ISO
   createdAt: number;
 }
 
-/** Client-facing payload — no `user`, no `id`, no `createdAt` */
 type TaskInput = {
   title: string;
   description?: string;
   priority: Priority;
-  dueDate?: string;
+  dueDate?: string; // ISO
 };
 
 /* ============================================================
    Helpers
    ============================================================ */
-const priorityStyles: Record<Priority, { dot: string; text: string; bg: string }> = {
+const priorityStyles: Record<
+  Priority,
+  { dot: string; text: string; bg: string }
+> = {
   low: { dot: "bg-emerald-400", text: "text-emerald-600", bg: "bg-emerald-50" },
   medium: { dot: "bg-amber-400", text: "text-amber-600", bg: "bg-amber-50" },
   high: { dot: "bg-rose-400", text: "text-rose-600", bg: "bg-rose-50" },
@@ -84,10 +87,10 @@ const EmptyState: React.FC<{ filter: Filter; hasSearch: boolean }> = ({
       {hasSearch
         ? "No matching tasks"
         : filter === "completed"
-        ? "Nothing completed yet"
-        : filter === "active"
-        ? "All caught up"
-        : "No tasks yet"}
+          ? "Nothing completed yet"
+          : filter === "active"
+            ? "All caught up"
+            : "No tasks yet"}
     </p>
     <p className="text-sm text-zinc-400 mt-1 max-w-xs">
       {hasSearch
@@ -238,7 +241,9 @@ const TaskRow: React.FC<{
           {task.dueDate && (
             <span
               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                overdue ? "bg-rose-50 text-rose-600" : "bg-zinc-100 text-zinc-500"
+                overdue
+                  ? "bg-rose-50 text-rose-600"
+                  : "bg-zinc-100 text-zinc-500"
               }`}
             >
               <Calendar size={11} />
@@ -263,10 +268,10 @@ const TaskForm: React.FC<{
 }> = ({ initial, submitting, onCancel, onSave }) => {
   const [title, setTitle] = useState(initial?.title || "");
   const [description, setDescription] = useState(initial?.description || "");
-  const [priority, setPriority] = useState<Priority>(initial?.priority || "medium");
-  const [dueDate, setDueDate] = useState(
-    initial?.dueDate ? initial.dueDate.slice(0, 10) : ""
+  const [priority, setPriority] = useState<Priority>(
+    initial?.priority || "medium",
   );
+  const [dueDate, setDueDate] = useState<string>(initial?.dueDate ?? "");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -280,7 +285,10 @@ const TaskForm: React.FC<{
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-[28rem] max-w-full">
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-4 w-[28rem] max-w-full"
+    >
       <div>
         <label className="text-xs font-medium text-zinc-600 mb-1.5 block">
           Title
@@ -336,12 +344,15 @@ const TaskForm: React.FC<{
           <label className="text-xs font-medium text-zinc-600 mb-1.5 block">
             Due date
           </label>
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-50 ring-1 ring-zinc-200
-                       focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all text-zinc-700"
+          <DvcCalander
+            mode="single"
+            value={dueDate ? new Date(dueDate) : undefined}
+            onChange={(v) => {
+              const d = v instanceof Date ? v : undefined;
+              setDueDate(d ? d.toISOString() : "");
+            }}
+            minDate={new Date()}
+            placeholder="Pick a due date"
           />
         </div>
       </div>
@@ -431,7 +442,9 @@ const PersonalTasks: React.FC = () => {
     try {
       if (editing) {
         const updated = await taskService.update(editing.id, data);
-        setTasks((prev) => prev.map((t) => (t.id === editing.id ? updated : t)));
+        setTasks((prev) =>
+          prev.map((t) => (t.id === editing.id ? updated : t)),
+        );
       } else {
         const created = await taskService.create(data);
         setTasks((prev) => [created, ...prev]);
@@ -448,14 +461,14 @@ const PersonalTasks: React.FC = () => {
   const handleToggle = async (id: string) => {
     markBusy(id, true);
     setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)),
     );
     try {
       const updated = await taskService.toggle(id);
       setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
     } catch (err) {
       setTasks((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+        prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)),
       );
       setError(err instanceof Error ? err.message : "Failed to update task");
     } finally {
@@ -502,7 +515,7 @@ const PersonalTasks: React.FC = () => {
       active: tasks.filter((t) => !t.completed).length,
       completed: tasks.filter((t) => t.completed).length,
     }),
-    [tasks]
+    [tasks],
   );
 
   const hasSearch = search.trim().length > 0;
@@ -535,7 +548,10 @@ const PersonalTasks: React.FC = () => {
                          disabled:opacity-50 disabled:cursor-wait
                          transition-all"
             >
-              <RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />
+              <RefreshCw
+                size={16}
+                className={refreshing ? "animate-spin" : ""}
+              />
             </button>
 
             <button
@@ -544,7 +560,10 @@ const PersonalTasks: React.FC = () => {
                          rounded-xl bg-zinc-900 text-white text-sm font-medium
                          hover:bg-zinc-800 shadow-sm transition-all"
             >
-              <Plus size={16} className="transition-transform group-hover:rotate-90" />
+              <Plus
+                size={16}
+                className="transition-transform group-hover:rotate-90"
+              />
               New task
             </button>
           </div>
