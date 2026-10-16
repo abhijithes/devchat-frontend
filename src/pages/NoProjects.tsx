@@ -3,9 +3,8 @@ import { PlusCircle, FolderOpen } from "lucide-react";
 import BrowseProjects from "../components/list-projects/ListProjects";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import DialogueBox from "../components/dailogue-box/dialogueBox";
 import AddProject from "../components/AddProject";
-import { AddTask, TaskAltSharp } from "@mui/icons-material";
+import { AddTask} from "@mui/icons-material";
 
 type Props = {
   className?: string;
