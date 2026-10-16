@@ -24,6 +24,7 @@ type Filter = "all" | "active" | "completed";
 
 interface Task {
   id: string;
+  user: string; // owner (returned by API, never sent)
   title: string;
   description?: string;
   completed: boolean;
@@ -32,7 +33,13 @@ interface Task {
   createdAt: number;
 }
 
-type TaskInput = Omit<Task, "id" | "createdAt" | "completed">;
+/** Client-facing payload — no `user`, no `id`, no `createdAt` */
+type TaskInput = {
+  title: string;
+  description?: string;
+  priority: Priority;
+  dueDate?: string;
+};
 
 /* ============================================================
    Helpers
@@ -122,7 +129,6 @@ const TaskSkeleton: React.FC<{ rows?: number }> = ({ rows = 4 }) => (
         className="flex items-start gap-3 p-4 rounded-xl bg-white ring-1 ring-zinc-200/70 animate-pulse"
       >
         <div className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-zinc-200" />
-
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div className="h-4 bg-zinc-200 rounded w-2/3" />
@@ -131,9 +137,7 @@ const TaskSkeleton: React.FC<{ rows?: number }> = ({ rows = 4 }) => (
               <div className="w-6 h-6 rounded-md bg-zinc-100" />
             </div>
           </div>
-
           <div className="mt-2 h-3 bg-zinc-100 rounded w-5/6" />
-
           <div className="flex items-center gap-2 mt-3">
             <div className="h-4 w-16 rounded-full bg-zinc-100" />
             <div className="h-4 w-20 rounded-full bg-zinc-100" />
