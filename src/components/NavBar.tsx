@@ -35,14 +35,15 @@ const NavBar = () => {
   });
 
   const notificationBoxRef = useRef<HTMLDivElement>(null);
-  const [openNotifiaction, setOpenNotification] = useState(false);
+  const [openNotification, setOpenNotification] = useState(false);
   const { notifications } = useSocket();
 
   const navigation = useNavigate();
   const queryClient = useQueryClient();
   const { showSnackBar } = useSnackBar();
 
-  const toggleMenu = () => setIsOpen(!isOpen);
+  const toggleMenu = () => setIsOpen((p) => !p);
+  const closeMenu = () => setIsOpen(false);
 
   useEffect(() => {
     setIsLoggedIn(!!getToken());
@@ -67,7 +68,7 @@ const NavBar = () => {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [notificationBoxRef]);
+  }, []);
 
   const triggerWelcomeToast = () => {
     if (!sessionStorage.getItem("DEV_CHATX_OPENED_NOS")) {
@@ -80,6 +81,7 @@ const NavBar = () => {
     if (!confirm("Are you sure you want to logout?")) return;
     removeToken();
     setIsLoggedIn(false);
+    closeMenu();
     navigation("/login");
     queryClient.invalidateQueries({ queryKey: ["projects"] });
   };
@@ -140,7 +142,7 @@ const NavBar = () => {
                 )}
                 <NotificationBox
                   ref={notificationBoxRef}
-                  opened={openNotifiaction}
+                  opened={openNotification}
                   closeNotificationBox={() => setOpenNotification(false)}
                   style="backrop-blur-2xl"
                 />
@@ -189,7 +191,7 @@ const NavBar = () => {
                     </li>
                     <li
                       onClick={handleLogout}
-                      className="block px-4 py-2 text-red-500 hover:bg-gray-100"
+                      className="block px-4 py-2 text-red-500 hover:bg-gray-100 cursor-pointer"
                     >
                       Logout
                     </li>
@@ -210,6 +212,8 @@ const NavBar = () => {
             <button
               onClick={toggleMenu}
               className="text-gray-700 focus:outline-none"
+              aria-label={isOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isOpen}
             >
               {isOpen ? (
                 <XIcon className="h-6 w-6" />
@@ -221,7 +225,7 @@ const NavBar = () => {
         </div>
       </div>
 
-      {/* ✅ Mobile Menu with full functionality */}
+      {/* Mobile Menu */}
       {isOpen && (
         <ul className="md:hidden bg-white px-2 pt-2 pb-3 space-y-2 shadow">
           <li>
@@ -229,23 +233,22 @@ const NavBar = () => {
               to="/chat"
               title="Go to developer chats"
               className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
-              onClick={() => setIsOpen(false)}
+              onClick={closeMenu}
             >
-             <Chat fontSize="small" />  Dev Chats
+              <Chat fontSize="small" /> Dev Chats
             </Link>
           </li>
 
-          {/* personal tasks */}
           <li title="Personal Tasks Manager">
             <Link
               to="/personal-tasks"
               className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
+              onClick={closeMenu}
             >
-              <TaskAltSharp fontSize={'small'} /> Quick Personal Tasks
+              <TaskAltSharp fontSize={"small"} /> Quick Personal Tasks
             </Link>
           </li>
 
-          {/* Notifications */}
           <li className="relative">
             <button
               onClick={() => setOpenNotification((p) => !p)}
@@ -258,34 +261,34 @@ const NavBar = () => {
               )}
               Notifications
             </button>
-            {openNotifiaction && (
+            {openNotification && (
               <div ref={notificationBoxRef}>
                 <NotificationBox
-                  opened={openNotifiaction}
+                  opened={openNotification}
                   closeNotificationBox={() => setOpenNotification(false)}
-                  style="bg-white border "
+                  style="bg-white border"
                 />
               </div>
             )}
           </li>
 
-          {/* Settings */}
           <li>
             <Link
               to="/settings"
               className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
+              onClick={closeMenu}
             >
               <Settings /> Settings
             </Link>
           </li>
 
-          {/* Profile & Auth */}
           {isLoggedIn ? (
             <>
               <li>
                 <Link
                   to="/profile"
                   className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
+                  onClick={closeMenu}
                 >
                   <div
                     title="profile"
@@ -317,6 +320,7 @@ const NavBar = () => {
               <Link
                 to="/login"
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
+                onClick={closeMenu}
               >
                 Login
               </Link>
