@@ -4,6 +4,7 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
+  user : string;
   completed: boolean;
   priority: Priority;
   dueDate?: string; // ISO string
