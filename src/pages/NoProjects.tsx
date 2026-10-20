@@ -2,9 +2,9 @@ import { motion } from "framer-motion";
 import { PlusCircle, FolderOpen } from "lucide-react";
 import BrowseProjects from "../components/list-projects/ListProjects";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import AddProject from "../components/AddProject";
-import { AddTask} from "@mui/icons-material";
+import { AddTask } from "@mui/icons-material";
+import { usePersonalTasks } from "../contexts/PersonalTasksContext";
 
 type Props = {
   className?: string;
@@ -23,6 +23,7 @@ export default function NoProjectSelected({
 }: Props) {
   const [showProject, setShowProjects] = useState(false);
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
+  const { setWindow } = usePersonalTasks();
 
   const openAddProjectDialog = () => {
     setShowAddProjectDialog(true);
@@ -125,14 +126,14 @@ export default function NoProjectSelected({
             Browse projects
           </button>
 
-          <Link
-            to={"/personal-tasks"}
+          <button
+            onClick={() => setWindow(true)}
             className="inline-flex items-center gap-2 rounded-lg px-4 py-2 border border-zinc-200 bg-white text-sm font-medium hover:bg-zinc-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-200"
             aria-label="Browse projects"
           >
-            <AddTask fontSize='small' />
+            <AddTask fontSize="small" />
             Quick Tasks
-          </Link>
+          </button>
         </div>
         {showProject && <BrowseProjects />}
       </motion.div>

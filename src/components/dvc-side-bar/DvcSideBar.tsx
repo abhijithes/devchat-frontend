@@ -96,7 +96,7 @@ const DvcSideBar = ({
       ref={asideViewRef}
       className={`w-full md:min-w-[30vw] md:w-[40vw] h-screen bg-white shadow-2xl py-8 fixed top-0 
         ${active ? "right-0" : "-right-full"} 
-        z-[999] ${isDragging ? "" : "transition-all duration-600"} `}
+        z-[999] ${isDragging ? "" : "transition-all duration-400"} `}
     >
       <div
         ref={resizeRef}
