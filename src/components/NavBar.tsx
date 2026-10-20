@@ -1,6 +1,5 @@
 import {
   Chat,
-  ChatBubble,
   KeyboardArrowLeft,
   KeyboardArrowRight,
   Logout,
