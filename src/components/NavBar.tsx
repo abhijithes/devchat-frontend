@@ -1,5 +1,6 @@
 import {
   Chat,
+  ChatBubble,
   KeyboardArrowLeft,
   KeyboardArrowRight,
   Logout,
@@ -17,6 +18,7 @@ import { useSnackBar } from "./snack-bar/snack-bar-context";
 import NotificationBox from "./notification-box/NotificationBox";
 import { useSocket } from "../contexts/SocketBaseContext";
 import { app_icon_path } from "../constant/app_icons";
+import { usePersonalTasks } from "../contexts/PersonalTasksContext";
 
 interface UserInfo {
   firstName?: string;
@@ -41,6 +43,7 @@ const NavBar = () => {
   const navigation = useNavigate();
   const queryClient = useQueryClient();
   const { showSnackBar } = useSnackBar();
+  const { setWindow } = usePersonalTasks();
 
   const toggleMenu = () => setIsOpen((p) => !p);
   const closeMenu = () => setIsOpen(false);
@@ -112,22 +115,19 @@ const NavBar = () => {
           {/* Desktop Menu */}
           <ul className="hidden md:flex space-x-6 items-center">
             <li>
-              <Link
+             <div className="size-9 p-2 centered rounded-full bg-violet-100">
+               <Link
                 to="/chat"
                 title="Go to developer chats"
                 className="text-gray-600 hover:text-zinc-900"
               >
-                Dev chats
+                <Chat  fontSize="small" className="text-violet-600" />
               </Link>
+             </div>
             </li>
 
-            <li title="Personal Tasks Manager">
-              <Link
-                to="/personal-tasks"
-                className="text-gray-600 hover:text-zinc-900"
-              >
-                <LayoutList size={18} />
-              </Link>
+            <li title="Personal Tasks Manager" onClick={() => setWindow(true)}>
+              <LayoutList size={18} />
             </li>
 
             <li onClick={() => setOpenNotification((pre) => !pre)}>
@@ -239,14 +239,8 @@ const NavBar = () => {
             </Link>
           </li>
 
-          <li title="Personal Tasks Manager">
-            <Link
-              to="/personal-tasks"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
-              onClick={closeMenu}
-            >
+          <li title="Personal Tasks Manager" onClick={() => setWindow(true)}  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded">
               <TaskAltSharp fontSize={"small"} /> Quick Personal Tasks
-            </Link>
           </li>
 
           <li className="relative">

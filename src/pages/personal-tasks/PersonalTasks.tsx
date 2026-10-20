@@ -521,13 +521,13 @@ const PersonalTasks: React.FC = () => {
   const hasSearch = search.trim().length > 0;
 
   return (
-    <div className="min-h-screen bg-zinc-50 p-6 py-20 md:py-30">
+    <div className="h-full ">
       <div className="max-w-2xl mx-auto">
         {/* ===== Header ===== */}
         <div className="flex items-start justify-between mb-8 gap-3">
           <div>
-            <h1 className="text-lg md:text-2xl font-semibold text-zinc-900 tracking-tight">
-              Personal tasks
+            <h1 className="text-sm tracking-tight">
+              Your personal Tasks / Todo managers
             </h1>
             <p className="text-sm text-zinc-500 mt-1">
               {counts.active === 0

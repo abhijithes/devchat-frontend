@@ -6,32 +6,34 @@ import GlobalLoader from "./GlobalLoader";
 import { useSnackBar } from "../components/snack-bar/snack-bar-context";
 import NavBar from "../components/NavBar";
 import { usePushSetup } from "../utils/usePushSetup";
+import PersonalTasksSideBar from "../components/personal-tasks-side-bar/PersonalTasksSideBar";
 
 const AppLayout = () => {
-    const { isLoading } = useLoader();
-    const { showSnackBar } = useSnackBar();
-    const [isLogged, setIsLogged] = useState(false);
-    const navigate = useNavigate();
+  const { isLoading } = useLoader();
+  const { showSnackBar } = useSnackBar();
+  const [isLogged, setIsLogged] = useState(false);
+  const navigate = useNavigate();
 
-    // Auto-register service worker and subscribe to push notifications
-    usePushSetup();
+  // Auto-register service worker and subscribe to push notifications
+  usePushSetup();
 
-    useEffect(() => {
-        const token = getToken();
-        setIsLogged(!!token);
-        if (!token) {
-            navigate("/login");
-            showSnackBar("Login to access all features", "error", 3000);
-        }
-    }, [getToken()]);
+  useEffect(() => {
+    const token = getToken();
+    setIsLogged(!!token);
+    if (!token) {
+      navigate("/login");
+      showSnackBar("Login to access all features", "error", 3000);
+    }
+  }, [getToken()]);
 
-    return (
-        <>
-            {isLogged && <NavBar />}
-            {isLoading && <GlobalLoader />}
-            <Outlet />
-        </>
-    );
+  return (
+    <>
+      {isLogged && <NavBar />}
+      {isLoading && <GlobalLoader />}
+      <Outlet />
+      <PersonalTasksSideBar />
+    </>
+  );
 };
 
 export default AppLayout;
