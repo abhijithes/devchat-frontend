@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Mic, MicOff, Phone, PhoneOff, User } from "lucide-react";
 import { useCall } from "../../contexts/CallContext";
 import UserIcon from "../userIcon/usericon";
-import { CallRingtone } from "../../constant/audio-files";
+import { CallRingtone, CallWaitingTone } from "../../constant/audio-files";
 
 const formatDuration = (totalSeconds: number): string => {
     const minutes = Math.floor(totalSeconds / 60);
@@ -54,6 +54,22 @@ const CallOverlay = () => {
         return () => {
             ringtone.pause();
             ringtone.currentTime = 0;
+        };
+    }, [isIncoming, state]);
+
+    // Outgoing hold/tone while waiting for the peer to answer.
+    useEffect(() => {
+        if (isIncoming || state !== "calling") return;
+
+        const tone = new Audio(CallWaitingTone);
+        tone.loop = true;
+        tone.play().catch(() => {
+            // Autoplay blocked — the overlay still shows the waiting state.
+        });
+
+        return () => {
+            tone.pause();
+            tone.currentTime = 0;
         };
     }, [isIncoming, state]);
 
