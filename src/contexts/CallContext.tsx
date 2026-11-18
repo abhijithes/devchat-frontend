@@ -565,23 +565,7 @@ const CallProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const peerInfo = resolvePeer(peerId, roomId);
-
-    const callerIdResolved = localUserId
-      ? isLocalUserId(localUserId)
-        ? {
-              _id: localUserId,
-              firstName: peerInfo.firstName,
-              lastName: peerInfo.lastName,
-              email: peerInfo.email,
-              profilePicture: peerInfo.profilePicture,
-            }
-        : { _id: peerId, firstName: peerInfo.firstName, lastName: peerInfo.lastName, email: peerInfo.email, profilePicture: peerInfo.profilePicture }
-      : { _id: peerId, firstName: peerInfo.firstName, lastName: peerInfo.lastName, email: peerInfo.email, profilePicture: peerInfo.profilePicture };
-
-    const peerIdResolved = { _id: peerId, firstName: peerInfo.firstName, lastName: peerInfo.lastName, email: peerInfo.email, profilePicture: peerInfo.profilePicture };
-
-    // Determine direction based on isIncoming state (set when call is initiated)
+// Determine direction based on isIncoming state (set when call is initiated)
     // Get local user ID from localStorage
     const localUserData = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("DEV_CHATX_USER_URD") || "null") : null;
     const currentLocalUserId = localUserData?.id;
@@ -955,7 +939,7 @@ const CallProvider = ({ children }: { children: ReactNode }) => {
       toggleMute,
       clearError,
       saveCallLog,
-      latestCallLog: latestCallLog as FrontendCallRecord | null,
+      latestCallLog: latestCallLog as CallRecord | null,
     }),
     [
       state,
