@@ -2,6 +2,7 @@ import axios from "axios";
 import { endpoints } from "../constant/constant";
 import { getUserPublicInfo } from "../utils/token";
 import { generalHeader } from "../components/TaskTable/services/task-detail-service";
+import type { CallRecord } from "../constant/messages";
 
 // Api endpoints
 const getUserslist = async (searchTerm: string) => {
@@ -54,4 +55,26 @@ const getChats = async (roomId: string, cursor: string) => {
     return response;
 };
 
-export { getUserslist, openChats, getChatsList, sendMessage, getChats, UpdateMessage };
+const createCallLog = async (payload: {
+    roomId: string;
+    callId: string;
+    kind: "audio" | "video";
+    callerId: string;
+    peerId: string;
+    direction: "outgoing" | "incoming";
+    status: CallRecord["status"];
+    durationSec?: number;
+    startedAt: string | Date;
+    endedAt: string | Date;
+    endedBy?: "self" | "peer" | "timeout" | "system";
+}) => {
+    const response = await axios.post(endpoints.createCallLog, payload, generalHeader);
+    return response;
+};
+
+const getCallLogsByRoom = async (roomId: string, cursor?: string) => {
+    const response = await axios.get(endpoints.getCallLogsByRoom(roomId, cursor), generalHeader);
+    return response;
+};
+
+export { getUserslist, openChats, getChatsList, sendMessage, getChats, UpdateMessage, createCallLog, getCallLogsByRoom };

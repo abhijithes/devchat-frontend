@@ -3,6 +3,8 @@ import NotifationSoundTwo from "../assets/notification-sounds/two.mp3";
 import NotifationSoundThree from "../assets/notification-sounds/three.mp3";
 import MessageRecieveAuidio from "../assets/message-sounds/MessageRecieve.mp3";
 import MessageSentAudio from "../assets/message-sounds/MessageSent.mp3";
+import CallRingtone from "../assets/call-sounds/call_ringtone.mp3";
+import CallWaitingTone from "../assets/call-sounds/call_waiting.mp3";
 
 
 const NotificationSounds = [
@@ -19,5 +21,7 @@ export {
   NotifationSoundTwo,
   NotifationSoundThree,
   NotificationSounds,
-  MessageSounds
+  MessageSounds,
+  CallRingtone,
+  CallWaitingTone,
 };

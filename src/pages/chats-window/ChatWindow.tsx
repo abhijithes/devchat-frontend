@@ -1,6 +1,5 @@
-import { type Message } from "../../constant/messages";
 import MessageBox from "../../components/chats/MessageBox";
-import { ArrowLeft, Check, Send } from "lucide-react";
+import { ArrowLeft, Check, Phone, Send } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUsersInChat } from "../../contexts/chatListContext";
@@ -21,6 +20,9 @@ import { QuickSettings } from "../../components/chat-window/Quick-settings.tsx";
 import { EmojiPicker } from "../../components/chat-window/EmojiPicker.tsx";
 import Spinner from "../../components/loaders/Spinner";
 import VoiceRecorder from "../../components/chat-window/VoiceRecorder.tsx";
+import { useCall } from "../../contexts/CallContext";
+import { ChatLogMessage } from "../../components/call/ChatLogMessage";
+import { getCallLogsByRoom } from "../../services/chat-service";
 
 const ChatWindow = () => {
     const navigate = useNavigate();
@@ -32,6 +34,8 @@ const ChatWindow = () => {
     const user = JSON.parse(localStorage.getItem("DEV_CHATX_USER_URD"));
     const queryClient = useQueryClient();
     const { socket } = useSocket();
+    const { state: callState, startCall, latestCallLog } = useCall();
+    const isCallActive = callState !== "idle" && callState !== "ended";
     const receiveSoundRef = useRef(new Audio(MessageSounds[0]));
     const sendSoundRef = useRef(new Audio(MessageSounds[1]));
     const [FilePreviews, setFilePreviews] = useState([]);
@@ -59,11 +63,50 @@ const ChatWindow = () => {
         enabled: !!activeChat?.roomId,
     });
 
-    const messages =
-        data?.pages
-            ?.slice()
-            .reverse()
-            .flatMap((page) => page.messages ?? []) ?? [];
+    const { data: callLogsData, error: callLogsError } = useInfiniteQuery({
+        queryKey: ["callLogs", activeChat?.roomId],
+        queryFn: async ({ pageParam }) => {
+            const roomId = activeChat?.roomId;
+            if (!roomId) return { callLogs: [], nextCursor: null, hasMore: false };
+            const response = await getCallLogsByRoom(roomId, pageParam);
+            return response?.data || { callLogs: [], nextCursor: null, hasMore: false };
+        },
+        initialPageParam: null,
+        getNextPageParam: (LastPage) => (LastPage.hasMore ? LastPage.nextCursor : undefined),
+        enabled: !!activeChat?.roomId,
+    });
+
+    // Refetch call logs when a new call ends in this room
+    useEffect(() => {
+        if (!latestCallLog || !activeChat?.roomId) return;
+        if (latestCallLog.roomId === activeChat.roomId) {
+            queryClient.invalidateQueries({ queryKey: ["callLogs", activeChat.roomId] });
+        }
+    }, [latestCallLog, activeChat?.roomId, queryClient]);
+
+    useEffect(() => {
+        if (callLogsError) {
+            console.error("[CallLogs] Error:", callLogsError);
+        }
+    }, [callLogsError]);
+
+    const callLogs = useMemo(
+        () =>
+            callLogsData?.pages
+                ?.slice()
+                .reverse()
+                .flatMap((page) => page.callLogs ?? []) ?? [],
+        [callLogsData],
+    );
+
+    const messages = useMemo(
+        () =>
+            data?.pages
+                ?.slice()
+                .reverse()
+                .flatMap((page) => page.messages ?? []) ?? [],
+        [data],
+    );
 
     // Infinite scroll handler
     const handleScroll = async () => {
@@ -368,7 +411,7 @@ const ChatWindow = () => {
         const el = containerRef.current;
         if (!el) return;
 
-        if (isInitialLoad.current && messages.length > 0) {
+        if (isInitialLoad.current && (messages.length > 0 || callLogs.length > 0)) {
             // Initial load: scroll to bottom instantly
             bottomRef.current?.scrollIntoView();
             isInitialLoad.current = false;
@@ -379,7 +422,7 @@ const ChatWindow = () => {
         if (isNearBottom) {
             bottomRef.current?.scrollIntoView({ behavior: "smooth" });
         }
-    }, [messages, typing]);
+    }, [messages, callLogs, typing]);
 
     const autoResize = () => {
         const el = textareaRef.current;
@@ -493,6 +536,14 @@ const ChatWindow = () => {
         }
     }, [onlineUsers, activeChat]);
 
+    const handleRedial = (call: any) => {
+        if (!activeChat) return;
+        // For 1:1 chats, start call with the other chat participant
+        if (activeChat.type !== "group" && activeChat.user) {
+            startCall(activeChat.user, activeChat.roomId, call.kind || "audio");
+        }
+    };
+
     return (
         <section className="w-full h-full overflow-auto flex flex-col relative">
             {/* Header */}
@@ -542,6 +593,21 @@ const ChatWindow = () => {
                                 {isUserOnline ? "online" : "offline"}
                             </p>
                         </div>
+                        <button
+                            onClick={() => startCall(activeChat.user, activeChat.roomId)}
+                            disabled={!isUserOnline || isCallActive}
+                            aria-label="Start voice call"
+                            title={
+                                !isUserOnline
+                                    ? "User is offline"
+                                    : isCallActive
+                                      ? "A call is already in progress"
+                                      : "Start voice call"
+                            }
+                            className="ml-auto mr-2 p-2 rounded-full text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                        >
+                            <Phone size={20} />
+                        </button>
                     </div>
                 )
             ) : (
@@ -569,23 +635,16 @@ const ChatWindow = () => {
                     </div>
                 )}
 
-                {!isLoading && messages.length === 0 ? (
+                {!isLoading && messages.length === 0 && callLogs.length === 0 ? (
                     <div className="w-full h-full centered text-gray-500">No messages yet. Start the conversation!</div>
                 ) : (
-                    messages.map((msg: Message, index: number) => {
-                        const prevMsg = messages[index - 1];
-                        const showAvatar = !prevMsg || prevMsg.senderId?._id !== msg.senderId?._id;
-                        return (
-                            <div key={msg._id}>
-                                <MessageBox
-                                    message={msg}
-                                    align={msg?.senderId?._id === user.id ? "right" : "left"}
-                                    onEditMessage={handleStartEditMessage}
-                                    showAvatar={showAvatar}
-                                />
-                            </div>
-                        );
-                    })
+                    <ChatTimeline
+                        messages={messages}
+                        callLogs={callLogs}
+                        user={user}
+                        onEditMessage={handleStartEditMessage}
+                        onRedial={handleRedial}
+                    />
                 )}
                 <TypingIndicator users={typing} show={typing.length !== 0} />
                 <div ref={bottomRef}></div>
@@ -630,7 +689,7 @@ const ChatWindow = () => {
                         <VoiceRecorder
                             onRecordingComplete={handleVoiceComplete}
                             onRecordingStateChange={setIsRecording}
-                            disabled={fileuploudMutation.isPending}
+                            disabled={fileuploudMutation.isPending || callState !== "idle"}
                         />
                     )}
 
@@ -647,6 +706,90 @@ const ChatWindow = () => {
                 </div>
             </div>
         </section>
+    );
+};
+
+// Merges chat messages and call logs in chronological order (oldest -> newest)
+const ChatTimeline = ({
+    messages,
+    callLogs,
+    user,
+    onEditMessage,
+    onRedial,
+}: {
+    messages: any[];
+    callLogs: any[];
+    user: any;
+    onEditMessage: (msg: any) => void;
+    onRedial: (call: any) => void;
+}) => {
+    const combined = useMemo(() => {
+        const items: Array<{
+            type: "message" | "call";
+            key: string;
+            createdAt: number;
+            data: any;
+        }> = [];
+
+        for (const msg of messages) {
+            const createdAt = new Date(msg.createdAt || msg.updatedAt || 0).getTime();
+            items.push({
+                type: "message",
+                key: `msg-${msg._id}`,
+                createdAt,
+                data: msg,
+            });
+        }
+
+        for (const call of callLogs) {
+            const createdAt = new Date(call.endedAt || call.createdAt || call.startedAt || 0).getTime();
+            const key = call._id || call.callId ? `call-${call._id || call.callId}` : `call-${createdAt}`;
+            // avoid duplicates if same call log somehow appears twice
+            if (!items.some((i) => i.key === key)) {
+                items.push({
+                    type: "call",
+                    key,
+                    createdAt,
+                    data: call,
+                });
+            }
+        }
+
+        items.sort((a, b) => a.createdAt - b.createdAt);
+        return items;
+    }, [messages, callLogs]);
+
+    return (
+        <>
+            {combined.map((item, index) => {
+                if (item.type === "call") {
+                    const call = item.data;
+                    const myId = user?.id || user?._id;
+                    const callerId =
+                        typeof call.callerId === "string" ? call.callerId : call.callerId?._id;
+                    const align = callerId && myId && callerId === myId ? "right" : "left";
+                    return <ChatLogMessage key={item.key} call={call} onRedial={onRedial} align={align} />;
+                }
+
+                const msg = item.data;
+                const prev = combined[index - 1];
+                const showAvatar =
+                    !prev ||
+                    prev.type !== "message" ||
+                    prev.data.senderId?._id !== msg.senderId?._id;
+
+                return (
+                    <div key={item.key}>
+                        <MessageBox
+                            message={msg}
+                            align={msg?.senderId?._id === user.id ? "right" : "left"}
+                            onEditMessage={onEditMessage}
+                            showAvatar={showAvatar}
+                        />
+                    </div>
+                );
+            })}
+        </>
     );
 };
 
