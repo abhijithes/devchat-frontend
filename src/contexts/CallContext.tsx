@@ -310,6 +310,47 @@ const CallProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  // Play the caller's own mic back to them so they can hear themselves. This is
+  // used for outgoing calls; incoming calls already receive the remote stream on
+  // the same element via playRemoteAudio.
+  const playLocalAudio = useCallback((stream: MediaStream) => {
+    const element = audioRef.current;
+    if (!element) return;
+
+    // Stop whatever is currently playing before switching to a new source so the
+    // previous track (e.g. the remote stream) doesn't keep bleeding through.
+    element.pause();
+    element.srcObject = stream;
+    element.play().catch(() => {
+      // Autoplay can be blocked until the user interacts with the page.
+      // The call overlay/TS feedback stands on its own.
+    });
+  }, []);
+
+  // Route the local mic back to the caller's own <audio> element while the call
+  // is active, so they can always hear themselves. Incoming calls get the remote
+  // stream on the same element via playRemoteAudio.
+  useEffect(() => {
+    const element = audioRef.current;
+    if (!element || !localStreamRef.current) return;
+
+    // Only route local audio while the call is actually ongoing (active or
+    // ringing/calling); avoid late-stale streams when the call ends.
+    if (stateRef.current !== "active" && stateRef.current !== "ringing" && stateRef.current !== "calling") {
+      return;
+    }
+
+    element.srcObject = localStreamRef.current;
+    element.play().catch(() => {
+      // Autoplay gating; the overlay still shows guidance to the user.
+    });
+
+    return () => {
+      element.pause();
+      element.srcObject = null;
+    };
+  }, []);
+
   const wirePeerConnection = useCallback(
     (pc: RTCPeerConnection, activeCallId: string) => {
       pc.onicecandidate = (event) => {
@@ -331,6 +372,12 @@ const CallProvider = ({ children }: { children: ReactNode }) => {
         if (inbound) {
           remoteStreamRef.current = inbound;
           setRemoteStream(inbound);
+
+          // Remote track arrived: the call is now live. Route the local mic back
+          // to the caller (they hear themselves) and start the remote stream.
+          if (localStreamRef.current) {
+            playLocalAudio(localStreamRef.current);
+          }
           playRemoteAudio(inbound);
           return;
         }
