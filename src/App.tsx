@@ -21,6 +21,8 @@ import ChatWindow from "./pages/chats-window/ChatWindow";
 import SelectChat from "./pages/SelectChat";
 import { UsersInChatProvider } from "./contexts/chatListContext";
 import PersonalTasksContextProvider from "./contexts/PersonalTasksContext";
+import { CallProvider } from "./contexts/CallContext";
+import CallOverlay from "./components/call/CallOverlay";
 
 const App: React.FC = () => {
   return (
@@ -28,38 +30,44 @@ const App: React.FC = () => {
       <SnackBarContextProvider>
         <UsersInChatProvider>
           <SocketBaseProvider>
-            <PersonalTasksContextProvider>
-              <Routes>
-                <Route path="/" element={<Start />} />
-                <Route element={<AppLayout />}>
-                  <Route path="/login" element={<Login />} />
-                  {/* Task Layout :- All routes under Task Manager */}
-                  <Route element={<TaskLayout />}>
-                    <Route
-                      path="/select-project"
-                      element={<NoProjectSelected />}
-                    />
-                    <Route path="/project/:id" element={<Viewproject />} />
-                    {/* <Route path="/addProject" element={<AddProject />} /> */}
-                    <Route path="/profile" element={<UserProfile />} />
-                    <Route
-                      path="/viewprofile/:id"
-                      element={<Viewprofile />}
-                    ></Route>
-                    <Route
-                      path="/project/:projectId/viewtickets"
-                      element={<ViewTickets />}
-                    />
-                    <Route path="/settings" element={<UserSettingsPage />} />
+            <CallProvider>
+              <CallOverlay />
+              <PersonalTasksContextProvider>
+                <Routes>
+                  <Route path="/" element={<Start />} />
+                  <Route element={<AppLayout />}>
+                    <Route path="/login" element={<Login />} />
+                    {/* Task Layout :- All routes under Task Manager */}
+                    <Route element={<TaskLayout />}>
+                      <Route
+                        path="/select-project"
+                        element={<NoProjectSelected />}
+                      />
+                      <Route path="/project/:id" element={<Viewproject />} />
+                      {/* <Route path="/addProject" element={<AddProject />} /> */}
+                      <Route path="/profile" element={<UserProfile />} />
+                      <Route
+                        path="/viewprofile/:id"
+                        element={<Viewprofile />}
+                      ></Route>
+                      <Route
+                        path="/project/:projectId/viewtickets"
+                        element={<ViewTickets />}
+                      />
+                      <Route
+                        path="/settings"
+                        element={<UserSettingsPage />}
+                      />
+                    </Route>
+                    {/* Chat Layout :- All routes under Chat Section */}
+                    <Route element={<ChatLayout />}>
+                      <Route path="/chat" element={<SelectChat />} />
+                      <Route path="/chat/:id" element={<ChatWindow />} />
+                    </Route>
                   </Route>
-                  {/* Chat Layout :- All routes under Chat Section */}
-                  <Route element={<ChatLayout />}>
-                    <Route path="/chat" element={<SelectChat />} />
-                    <Route path="/chat/:id" element={<ChatWindow />} />
-                  </Route>
-                </Route>
-              </Routes>
-            </PersonalTasksContextProvider>
+                </Routes>
+              </PersonalTasksContextProvider>
+            </CallProvider>
           </SocketBaseProvider>
         </UsersInChatProvider>
       </SnackBarContextProvider>

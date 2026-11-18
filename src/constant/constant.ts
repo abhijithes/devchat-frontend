@@ -73,6 +73,14 @@ export const endpoints = {
     deleteMessage: (id) => `${current_url}/message/delete/${id}`,
     markAsRead: `${current_url}/message/markasread`,
 
+    // call endpoints
+    getIceServers: `${current_url}/call/ice-servers`,
+    createCallLog: `${current_url}/call/call-log`,
+    getCallLogsByRoom: (roomId: string, cursor?: string) =>
+        `${current_url}/call/call-log/${roomId}?cursor=${cursor ?? ""}`,
+    getCallLogsByUser: (cursor?: string) =>
+        `${current_url}/call/call-log/me?cursor=${cursor ?? ""}`,
+
     // AI endpoint
     aiRun: `${current_url}/ai/run`,
 
